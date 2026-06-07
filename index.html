@@ -219,11 +219,6 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
   </div>
   <div class="cnt">
     <div class="metrics" id="metrics"><div class="metric"><div class="spin"></div></div></div>
-    <!-- Bloco de leads das listas -->
-    <div id="leads-banner" style="display:none;background:var(--sf);border:.5px solid var(--bd);border-radius:var(--r);padding:14px 18px;margin-bottom:20px">
-      <div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--t)">📋 Prospecção — Leads das Listas</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px" id="leads-metrics"></div>
-    </div>
     <div class="cr">
       <div class="cc"><div class="ct">Clientes por status</div><div class="cw"><canvas id="cStatus"></canvas></div></div>
       <div class="cc"><div class="ct">Carteira por corretor</div><div class="cw"><canvas id="cCorretor"></canvas></div></div>
@@ -231,10 +226,6 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
     <div class="cr">
       <div class="cc"><div class="ct">Produtos</div><div class="cw"><canvas id="cProd"></canvas></div></div>
       <div class="cc"><div class="ct">Funil Habitacional MCMV</div><div class="cw"><canvas id="cFunil"></canvas></div></div>
-    </div>
-    <div class="cr" id="leads-charts-row" style="display:none">
-      <div class="cc"><div class="ct">Conversão dos Leads (Lista Quente)</div><div class="cw"><canvas id="cLeadsQ"></canvas></div></div>
-      <div class="cc"><div class="ct">Conversão dos Leads (Lista Fria)</div><div class="cw"><canvas id="cLeadsF"></canvas></div></div>
     </div>
   </div>
 </div>
@@ -268,19 +259,13 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
             <option>Thiago</option><option>Simone</option><option>Edivan</option><option>Ketlen</option>
             <option>Bruno</option><option>Amanda</option><option>Ygor</option><option>Uembley</option>
           </select>
-          <select id="fOrigem" onchange="filterTable()">
-            <option value="">Todas as origens</option>
-            <option value="lista_quente_2025">🔥 Lista Quente</option>
-            <option value="lista_fria_2025">❄️ Lista Fria</option>
-            <option value="base">📁 Base Original</option>
-          </select>
         </div>
       </div>
       <div style="overflow-x:auto">
         <table>
           <thead><tr>
             <th>Nome</th><th>CPF</th><th>Produto</th><th>Status</th>
-            <th>Corretor</th><th>Origem</th><th class="ob">Observação</th><th>Ações</th>
+            <th>Corretor</th><th>Parceiro</th><th class="ob">Observação</th><th>Ações</th>
           </tr></thead>
           <tbody id="tbody"></tbody>
         </table>
@@ -396,21 +381,47 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
 
 <!-- MODAL CLIENTE -->
 <div class="overlay" id="modal-cliente">
-  <div class="modal">
+  <div class="modal" style="width:min(640px,100%)">
     <div class="mh"><h3 id="modal-title">Novo cliente</h3><button class="mc" onclick="closeModal()">&times;</button></div>
     <div class="mb">
+
+      <!-- Alerta de CPF duplicado -->
+      <div id="alerta-dup" style="display:none;background:#FAEEDA;border:.5px solid #854F0B;border-radius:var(--rs);padding:9px 13px;margin-bottom:10px;font-size:12px;color:#854F0B">
+        <b>⚠️ CPF já cadastrado!</b> <span id="alerta-dup-nome"></span>
+        <button onclick="irParaDuplicado()" style="margin-left:8px;background:none;border:.5px solid #854F0B;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:11px;color:#854F0B">Ver cadastro</button>
+      </div>
+
+      <!-- Seção: Dados pessoais -->
+      <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px">Dados pessoais</div>
       <div class="fg">
-        <div class="fl"><label>Nome completo *</label><input id="f-nome" type="text" placeholder="Nome do cliente"></div>
-        <div class="fl"><label>CPF</label><input id="f-cpf" type="text" placeholder="000.000.000-00"></div>
-        <div class="fl"><label>Telefone / WhatsApp</label><input id="f-tel" type="text" placeholder="(61) 9 9999-9999"></div>
+        <div class="fl"><label>Nome completo *</label><input id="f-nome" type="text" placeholder="Nome do cliente" oninput="this.value=this.value.toUpperCase()"></div>
+        <div class="fl">
+          <label>CPF</label>
+          <input id="f-cpf" type="text" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this);verificarCPFdup(this)" inputmode="numeric">
+        </div>
+        <div class="fl">
+          <label>Telefone / WhatsApp</label>
+          <input id="f-tel" type="text" placeholder="(61) 9 9999-9999" maxlength="16" oninput="mascaraTel(this)" inputmode="numeric">
+        </div>
+        <div class="fl">
+          <label>E-mail</label>
+          <input id="f-email" type="email" placeholder="cliente@email.com">
+        </div>
+      </div>
+
+      <!-- Seção: Atendimento -->
+      <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin:12px 0 7px">Atendimento</div>
+      <div class="fg">
         <div class="fl"><label>Corretor responsável</label>
           <select id="f-corretor"><option value="">Selecione</option>
-            <option>Josiel</option><option>Leilane</option><option>Manoel</option><option>Romário</option>
-            <option>Thiago</option><option>Simone</option><option>Edivan</option><option>Ketlen</option>
-            <option>Bruno</option><option>Amanda</option><option>Ygor</option><option>Uembley</option><option>Outros</option>
+            <option>PRIME</option><option>Josiel</option><option>Leilane</option><option>Manoel</option>
+            <option>Romário</option><option>Thiago</option><option>Simone</option><option>Edivan</option>
+            <option>Ketlen</option><option>Bruno</option><option>Amanda</option><option>Ygor</option>
+            <option>Uembley</option><option>Outros</option>
           </select>
         </div>
-        <div class="fl"><label>Produto *</label>
+        <div class="fl"><label>Parceiro / Indicação</label><input id="f-parceiro" type="text" placeholder="Nome do parceiro ou indicação..."></div>
+        <div class="fl"><label>Produto em negociação *</label>
           <select id="f-prod"><option value="">Selecione</option>
             <option>Habitacional MCMV</option><option>Conta Corrente</option><option>Poupança</option>
             <option>Cartão de Crédito</option><option>Consórcio</option><option>Consignado</option>
@@ -423,10 +434,28 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
             <option>Aguardando</option><option>Concluído</option><option>Reprovado</option><option>Restrição</option><option>Perdeu</option>
           </select>
         </div>
-        <div class="fl"><label>Parceiro / Indicação</label><input id="f-parceiro" type="text" placeholder="PRIME / Simone / Próprio..."></div>
-        <div class="fl"><label>Pasta / arquivo vinculado</label><input id="f-arquivo" type="text" placeholder="Habitação\NOME_CLIENTE"></div>
         <div class="fl"><label>Data de entrada</label><input id="f-dtentrada" type="date"></div>
         <div class="fl"><label>Última atualização</label><input id="f-dtupd" type="date"></div>
+      </div>
+
+      <!-- Seção: Produtos já contratados -->
+      <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin:12px 0 7px">Produtos já contratados com a Caixa</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:10px 12px;background:var(--sf2);border-radius:var(--rs);border:.5px solid var(--bd)">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="pc-hab" value="Habitacional MCMV"> Habitacional MCMV</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="pc-cc" value="Conta Corrente"> Conta Corrente</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="pc-poup" value="Poupança"> Poupança</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="pc-cart" value="Cartão de Crédito"> Cartão de Crédito</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="pc-cons" value="Consórcio"> Consórcio</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="pc-csig" value="Consignado"> Consignado</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="pc-seg" value="Seguro de Vida"> Seguro de Vida</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="pc-rpx" value="Rapidex/Amparo"> Rapidex/Amparo</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="pc-fgts" value="FGTS Aniversário"> FGTS Aniversário</label>
+      </div>
+
+      <!-- Seção: Outros -->
+      <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin:12px 0 7px">Outros</div>
+      <div class="fg">
+        <div class="fl fg full"><label>Pasta / arquivo vinculado</label><input id="f-arquivo" type="text" placeholder="Habitação\NOME_CLIENTE"></div>
       </div>
       <div class="fg full" style="margin-top:4px">
         <div class="fl"><label>Observações</label><textarea id="f-obs" placeholder="Situação atual, próximos passos..."></textarea></div>
@@ -607,132 +636,43 @@ async function loadAll() {
   renderMetrics(); renderCharts(); renderTable(); renderKanban(); loadTasks();
 }
 
-function origemLabel(origem) {
-  if (origem === 'lista_quente_2025') return '🔥 Lista Quente';
-  if (origem === 'lista_fria_2025')   return '❄️ Lista Fria';
-  if (!origem) return '📁 Base Original';
-  return origem;
-}
-
 function renderMetrics() {
-  const base = all.filter(c => !c.origem_arquivo || !['lista_quente_2025','lista_fria_2025'].includes(c.origem_arquivo));
-  const t    = base.length;
-  const con  = base.filter(c => c.status === 'Concluído').length;
-  const and  = base.filter(c => ['Em andamento','SICAQ','SIOPI','Simulação'].includes(c.status)).length;
-  const at   = base.filter(c => ['Restrição','Reprovado','Perdeu','Aguardando'].includes(c.status)).length;
-  const hab  = base.filter(c => c.produto === 'Habitacional MCMV').length;
+  const t = all.length, con = all.filter(c => c.status === 'Concluído').length;
+  const and = all.filter(c => ['Em andamento','SICAQ','SIOPI','Simulação'].includes(c.status)).length;
+  const at = all.filter(c => ['Restrição','Reprovado','Perdeu','Aguardando'].includes(c.status)).length;
+  const hab = all.filter(c => c.produto === 'Habitacional MCMV').length;
   document.getElementById('metrics').innerHTML = `
-    <div class="metric"><div class="mv">${t}</div><div class="ml">Clientes base</div></div>
+    <div class="metric"><div class="mv">${t}</div><div class="ml">Total clientes</div></div>
     <div class="metric"><div class="mv">${hab}</div><div class="ml">Habitacional MCMV</div></div>
     <div class="metric"><div class="mv" style="color:var(--green)">${con}</div><div class="ml">Concluídos</div></div>
     <div class="metric"><div class="mv" style="color:var(--blue)">${and}</div><div class="ml">Em andamento</div></div>
     <div class="metric"><div class="mv" style="color:var(--amber)">${at}</div><div class="ml">Precisam atenção</div></div>`;
-
-  // ── Bloco de leads ──────────────────────────────────────────
-  const quente = all.filter(c => c.origem_arquivo === 'lista_quente_2025');
-  const fria   = all.filter(c => c.origem_arquivo === 'lista_fria_2025');
-  const temLeads = quente.length > 0 || fria.length > 0;
-  document.getElementById('leads-banner').style.display = temLeads ? 'block' : 'none';
-  document.getElementById('leads-charts-row').style.display = temLeads ? 'grid' : 'none';
-  if (!temLeads) return;
-
-  const qAtiv  = quente.filter(c => !['Em andamento'].includes(c.status)).length;
-  const qConc  = quente.filter(c => c.status === 'Concluído').length;
-  const fAtiv  = fria.filter(c => !['Em andamento'].includes(c.status)).length;
-  const fConc  = fria.filter(c => c.status === 'Concluído').length;
-  const totalLeads = quente.length + fria.length;
-  const totalConv  = qConc + fConc;
-
-  document.getElementById('leads-metrics').innerHTML = `
-    <div class="metric" style="cursor:pointer" onclick="filtrarPorOrigem('lista_quente_2025')">
-      <div class="mv" style="color:#854F0B">${quente.length}</div>
-      <div class="ml">🔥 Lista Quente</div>
-    </div>
-    <div class="metric" style="cursor:pointer" onclick="filtrarPorOrigem('lista_fria_2025')">
-      <div class="mv" style="color:#185FA5">${fria.length}</div>
-      <div class="ml">❄️ Lista Fria</div>
-    </div>
-    <div class="metric">
-      <div class="mv" style="color:#534AB7">${totalLeads}</div>
-      <div class="ml">Total leads</div>
-    </div>
-    <div class="metric">
-      <div class="mv" style="color:#3B6D11">${qAtiv + fAtiv}</div>
-      <div class="ml">Leads em processo</div>
-    </div>
-    <div class="metric">
-      <div class="mv" style="color:#3B6D11">${totalConv}</div>
-      <div class="ml">Convertidos</div>
-    </div>`;
-
-  renderLeadsCharts(quente, fria);
-}
-
-function renderLeadsCharts(quente, fria) {
-  const destroy = id => { if (charts[id]) charts[id].destroy(); };
-  const STATUS_ORDER = ['Em andamento','Simulação','SICAQ','SIOPI','Aguardando','Concluído','Reprovado','Restrição','Perdeu'];
-  const SCOLS = ['#185FA5','#EF9F27','#378ADD','#534AB7','#888780','#3B6D11','#A32D2D','#A32D2D','#993C1D'];
-
-  function buildData(lista) {
-    return STATUS_ORDER.map(s => lista.filter(c => c.status === s).length);
-  }
-
-  destroy('lq');
-  charts.lq = new Chart(document.getElementById('cLeadsQ'), {
-    type: 'bar',
-    data: { labels: STATUS_ORDER, datasets: [{ data: buildData(quente), backgroundColor: SCOLS, borderRadius: 3 }] },
-    options: { plugins:{ legend:{display:false} }, scales:{ y:{beginAtZero:true,ticks:{stepSize:1}} }, maintainAspectRatio:false }
-  });
-
-  destroy('lf');
-  charts.lf = new Chart(document.getElementById('cLeadsF'), {
-    type: 'bar',
-    data: { labels: STATUS_ORDER, datasets: [{ data: buildData(fria), backgroundColor: SCOLS, borderRadius: 3 }] },
-    options: { plugins:{ legend:{display:false} }, scales:{ y:{beginAtZero:true,ticks:{stepSize:1}} }, maintainAspectRatio:false }
-  });
-}
-
-function filtrarPorOrigem(origem) {
-  go('clientes');
-  document.getElementById('fOrigem').value = origem;
-  filterTable();
 }
 
 function renderCharts() {
   const destroy = id => { if (charts[id]) charts[id].destroy(); };
-  // Gráficos principais usam apenas base original (excluindo leads)
-  const base = all.filter(c => !['lista_quente_2025','lista_fria_2025'].includes(c.origem_arquivo));
-  const sg = {}; base.forEach(c => { sg[c.status] = (sg[c.status] || 0) + 1; });
+  const sg = {}; all.forEach(c => { sg[c.status] = (sg[c.status] || 0) + 1; });
   const sl = Object.keys(sg), sd = Object.values(sg);
   destroy('s'); charts.s = new Chart(document.getElementById('cStatus'), {type:'doughnut',data:{labels:sl,datasets:[{data:sd,backgroundColor:COLS.slice(0,sl.length),borderWidth:0}]},options:{plugins:{legend:{position:'right',labels:{font:{size:10},padding:8}}},maintainAspectRatio:false}});
-  const cg = {}; base.forEach(c => { if (c.corretor) cg[c.corretor] = (cg[c.corretor] || 0) + 1; });
+  const cg = {}; all.forEach(c => { if (c.corretor) cg[c.corretor] = (cg[c.corretor] || 0) + 1; });
   const cl = Object.keys(cg).sort((a,b) => cg[b]-cg[a]).slice(0,9), cd = cl.map(l => cg[l]);
   destroy('c'); charts.c = new Chart(document.getElementById('cCorretor'), {type:'bar',data:{labels:cl,datasets:[{data:cd,backgroundColor:'#185FA5',borderRadius:3}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}},maintainAspectRatio:false}});
-  const pg3 = {}; base.forEach(c => { if (c.produto) pg3[c.produto] = (pg3[c.produto] || 0) + 1; });
+  const pg3 = {}; all.forEach(c => { if (c.produto) pg3[c.produto] = (pg3[c.produto] || 0) + 1; });
   const pl = Object.keys(pg3), pd = Object.values(pg3);
   destroy('p'); charts.p = new Chart(document.getElementById('cProd'), {type:'bar',data:{labels:pl,datasets:[{data:pd,backgroundColor:'#0F6E56',borderRadius:3}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}},maintainAspectRatio:false}});
   const fo = ['Simulação','SICAQ','SIOPI','Aguardando','Concluído'];
-  const fd = fo.map(s => base.filter(c => c.produto === 'Habitacional MCMV' && c.status === s).length);
+  const fd = fo.map(s => all.filter(c => c.produto === 'Habitacional MCMV' && c.status === s).length);
   destroy('f'); charts.f = new Chart(document.getElementById('cFunil'), {type:'bar',data:{labels:fo,datasets:[{data:fd,backgroundColor:['#EF9F27','#378ADD','#534AB7','#888780','#639922'],borderRadius:3}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}},maintainAspectRatio:false}});
 }
 
 function filterTable() {
-  const q  = (document.getElementById('q').value || '').toLowerCase();
+  const q = (document.getElementById('q').value || '').toLowerCase();
   const fp = document.getElementById('fProd').value;
   const fs = document.getElementById('fStatus').value;
   const fc = document.getElementById('fCorretor').value;
-  const fo = document.getElementById('fOrigem').value;
-  filtered = all.filter(c => {
-    const origemMatch = !fo
-      ? true
-      : fo === 'base'
-        ? (!c.origem_arquivo || !['lista_quente_2025','lista_fria_2025'].includes(c.origem_arquivo))
-        : c.origem_arquivo === fo;
-    return (
-      (!q || (c.nome||'').toLowerCase().includes(q) || (c.cpf||'').includes(q) || (c.corretor||'').toLowerCase().includes(q) || (c.observacoes||'').toLowerCase().includes(q)) &&
-      (!fp || c.produto === fp) && (!fs || c.status === fs) && (!fc || c.corretor === fc) && origemMatch
-    );
-  });
+  filtered = all.filter(c =>
+    (!q || (c.nome||'').toLowerCase().includes(q) || (c.cpf||'').includes(q) || (c.corretor||'').toLowerCase().includes(q) || (c.observacoes||'').toLowerCase().includes(q)) &&
+    (!fp || c.produto === fp) && (!fs || c.status === fs) && (!fc || c.corretor === fc));
   pg = 0; renderTable();
 }
 
@@ -742,10 +682,6 @@ function renderTable() {
   document.getElementById('pag-info').textContent = `${start+1}–${Math.min(start+PER,filtered.length)} de ${filtered.length}`;
   document.getElementById('pp').disabled = pg === 0;
   document.getElementById('pn').disabled = start + PER >= filtered.length;
-  const OBADGE = {
-    'lista_quente_2025': '<span class="badge b-amber" style="font-size:10px">🔥 Lista Quente</span>',
-    'lista_fria_2025':   '<span class="badge b-blue"  style="font-size:10px">❄️ Lista Fria</span>',
-  };
   document.getElementById('tbody').innerHTML = slice.length ? slice.map(c => `
     <tr>
       <td class="nm">${c.nome}</td>
@@ -753,7 +689,7 @@ function renderTable() {
       <td><span class="badge ${PBADGE[c.produto]||'b-gray'}">${c.produto||'—'}</span></td>
       <td><span class="badge ${SBADGE[c.status]||'b-gray'}">${c.status||'—'}</span></td>
       <td style="font-size:11px">${c.corretor||'—'}</td>
-      <td>${OBADGE[c.origem_arquivo] || '<span style="font-size:11px;color:var(--t3)">Base</span>'}</td>
+      <td style="font-size:11px">${c.parceiro||'—'}</td>
       <td class="ob">${(c.observacoes||'').substring(0,65)}</td>
       <td style="white-space:nowrap">
         <button class="ab" onclick="openDetail('${c.id}')">Ver</button>
@@ -789,9 +725,11 @@ async function openDetail(id) {
   const c = all.find(x => x.id === id);
   if (!c) return;
   document.getElementById('detail-title').textContent = c.nome;
+  const pc = c.produtos_contratados ? c.produtos_contratados.join(', ') : '—';
   document.getElementById('detail-info').innerHTML = [
-    ['CPF', c.cpf||'—'], ['Telefone', c.telefone||'—'],
-    ['Produto', c.produto ? `<span class="badge ${PBADGE[c.produto]||'b-gray'}">${c.produto}</span>` : '—'],
+    ['CPF', c.cpf||'—'], ['Telefone', c.telefone||'—'], ['E-mail', c.email||'—'],
+    ['Produto negociado', c.produto ? `<span class="badge ${PBADGE[c.produto]||'b-gray'}">${c.produto}</span>` : '—'],
+    ['Produtos contratados', pc],
     ['Status', c.status ? `<span class="badge ${SBADGE[c.status]||'b-gray'}">${c.status}</span>` : '—'],
     ['Corretor', c.corretor||'—'], ['Parceiro', c.parceiro||'—'],
     ['Data entrada', c.dt_entrada||'—'], ['Última atualiz.', c.dt_atualizacao||'—'],
@@ -854,36 +792,127 @@ async function loadTasks() {
   }).join('');
 }
 
-function openModal() { editId=null; document.getElementById('modal-title').textContent='Novo cliente'; clearForm(); document.getElementById('modal-cliente').classList.add('open'); }
-function closeModal() { document.getElementById('modal-cliente').classList.remove('open'); }
-function openEdit(id) {
-  editId = id; const c = all.find(x => x.id === id); if (!c) return;
-  document.getElementById('modal-title').textContent = 'Editar cliente';
-  document.getElementById('f-nome').value = c.nome||''; document.getElementById('f-cpf').value = c.cpf||'';
-  document.getElementById('f-tel').value = c.telefone||''; document.getElementById('f-corretor').value = c.corretor||'';
-  document.getElementById('f-prod').value = c.produto||''; document.getElementById('f-status').value = c.status||'Em andamento';
-  document.getElementById('f-parceiro').value = c.parceiro||''; document.getElementById('f-arquivo').value = c.arquivo_vinculado||'';
-  document.getElementById('f-obs').value = c.observacoes||''; document.getElementById('f-dtentrada').value = c.dt_entrada||'';
-  document.getElementById('f-dtupd').value = c.dt_atualizacao||'';
+// IDs dos checkboxes de produtos contratados
+const PC_IDS = ['pc-hab','pc-cc','pc-poup','pc-cart','pc-cons','pc-csig','pc-seg','pc-rpx','pc-fgts'];
+
+function openModal() {
+  editId = null;
+  document.getElementById('modal-title').textContent = 'Novo cliente';
+  document.getElementById('alerta-dup').style.display = 'none';
+  clearForm();
   document.getElementById('modal-cliente').classList.add('open');
 }
+function closeModal() { document.getElementById('modal-cliente').classList.remove('open'); }
+
+function openEdit(id) {
+  editId = id;
+  const c = all.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('modal-title').textContent = 'Editar cliente';
+  document.getElementById('alerta-dup').style.display = 'none';
+  document.getElementById('f-nome').value = c.nome||'';
+  document.getElementById('f-cpf').value = c.cpf||'';
+  document.getElementById('f-tel').value = c.telefone||'';
+  document.getElementById('f-email').value = c.email||'';
+  document.getElementById('f-corretor').value = c.corretor||'';
+  document.getElementById('f-prod').value = c.produto||'';
+  document.getElementById('f-status').value = c.status||'Em andamento';
+  document.getElementById('f-parceiro').value = c.parceiro||'';
+  document.getElementById('f-arquivo').value = c.arquivo_vinculado||'';
+  document.getElementById('f-obs').value = c.observacoes||'';
+  document.getElementById('f-dtentrada').value = c.dt_entrada||'';
+  document.getElementById('f-dtupd').value = c.dt_atualizacao||'';
+  // Marcar checkboxes de produtos contratados
+  const pc = c.produtos_contratados || [];
+  PC_IDS.forEach(pid => {
+    const el = document.getElementById(pid);
+    if (el) el.checked = pc.includes(el.value);
+  });
+  document.getElementById('modal-cliente').classList.add('open');
+}
+
 function editCurrent() { if (detailId) openEdit(detailId); }
+
 function clearForm() {
-  ['f-nome','f-cpf','f-tel','f-parceiro','f-arquivo','f-obs','f-dtentrada','f-dtupd'].forEach(i => document.getElementById(i).value='');
-  document.getElementById('f-corretor').value=''; document.getElementById('f-prod').value=''; document.getElementById('f-status').value='Em andamento';
+  ['f-nome','f-cpf','f-tel','f-email','f-parceiro','f-arquivo','f-obs','f-dtentrada','f-dtupd']
+    .forEach(i => { const el=document.getElementById(i); if(el) el.value=''; });
+  document.getElementById('f-corretor').value = '';
+  document.getElementById('f-prod').value = '';
+  document.getElementById('f-status').value = 'Em andamento';
+  PC_IDS.forEach(pid => { const el=document.getElementById(pid); if(el) el.checked=false; });
+}
+
+// Verificação de CPF duplicado em tempo real
+let dupId = null;
+function verificarCPFdup(input) {
+  const digitos = input.value.replace(/\D/g,'');
+  const alerta = document.getElementById('alerta-dup');
+  if (digitos.length !== 11) { alerta.style.display='none'; dupId=null; return; }
+  const cpfFmt = digitos.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  const dup = all.find(c => c.cpf === cpfFmt && c.id !== editId);
+  if (dup) {
+    dupId = dup.id;
+    document.getElementById('alerta-dup-nome').textContent = `O cliente "${dup.nome}" já possui este CPF.`;
+    alerta.style.display = 'block';
+  } else {
+    dupId = null;
+    alerta.style.display = 'none';
+  }
+}
+
+function irParaDuplicado() {
+  if (!dupId) return;
+  closeModal();
+  openDetail(dupId);
 }
 
 async function saveCliente() {
   const nome = document.getElementById('f-nome').value.trim();
   if (!nome) { toast('Informe o nome do cliente'); return; }
-  const pay = {nome, cpf:document.getElementById('f-cpf').value||null, telefone:document.getElementById('f-tel').value||null,
-    produto:document.getElementById('f-prod').value||null, status:document.getElementById('f-status').value,
-    corretor:document.getElementById('f-corretor').value||null, parceiro:document.getElementById('f-parceiro').value||null,
-    arquivo_vinculado:document.getElementById('f-arquivo').value||null, observacoes:document.getElementById('f-obs').value||null,
-    dt_entrada:document.getElementById('f-dtentrada').value||null, dt_atualizacao:document.getElementById('f-dtupd').value||null};
-  const res = editId ? await sb.from('clientes').update(pay).eq('id', editId) : await sb.from('clientes').insert(pay);
+
+  // Validar CPF
+  const cpfRaw = document.getElementById('f-cpf').value.trim();
+  if (cpfRaw) {
+    const digitos = cpfRaw.replace(/\D/g,'');
+    if (digitos.length !== 11) { toast('CPF inválido — deve ter 11 dígitos'); return; }
+    const cpfFmt = digitos.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    const dup = all.find(c => c.cpf === cpfFmt && c.id !== editId);
+    if (dup) { toast(`CPF já cadastrado: ${dup.nome}`, 4000); return; }
+  }
+
+  // Validar e-mail
+  const emailRaw = document.getElementById('f-email').value.trim().toLowerCase();
+  if (emailRaw && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailRaw)) {
+    toast('E-mail inválido'); return;
+  }
+
+  // Coletar produtos contratados
+  const produtosContratados = PC_IDS
+    .map(pid => document.getElementById(pid))
+    .filter(el => el && el.checked)
+    .map(el => el.value);
+
+  const pay = {
+    nome,
+    cpf: cpfRaw || null,
+    telefone: document.getElementById('f-tel').value || null,
+    email: emailRaw || null,
+    produto: document.getElementById('f-prod').value || null,
+    status: document.getElementById('f-status').value,
+    corretor: document.getElementById('f-corretor').value || null,
+    parceiro: document.getElementById('f-parceiro').value || null,
+    arquivo_vinculado: document.getElementById('f-arquivo').value || null,
+    observacoes: document.getElementById('f-obs').value || null,
+    dt_entrada: document.getElementById('f-dtentrada').value || null,
+    dt_atualizacao: document.getElementById('f-dtupd').value || null,
+    produtos_contratados: produtosContratados.length ? produtosContratados : null
+  };
+  const res = editId
+    ? await sb.from('clientes').update(pay).eq('id', editId)
+    : await sb.from('clientes').insert(pay);
   if (res.error) { toast('Erro: ' + res.error.message, 3000); return; }
-  toast(editId ? 'Cliente atualizado!' : 'Cliente cadastrado!'); closeModal(); loadAll();
+  toast(editId ? 'Cliente atualizado!' : 'Cliente cadastrado!');
+  closeModal(); loadAll();
 }
 
 async function delC(id) {
@@ -1047,6 +1076,27 @@ async function salvarSenha() {
   usuarioAtual.senha_hash = novoHash;
   toast('Senha alterada com sucesso!');
   ['s-atual','s-nova','s-conf'].forEach(i => document.getElementById(i).value = '');
+}
+
+// ── MÁSCARAS DE ENTRADA ──────────────────────────────────────
+function mascaraCPF(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,11);
+  if (v.length > 9)      v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
+  else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3');
+  else if (v.length > 3) v = v.replace(/(\d{3})(\d{0,3})/, '$1.$2');
+  input.value = v;
+  const d = v.replace(/\D/g,'');
+  input.style.borderColor = d.length === 11 ? 'var(--green)' : (d.length > 0 ? 'var(--amber)' : '');
+}
+
+function mascaraTel(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,11);
+  if (v.length === 11)      v = v.replace(/(\d{2})(\d{1})(\d{4})(\d{4})/, '($1) $2 $3-$4');
+  else if (v.length === 10) v = v.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+  else if (v.length > 6)    v = v.replace(/(\d{2})(\d+)/, '($1) $2');
+  else if (v.length > 2)    v = v.replace(/(\d{2})(\d*)/, '($1) $2');
+  else if (v.length > 0)    v = '(' + v;
+  input.value = v;
 }
 
 let tTimer;

@@ -234,7 +234,10 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
 <div id="page-clientes" class="page" style="display:none;flex-direction:column">
   <div class="hdr">
     <div class="hdr-title">Clientes</div>
-    <div class="hdr-acts"><button class="btn p" onclick="openModal()"><i class="ti ti-plus"></i> Novo cliente</button></div>
+    <div class="hdr-acts">
+      <button class="btn" onclick="exportarCSV()"><i class="ti ti-download"></i> Exportar CSV</button>
+      <button class="btn p" onclick="openModal()"><i class="ti ti-plus"></i> Novo cliente</button>
+    </div>
   </div>
   <div class="cnt">
     <div class="tc">
@@ -244,7 +247,7 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
           <input type="text" id="q" placeholder="Buscar nome, CPF..." oninput="filterTable()">
           <select id="fProd" onchange="filterTable()">
             <option value="">Todos os produtos</option>
-            <option>Habitacional MCMV</option><option>Conta Corrente</option><option>Poupança</option>
+            <option>Habitacional MCMV</option><option>Habitacional SBPE</option><option>Conta Corrente</option><option>Poupança</option>
             <option>Cartão de Crédito</option><option>Consórcio</option><option>Consignado</option>
             <option>Seguro de Vida</option><option>Rapidex/Amparo</option><option>Múltiplo</option>
           </select>
@@ -381,49 +384,23 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
 
 <!-- MODAL CLIENTE -->
 <div class="overlay" id="modal-cliente">
-  <div class="modal" style="width:min(640px,100%)">
+  <div class="modal">
     <div class="mh"><h3 id="modal-title">Novo cliente</h3><button class="mc" onclick="closeModal()">&times;</button></div>
     <div class="mb">
-
-      <!-- Alerta de CPF duplicado -->
-      <div id="alerta-dup" style="display:none;background:#FAEEDA;border:.5px solid #854F0B;border-radius:var(--rs);padding:9px 13px;margin-bottom:10px;font-size:12px;color:#854F0B">
-        <b>⚠️ CPF já cadastrado!</b> <span id="alerta-dup-nome"></span>
-        <button onclick="irParaDuplicado()" style="margin-left:8px;background:none;border:.5px solid #854F0B;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:11px;color:#854F0B">Ver cadastro</button>
-      </div>
-
-      <!-- Seção: Dados pessoais -->
-      <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px">Dados pessoais</div>
       <div class="fg">
-        <div class="fl"><label>Nome completo *</label><input id="f-nome" type="text" placeholder="Nome do cliente" oninput="this.value=this.value.toUpperCase()"></div>
-        <div class="fl">
-          <label>CPF</label>
-          <input id="f-cpf" type="text" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this);verificarCPFdup(this)" inputmode="numeric">
-        </div>
-        <div class="fl">
-          <label>Telefone / WhatsApp</label>
-          <input id="f-tel" type="text" placeholder="(61) 9 9999-9999" maxlength="16" oninput="mascaraTel(this)" inputmode="numeric">
-        </div>
-        <div class="fl">
-          <label>E-mail</label>
-          <input id="f-email" type="email" placeholder="cliente@email.com">
-        </div>
-      </div>
-
-      <!-- Seção: Atendimento -->
-      <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin:12px 0 7px">Atendimento</div>
-      <div class="fg">
+        <div class="fl"><label>Nome completo *</label><input id="f-nome" type="text" placeholder="Nome do cliente"></div>
+        <div class="fl"><label>CPF</label><input id="f-cpf" type="text" placeholder="000.000.000-00"></div>
+        <div class="fl"><label>Telefone / WhatsApp</label><input id="f-tel" type="text" placeholder="(61) 9 9999-9999"></div>
         <div class="fl"><label>Corretor responsável</label>
           <select id="f-corretor"><option value="">Selecione</option>
-            <option>PRIME</option><option>Josiel</option><option>Leilane</option><option>Manoel</option>
-            <option>Romário</option><option>Thiago</option><option>Simone</option><option>Edivan</option>
-            <option>Ketlen</option><option>Bruno</option><option>Amanda</option><option>Ygor</option>
-            <option>Uembley</option><option>Outros</option>
+            <option>Josiel</option><option>Leilane</option><option>Manoel</option><option>Romário</option>
+            <option>Thiago</option><option>Simone</option><option>Edivan</option><option>Ketlen</option>
+            <option>Bruno</option><option>Amanda</option><option>Ygor</option><option>Uembley</option><option>Outros</option>
           </select>
         </div>
-        <div class="fl"><label>Parceiro / Indicação</label><input id="f-parceiro" type="text" placeholder="Nome do parceiro ou indicação..."></div>
-        <div class="fl"><label>Produto em negociação *</label>
+        <div class="fl"><label>Produto *</label>
           <select id="f-prod"><option value="">Selecione</option>
-            <option>Habitacional MCMV</option><option>Conta Corrente</option><option>Poupança</option>
+            <option>Habitacional MCMV</option><option>Habitacional SBPE</option><option>Conta Corrente</option><option>Poupança</option>
             <option>Cartão de Crédito</option><option>Consórcio</option><option>Consignado</option>
             <option>Seguro de Vida</option><option>Rapidex/Amparo</option><option>Múltiplo</option>
           </select>
@@ -434,31 +411,15 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
             <option>Aguardando</option><option>Concluído</option><option>Reprovado</option><option>Restrição</option><option>Perdeu</option>
           </select>
         </div>
-        <div class="fl"><label>Data de entrada</label><input id="f-dtentrada" type="date"></div>
-        <div class="fl"><label>Última atualização</label><input id="f-dtupd" type="date"></div>
-      </div>
-
-      <!-- Seção: Produtos já contratados -->
-      <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin:12px 0 7px">Produtos já contratados com a Caixa</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:10px 12px;background:var(--sf2);border-radius:var(--rs);border:.5px solid var(--bd)">
-        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="pc-hab" value="Habitacional MCMV"> Habitacional MCMV</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="pc-cc" value="Conta Corrente"> Conta Corrente</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="pc-poup" value="Poupança"> Poupança</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="pc-cart" value="Cartão de Crédito"> Cartão de Crédito</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="pc-cons" value="Consórcio"> Consórcio</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="pc-csig" value="Consignado"> Consignado</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="pc-seg" value="Seguro de Vida"> Seguro de Vida</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="pc-rpx" value="Rapidex/Amparo"> Rapidex/Amparo</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="pc-fgts" value="FGTS Aniversário"> FGTS Aniversário</label>
-      </div>
-
-      <!-- Seção: Outros -->
-      <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin:12px 0 7px">Outros</div>
-      <div class="fg">
-        <div class="fl fg full"><label>Pasta / arquivo vinculado</label><input id="f-arquivo" type="text" placeholder="Habitação\NOME_CLIENTE"></div>
+        <div class="fl"><label>Parceiro / Indicação</label><input id="f-parceiro" type="text" placeholder="PRIME / Simone / Próprio..."></div>
+        <div class="fl"><label>Pasta / arquivo vinculado</label><input id="f-arquivo" type="text" placeholder="Habitação\NOME_CLIENTE"></div>
+        <div class="fl" style="grid-column:1/-1"><label>Origem / Arquivo de origem</label><input id="f-origem" type="text" placeholder="Ex: Lista Quente / clientes_prime.xlsx / Indicação Josiel..."></div>
       </div>
       <div class="fg full" style="margin-top:4px">
         <div class="fl"><label>Observações</label><textarea id="f-obs" placeholder="Situação atual, próximos passos..."></textarea></div>
+      </div>
+      <div style="margin-top:8px;padding:8px 10px;background:var(--blue-l);border-radius:var(--rs);font-size:11px;color:#0C447C">
+        <i class="ti ti-clock" style="font-size:12px"></i> <b>Datas automáticas:</b> Data de entrada é definida ao cadastrar. Data de atualização é atualizada a cada edição.
       </div>
     </div>
     <div class="mf">
@@ -545,7 +506,7 @@ let usuarioAtual = null; // { id, nome, login, role }
 let editUsuarioId = null;
 
 const SBADGE = {'Em andamento':'b-blue','Simulação':'b-amber','SICAQ':'b-blue','SIOPI':'b-purple','Aguardando':'b-amber','Concluído':'b-green','Reprovado':'b-red','Restrição':'b-red','Perdeu':'b-coral'};
-const PBADGE = {'Habitacional MCMV':'b-teal','Conta Corrente':'b-blue','Poupança':'b-blue','Cartão de Crédito':'b-purple','Consórcio':'b-amber','Consignado':'b-amber','Seguro de Vida':'b-green','Rapidex/Amparo':'b-gray','Múltiplo':'b-purple'};
+const PBADGE = {'Habitacional MCMV':'b-teal','Habitacional SBPE':'b-green','Conta Corrente':'b-blue','Poupança':'b-blue','Cartão de Crédito':'b-purple','Consórcio':'b-amber','Consignado':'b-amber','Seguro de Vida':'b-green','Rapidex/Amparo':'b-gray','Múltiplo':'b-purple'};
 const COLS = ['#185FA5','#3B6D11','#854F0B','#A32D2D','#0F6E56','#534AB7','#993C1D','#888780','#D4537E','#378ADD'];
 
 // ── Hash simples de senha (SHA-256) ─────────────────────────
@@ -725,13 +686,12 @@ async function openDetail(id) {
   const c = all.find(x => x.id === id);
   if (!c) return;
   document.getElementById('detail-title').textContent = c.nome;
-  const pc = c.produtos_contratados ? c.produtos_contratados.join(', ') : '—';
   document.getElementById('detail-info').innerHTML = [
-    ['CPF', c.cpf||'—'], ['Telefone', c.telefone||'—'], ['E-mail', c.email||'—'],
-    ['Produto negociado', c.produto ? `<span class="badge ${PBADGE[c.produto]||'b-gray'}">${c.produto}</span>` : '—'],
-    ['Produtos contratados', pc],
+    ['CPF', c.cpf||'—'], ['Telefone', c.telefone||'—'],
+    ['Produto', c.produto ? `<span class="badge ${PBADGE[c.produto]||'b-gray'}">${c.produto}</span>` : '—'],
     ['Status', c.status ? `<span class="badge ${SBADGE[c.status]||'b-gray'}">${c.status}</span>` : '—'],
     ['Corretor', c.corretor||'—'], ['Parceiro', c.parceiro||'—'],
+    ['Origem', c.origem_arquivo||'—'],
     ['Data entrada', c.dt_entrada||'—'], ['Última atualiz.', c.dt_atualizacao||'—'],
     ['Observações', c.observacoes||'—'],
   ].map(([l,v]) => `<div class="ir"><span class="il">${l}</span><span class="iv">${v}</span></div>`).join('');
@@ -792,127 +752,39 @@ async function loadTasks() {
   }).join('');
 }
 
-// IDs dos checkboxes de produtos contratados
-const PC_IDS = ['pc-hab','pc-cc','pc-poup','pc-cart','pc-cons','pc-csig','pc-seg','pc-rpx','pc-fgts'];
-
-function openModal() {
-  editId = null;
-  document.getElementById('modal-title').textContent = 'Novo cliente';
-  document.getElementById('alerta-dup').style.display = 'none';
-  clearForm();
-  document.getElementById('modal-cliente').classList.add('open');
-}
+function openModal() { editId=null; document.getElementById('modal-title').textContent='Novo cliente'; clearForm(); document.getElementById('modal-cliente').classList.add('open'); }
 function closeModal() { document.getElementById('modal-cliente').classList.remove('open'); }
-
 function openEdit(id) {
-  editId = id;
-  const c = all.find(x => x.id === id);
-  if (!c) return;
+  editId = id; const c = all.find(x => x.id === id); if (!c) return;
   document.getElementById('modal-title').textContent = 'Editar cliente';
-  document.getElementById('alerta-dup').style.display = 'none';
-  document.getElementById('f-nome').value = c.nome||'';
-  document.getElementById('f-cpf').value = c.cpf||'';
-  document.getElementById('f-tel').value = c.telefone||'';
-  document.getElementById('f-email').value = c.email||'';
-  document.getElementById('f-corretor').value = c.corretor||'';
-  document.getElementById('f-prod').value = c.produto||'';
-  document.getElementById('f-status').value = c.status||'Em andamento';
-  document.getElementById('f-parceiro').value = c.parceiro||'';
-  document.getElementById('f-arquivo').value = c.arquivo_vinculado||'';
-  document.getElementById('f-obs').value = c.observacoes||'';
-  document.getElementById('f-dtentrada').value = c.dt_entrada||'';
-  document.getElementById('f-dtupd').value = c.dt_atualizacao||'';
-  // Marcar checkboxes de produtos contratados
-  const pc = c.produtos_contratados || [];
-  PC_IDS.forEach(pid => {
-    const el = document.getElementById(pid);
-    if (el) el.checked = pc.includes(el.value);
-  });
+  document.getElementById('f-nome').value = c.nome||''; document.getElementById('f-cpf').value = c.cpf||'';
+  document.getElementById('f-tel').value = c.telefone||''; document.getElementById('f-corretor').value = c.corretor||'';
+  document.getElementById('f-prod').value = c.produto||''; document.getElementById('f-status').value = c.status||'Em andamento';
+  document.getElementById('f-parceiro').value = c.parceiro||''; document.getElementById('f-arquivo').value = c.arquivo_vinculado||'';
+  document.getElementById('f-obs').value = c.observacoes||''; document.getElementById('f-origem').value = c.origem_arquivo||'';
   document.getElementById('modal-cliente').classList.add('open');
 }
-
 function editCurrent() { if (detailId) openEdit(detailId); }
-
 function clearForm() {
-  ['f-nome','f-cpf','f-tel','f-email','f-parceiro','f-arquivo','f-obs','f-dtentrada','f-dtupd']
-    .forEach(i => { const el=document.getElementById(i); if(el) el.value=''; });
-  document.getElementById('f-corretor').value = '';
-  document.getElementById('f-prod').value = '';
-  document.getElementById('f-status').value = 'Em andamento';
-  PC_IDS.forEach(pid => { const el=document.getElementById(pid); if(el) el.checked=false; });
-}
-
-// Verificação de CPF duplicado em tempo real
-let dupId = null;
-function verificarCPFdup(input) {
-  const digitos = input.value.replace(/\D/g,'');
-  const alerta = document.getElementById('alerta-dup');
-  if (digitos.length !== 11) { alerta.style.display='none'; dupId=null; return; }
-  const cpfFmt = digitos.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-  const dup = all.find(c => c.cpf === cpfFmt && c.id !== editId);
-  if (dup) {
-    dupId = dup.id;
-    document.getElementById('alerta-dup-nome').textContent = `O cliente "${dup.nome}" já possui este CPF.`;
-    alerta.style.display = 'block';
-  } else {
-    dupId = null;
-    alerta.style.display = 'none';
-  }
-}
-
-function irParaDuplicado() {
-  if (!dupId) return;
-  closeModal();
-  openDetail(dupId);
+  ['f-nome','f-cpf','f-tel','f-parceiro','f-arquivo','f-obs','f-origem'].forEach(i => document.getElementById(i).value='');
+  document.getElementById('f-corretor').value=''; document.getElementById('f-prod').value=''; document.getElementById('f-status').value='Em andamento';
 }
 
 async function saveCliente() {
   const nome = document.getElementById('f-nome').value.trim();
   if (!nome) { toast('Informe o nome do cliente'); return; }
-
-  // Validar CPF
-  const cpfRaw = document.getElementById('f-cpf').value.trim();
-  if (cpfRaw) {
-    const digitos = cpfRaw.replace(/\D/g,'');
-    if (digitos.length !== 11) { toast('CPF inválido — deve ter 11 dígitos'); return; }
-    const cpfFmt = digitos.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-    const dup = all.find(c => c.cpf === cpfFmt && c.id !== editId);
-    if (dup) { toast(`CPF já cadastrado: ${dup.nome}`, 4000); return; }
-  }
-
-  // Validar e-mail
-  const emailRaw = document.getElementById('f-email').value.trim().toLowerCase();
-  if (emailRaw && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailRaw)) {
-    toast('E-mail inválido'); return;
-  }
-
-  // Coletar produtos contratados
-  const produtosContratados = PC_IDS
-    .map(pid => document.getElementById(pid))
-    .filter(el => el && el.checked)
-    .map(el => el.value);
-
-  const pay = {
-    nome,
-    cpf: cpfRaw || null,
-    telefone: document.getElementById('f-tel').value || null,
-    email: emailRaw || null,
-    produto: document.getElementById('f-prod').value || null,
-    status: document.getElementById('f-status').value,
-    corretor: document.getElementById('f-corretor').value || null,
-    parceiro: document.getElementById('f-parceiro').value || null,
-    arquivo_vinculado: document.getElementById('f-arquivo').value || null,
-    observacoes: document.getElementById('f-obs').value || null,
-    dt_entrada: document.getElementById('f-dtentrada').value || null,
-    dt_atualizacao: document.getElementById('f-dtupd').value || null,
-    produtos_contratados: produtosContratados.length ? produtosContratados : null
-  };
-  const res = editId
-    ? await sb.from('clientes').update(pay).eq('id', editId)
-    : await sb.from('clientes').insert(pay);
+  const hoje = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  const pay = {nome, cpf:document.getElementById('f-cpf').value||null, telefone:document.getElementById('f-tel').value||null,
+    produto:document.getElementById('f-prod').value||null, status:document.getElementById('f-status').value,
+    corretor:document.getElementById('f-corretor').value||null, parceiro:document.getElementById('f-parceiro').value||null,
+    arquivo_vinculado:document.getElementById('f-arquivo').value||null, observacoes:document.getElementById('f-obs').value||null,
+    origem_arquivo:document.getElementById('f-origem').value||null,
+    dt_atualizacao: hoje};
+  // dt_entrada só é definida na criação
+  if (!editId) pay.dt_entrada = hoje;
+  const res = editId ? await sb.from('clientes').update(pay).eq('id', editId) : await sb.from('clientes').insert(pay);
   if (res.error) { toast('Erro: ' + res.error.message, 3000); return; }
-  toast(editId ? 'Cliente atualizado!' : 'Cliente cadastrado!');
-  closeModal(); loadAll();
+  toast(editId ? 'Cliente atualizado!' : 'Cliente cadastrado!'); closeModal(); loadAll();
 }
 
 async function delC(id) {
@@ -951,6 +823,23 @@ async function saveTask() {
 async function doneTask(id) {
   await sb.from('tarefas').update({concluida:true}).eq('id', id);
   toast('Tarefa concluída!'); loadTasks(); if (detailId) loadDetailTasks(detailId);
+}
+
+// ── EXPORTAR CSV ──────────────────────────────────────────────
+function exportarCSV() {
+  if (!filtered.length) { toast('Nenhum dado para exportar'); return; }
+  const cols = ['nome','cpf','telefone','produto','status','corretor','parceiro','origem_arquivo','observacoes','dt_entrada','dt_atualizacao'];
+  const labels = ['Nome','CPF','Telefone','Produto','Status','Corretor','Parceiro','Origem','Observações','Dt Entrada','Dt Atualização'];
+  const esc = v => v == null ? '' : '"' + String(v).replace(/"/g,'""') + '"';
+  const linhas = [labels.join(';'), ...filtered.map(c => cols.map(k => esc(c[k])).join(';'))];
+  const blob = new Blob(['\uFEFF' + linhas.join('\r\n')], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url;
+  const ts = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
+  const filtro = document.getElementById('fProd').value || document.getElementById('fStatus').value || 'todos';
+  a.download = `clientes_prime_${filtro}_${ts}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+  toast(`${filtered.length} clientes exportados!`);
 }
 
 // ── GESTÃO DE EQUIPE ─────────────────────────────────────────
@@ -1076,27 +965,6 @@ async function salvarSenha() {
   usuarioAtual.senha_hash = novoHash;
   toast('Senha alterada com sucesso!');
   ['s-atual','s-nova','s-conf'].forEach(i => document.getElementById(i).value = '');
-}
-
-// ── MÁSCARAS DE ENTRADA ──────────────────────────────────────
-function mascaraCPF(input) {
-  let v = input.value.replace(/\D/g,'').substring(0,11);
-  if (v.length > 9)      v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
-  else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3');
-  else if (v.length > 3) v = v.replace(/(\d{3})(\d{0,3})/, '$1.$2');
-  input.value = v;
-  const d = v.replace(/\D/g,'');
-  input.style.borderColor = d.length === 11 ? 'var(--green)' : (d.length > 0 ? 'var(--amber)' : '');
-}
-
-function mascaraTel(input) {
-  let v = input.value.replace(/\D/g,'').substring(0,11);
-  if (v.length === 11)      v = v.replace(/(\d{2})(\d{1})(\d{4})(\d{4})/, '($1) $2 $3-$4');
-  else if (v.length === 10) v = v.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-  else if (v.length > 6)    v = v.replace(/(\d{2})(\d+)/, '($1) $2');
-  else if (v.length > 2)    v = v.replace(/(\d{2})(\d*)/, '($1) $2');
-  else if (v.length > 0)    v = '(' + v;
-  input.value = v;
 }
 
 let tTimer;

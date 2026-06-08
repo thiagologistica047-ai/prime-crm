@@ -730,7 +730,11 @@ async function openDetail(id) {
   const c = all.find(x => x.id === id);
   if (!c) return;
   document.getElementById('detail-title').textContent = c.nome;
-  const pc = c.produtos_contratados ? c.produtos_contratados.join(', ') : '—';
+  const pcRaw2 = c.produtos_contratados;
+  const pcArr = Array.isArray(pcRaw2) ? pcRaw2 : (pcRaw2 ? pcRaw2.split(',').map(v=>v.trim()) : []);
+  const pc = pcArr.length
+    ? pcArr.map(p => `<span class="badge b-gray" style="font-size:10px;margin:1px 2px">${p}</span>`).join(' ')
+    : '—';
   document.getElementById('detail-info').innerHTML = [
     ['CPF', c.cpf||'—'], ['Telefone', c.telefone||'—'], ['E-mail', c.email||'—'],
     ['Produto negociado', c.produto ? `<span class="badge ${PBADGE[c.produto]||'b-gray'}">${c.produto}</span>` : '—'],
@@ -830,7 +834,11 @@ function openEdit(id) {
   document.getElementById('f-dtupd').value = c.dt_atualizacao||'';
   document.getElementById('f-origem').value = c.origem_arquivo||'';
   // Marcar checkboxes de produtos contratados
-  const pc = c.produtos_contratados || [];
+  // Suporta tanto array (text[]) quanto string separada por vírgula (text)
+  const pcRaw = c.produtos_contratados;
+  const pc = Array.isArray(pcRaw)
+    ? pcRaw
+    : (pcRaw ? pcRaw.split(',').map(v => v.trim()) : []);
   PC_IDS.forEach(pid => {
     const el = document.getElementById(pid);
     if (el) el.checked = pc.includes(el.value);

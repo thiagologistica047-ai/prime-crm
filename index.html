@@ -168,8 +168,8 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
       </div>
     </div>
     <div class="lf">
-      <label>Login</label>
-      <input id="l-login" type="text" placeholder="Seu login de acesso" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('l-senha').focus()">
+      <label>E-mail</label>
+      <input id="l-login" type="email" placeholder="seu@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')document.getElementById('l-senha').focus()">
     </div>
     <div class="lf">
       <label>Senha</label>
@@ -370,8 +370,7 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
   <div class="cnt">
     <div class="cfg" style="max-width:400px">
       <h2>Nova senha</h2>
-      <p>Escolha uma senha com pelo menos 6 caracteres.</p>
-      <div class="cf"><label>Senha atual</label><input id="s-atual" type="password" placeholder="••••••••"></div>
+      <p>Escolha uma senha com pelo menos 6 caracteres. Como você já está autenticado, não é necessário informar a senha atual.</p>
       <div class="cf"><label>Nova senha</label><input id="s-nova" type="password" placeholder="••••••••"></div>
       <div class="cf"><label>Confirmar nova senha</label><input id="s-conf" type="password" placeholder="••••••••"></div>
       <button class="btn p" onclick="salvarSenha()" style="width:100%;justify-content:center;padding:9px"><i class="ti ti-device-floppy"></i> Salvar nova senha</button>
@@ -521,13 +520,16 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
     <div class="mh"><h3 id="mu-title">Novo usuário</h3><button class="mc" onclick="fecharNovoUsuario()">&times;</button></div>
     <div class="mb">
       <div class="fl"><label>Nome completo *</label><input id="nu-nome" type="text" placeholder="Ex: Josiel Santos"></div>
-      <div class="fl" style="margin-top:8px"><label>Login *</label><input id="nu-login" type="text" placeholder="Ex: josiel (sem espaços)"></div>
-      <div class="fl" style="margin-top:8px"><label>Senha *</label><input id="nu-senha" type="text" placeholder="Mínimo 4 caracteres"></div>
+      <div class="fl" style="margin-top:8px"><label>E-mail *</label><input id="nu-email" type="email" placeholder="Ex: josiel@prime.com.br"></div>
+      <div class="fl" style="margin-top:8px"><label>Senha *</label><input id="nu-senha" type="password" placeholder="Mínimo 6 caracteres"></div>
       <div class="fl" style="margin-top:8px"><label>Perfil</label>
         <select id="nu-role" style="width:100%;padding:7px 9px;border:.5px solid var(--bd);border-radius:var(--rs);background:var(--sf2);color:var(--t);font-size:12px">
           <option value="usuario">Usuário — acesso normal ao CRM</option>
           <option value="gestor">Gestor — acesso total + gerenciar equipe</option>
         </select>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:var(--t2);background:var(--blue-l);padding:9px 12px;border-radius:var(--rs);line-height:1.6">
+        O e-mail será usado para fazer login. A senha pode ser alterada depois em <b>Alterar senha</b>.
       </div>
     </div>
     <div class="mf">
@@ -546,171 +548,133 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 
 let sb = null;
 let all = [], filtered = [], pg = 0, PER = 25, detailId = null, editId = null, charts = {};
-let usuarioAtual = null; // { id, nome, login, role }
+let usuarioAtual = null;
 let editUsuarioId = null;
 
 const SBADGE = {'Em andamento':'b-blue','Simulação':'b-amber','SICAQ':'b-blue','SIOPI':'b-purple','Aguardando':'b-amber','Concluído':'b-green','Reprovado':'b-red','Restrição':'b-red','Perdeu':'b-coral'};
 const PBADGE = {'Habitacional MCMV':'b-teal','Conta Corrente':'b-blue','Poupança':'b-blue','Cartão de Crédito':'b-purple','Consórcio':'b-amber','Consignado':'b-amber','Seguro de Vida':'b-green','Rapidex/Amparo':'b-gray','Múltiplo':'b-purple'};
 const COLS = ['#185FA5','#3B6D11','#854F0B','#A32D2D','#0F6E56','#534AB7','#993C1D','#888780','#D4537E','#378ADD'];
 
-// ── Hash simples de senha (SHA-256) ─────────────────────────
-async function hashSenha(txt) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(txt));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
-
 // ── Inicialização ────────────────────────────────────────────
-
+// Quando a página carrega, conecta ao Supabase e fica
+// "escutando" se o usuário já tem uma sessão salva no browser.
 window.addEventListener('load', () => {
-  inicializarSupabase()
- 
-  // Mostra login por padrão
-  // O onAuthStateChange vai redirecionar se houver sessão salva
-  mostrarLogin()
-})
- 
-function mostrarLogin() {
-  document.getElementById('page-login').style.display = 'flex'
-  document.getElementById('main-app').style.display = 'none'
-  document.getElementById('l-login').value = ''
-  document.getElementById('l-senha').value = ''
-  document.getElementById('l-err').textContent = ''
-  document.getElementById('l-btn').disabled = false
-  document.getElementById('l-btn').textContent = 'Entrar'
-}
-// ── Login ────────────────────────────────────────────────────
-
-async function doLogin() {
-  const loginInput = document.getElementById('l-login').value.trim()
-  const senhaInput = document.getElementById('l-senha').value
-  const errEl = document.getElementById('l-err')
-  const btnEl = document.getElementById('l-btn')
- 
-  if (!loginInput || !senhaInput) {
-    errEl.textContent = 'Preencha login e senha.'
-    return
-  }
- 
-  errEl.textContent = ''
-  btnEl.disabled = true
-  btnEl.textContent = 'Verificando...'
- 
-  // O Supabase Auth usa e-mail como identificador.
-  // Se o usuário digitar "josiel" (sem @), buscamos o email
-  // correspondente na tabela perfis_v2.
-  let emailParaLogin = loginInput
- 
-  if (!loginInput.includes('@')) {
-    // Login por apelido — busca o email no banco
-    const { data: perfil, error: perfilErr } = await sb
-      .from('perfis_v2')
-      .select('email_auth')   // campo novo que salva o email do Auth
-      .eq('login_apelido', loginInput)
-      .eq('ativo', true)
-      .single()
- 
-    if (perfilErr || !perfil) {
-      errEl.textContent = 'Login ou senha incorretos.'
-      btnEl.disabled = false
-      btnEl.textContent = 'Entrar'
-      return
+  sb = supabase.createClient(SB_URL, SB_KEY, {
+    auth: {
+      persistSession: true,       // mantém o usuário logado ao fechar e reabrir
+      autoRefreshToken: true,     // renova o token automaticamente
+      detectSessionInUrl: false,
+      storageKey: 'prime_crm_auth'
     }
- 
-    emailParaLogin = perfil.email_auth
-  }
- 
-  // Autenticação real pelo Supabase Auth
-  const { error } = await sb.auth.signInWithPassword({
-    email: emailParaLogin,
-    password: senhaInput
-  })
- 
-  if (error) {
-    errEl.textContent = error.message === 'Invalid login credentials'
-      ? 'Login ou senha incorretos.'
-      : 'Erro de conexão. Tente novamente.'
- 
-    btnEl.disabled = false
-    btnEl.textContent = 'Entrar'
-    return
-  }
- 
-  // Se chegou aqui, o onAuthStateChange cuida do resto
-  // (vai chamar carregarPerfilUsuario e entrarNoApp automaticamente)
+  });
+
+  // Este "ouvinte" é chamado automaticamente em 3 situações:
+  //   1. Quando o usuário faz login
+  //   2. Quando o browser é reaberto e ainda há sessão salva
+  //   3. Quando o usuário faz logout
+  sb.auth.onAuthStateChange(async (evento, sessao) => {
+    if (sessao && sessao.user) {
+      // Tem sessão válida → buscar perfil e entrar no app
+      await carregarPerfil(sessao.user.id);
+    } else {
+      // Sem sessão → mostrar tela de login
+      usuarioAtual = null;
+      mostrarLogin();
+    }
+  });
+
+  // Mostra a tela de login enquanto verifica sessão
+  mostrarLogin();
+});
+
+// ── Mostrar tela de login ────────────────────────────────────
+function mostrarLogin() {
+  document.getElementById('page-login').style.display = 'flex';
+  document.getElementById('main-app').style.display = 'none';
+  document.getElementById('l-login').value = '';
+  document.getElementById('l-senha').value = '';
+  document.getElementById('l-err').textContent = '';
+  document.getElementById('l-btn').disabled = false;
+  document.getElementById('l-btn').textContent = 'Entrar';
 }
 
-async function carregarPerfilUsuario(userId) {
-  const { data } = await sb
+// ── Login com Supabase Auth ──────────────────────────────────
+// O usuário digita e-mail + senha.
+// O Supabase verifica e devolve um token (JWT) se estiver correto.
+async function doLogin() {
+  const email = document.getElementById('l-login').value.trim();
+  const senha = document.getElementById('l-senha').value;
+  const err = document.getElementById('l-err');
+  const btn = document.getElementById('l-btn');
+
+  if (!email || !senha) { err.textContent = 'Preencha e-mail e senha.'; return; }
+
+  err.textContent = '';
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+
+  const { error } = await sb.auth.signInWithPassword({ email, password: senha });
+
+  if (error) {
+    err.textContent = error.message === 'Invalid login credentials'
+      ? 'E-mail ou senha incorretos.'
+      : 'Erro de conexão. Tente novamente.';
+    btn.disabled = false;
+    btn.textContent = 'Entrar';
+    return;
+  }
+  // Se chegou aqui, o onAuthStateChange acima cuida do resto automaticamente
+}
+
+// ── Carregar perfil do usuário logado ────────────────────────
+// Após o login, buscamos os dados do usuário na tabela perfis_v2
+// (nome, role, ativo) para saber o que mostrar no app.
+async function carregarPerfil(userId) {
+  const { data, error } = await sb
     .from('perfis_v2')
     .select('id, nome, role, ativo')
     .eq('id', userId)
-    .single()
- 
-  if (!data || !data.ativo) {
-    // Usuário desativado — força logout
-    await sb.auth.signOut()
-    document.getElementById('l-err').textContent = 'Usuário desativado. Contate o gestor.'
-    return
-  }
- 
-  usuarioAtual = data
- 
-  // Registra último acesso
-  await sb
-    .from('perfis_v2')
-    .update({ ultimo_acesso: new Date().toISOString() })
-    .eq('id', userId)
-}
- 
+    .single();
 
+  if (error || !data) {
+    // Usuário existe no Auth mas não tem perfil cadastrado ainda
+    document.getElementById('l-err').textContent = 'Perfil não encontrado. Contate o gestor.';
+    await sb.auth.signOut();
+    return;
+  }
+
+  if (!data.ativo) {
+    // Usuário desativado pelo gestor
+    document.getElementById('l-err').textContent = 'Usuário desativado. Contate o gestor.';
+    await sb.auth.signOut();
+    return;
+  }
+
+  usuarioAtual = data;
+
+  // Registra a data/hora do acesso
+  await sb.from('perfis_v2').update({ ultimo_acesso: new Date().toISOString() }).eq('id', userId);
+
+  entrarNoApp();
+}
+
+// ── Entrar no app ────────────────────────────────────────────
 function entrarNoApp() {
   document.getElementById('page-login').style.display = 'none';
   document.getElementById('main-app').style.display = 'flex';
-  // Atualizar sidebar
   const inicial = (usuarioAtual.nome || '?').charAt(0).toUpperCase();
   document.getElementById('sf-av').textContent = inicial;
   document.getElementById('sf-nm').textContent = usuarioAtual.nome;
-  // Mostrar menu Equipe só para gestor
   document.getElementById('nav-equipe').style.display = usuarioAtual.role === 'gestor' ? 'flex' : 'none';
   loadAll();
   go('dashboard');
 }
 
+// ── Logout ───────────────────────────────────────────────────
+// Avisa o Supabase que o usuário saiu.
+// O onAuthStateChange detecta e chama mostrarLogin() automaticamente.
 async function doLogout() {
-  await sb.auth.signOut()
-  // O onAuthStateChange cuida de mostrar o login novamente
-}
-// ── NOVA FUNÇÃO: chamar Edge Function ────────────────────────
-// Usada para criar/deletar usuários (substitui adminCall)
-async function chamarAdmin(action, body) {
-  const { data: { session } } = await sb.auth.getSession()
- 
-  if (!session) {
-    toast('Sessão expirada. Faça login novamente.', 4000)
-    return null
-  }
- 
-  const resp = await fetch(
-    SB_URL + '/functions/v1/admin-usuarios',
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + session.access_token,
-        'apikey': SB_KEY
-      },
-      body: JSON.stringify({ action, ...body })
-    }
-  )
- 
-  const resultado = await resp.json()
- 
-  if (!resp.ok || resultado.error) {
-    toast('Erro: ' + (resultado.error || 'Falha na operação'), 4000)
-    return null
-  }
- 
-  return resultado
+  await sb.auth.signOut();
 }
 
 // ── Navegação ────────────────────────────────────────────────
@@ -1068,7 +1032,7 @@ async function doneTask(id) {
 
 // ── GESTÃO DE EQUIPE ─────────────────────────────────────────
 async function carregarEquipe() {
-  const { data, error } = await sb.from('perfis').select('*').order('nome');
+  const { data, error } = await sb.from('perfis_v2').select('*').order('nome');
   const grid = document.getElementById('team-grid');
   if (error || !data || !data.length) {
     grid.innerHTML = '<div style="color:var(--t3);font-size:13px;padding:20px">Nenhum usuário cadastrado ainda.</div>';
@@ -1080,14 +1044,13 @@ async function carregarEquipe() {
         <div class="tcard-av">${(u.nome||'?').charAt(0).toUpperCase()}</div>
         <div>
           <div class="tcard-nome">${u.nome||'—'} ${u.id === usuarioAtual?.id ? '<span style="font-size:10px;color:var(--t3)">(você)</span>' : ''}</div>
-          <div class="tcard-login">Login: <b>${u.login||'—'}</b></div>
+          <div class="tcard-login">Perfil: <b>${u.role==='gestor'?'Gestor':'Usuário'}</b></div>
         </div>
       </div>
       <span class="badge ${u.role==='gestor'?'b-purple':'b-blue'}" style="margin-bottom:8px">${u.role==='gestor'?'Gestor':'Usuário'}</span>
       <div class="tcard-meta">Último acesso: ${u.ultimo_acesso ? new Date(u.ultimo_acesso).toLocaleString('pt-BR') : 'Nunca'}</div>
       <div class="tcard-meta">Ativo: ${u.ativo ? 'Sim' : '<span style="color:var(--red)">Não</span>'}</div>
       <div class="tcard-acts">
-        <button class="ab" onclick="editarUsuario('${u.id}')"><i class="ti ti-edit"></i> Editar</button>
         ${u.id !== usuarioAtual?.id ? `<button class="ab" onclick="toggleAtivo('${u.id}',${u.ativo})" style="color:${u.ativo?'var(--amber)':'var(--green)'}">
           ${u.ativo ? 'Desativar' : 'Reativar'}</button>` : ''}
         ${u.id !== usuarioAtual?.id ? `<button class="ab" onclick="excluirUsuario('${u.id}','${u.nome}')" style="color:var(--red)">Excluir</button>` : ''}
@@ -1095,80 +1058,57 @@ async function carregarEquipe() {
     </div>`).join('');
 }
 
-async function criarUsuario() {
-  const nome  = document.getElementById('nu-nome').value.trim()
-  const email = document.getElementById('nu-email').value.trim()
-  const senha = document.getElementById('nu-senha').value.trim()
-  const role  = document.getElementById('nu-role').value
- 
-  if (!nome || !email || !senha) {
-    toast('Preencha todos os campos')
-    return
-  }
- 
-  if (senha.length < 6) {
-    toast('Senha deve ter ao menos 6 caracteres')
-    return
-  }
- 
-  toast('Criando usuário...', 8000)
- 
-  const resultado = await chamarAdmin('criar', { email, senha, nome, role })
- 
-  if (resultado) {
-    toast('Usuário criado com sucesso!')
-    fecharNovoUsuario()
-    carregarEquipe()
-  }
-}
-
-function editarUsuario(id) {
-  const u = document.querySelector(`[onclick="editarUsuario('${id}')"]`)?.closest('.tcard');
-  // buscar os dados direto do banco para preencher o form
-  sb.from('perfis').select('*').eq('id', id).single().then(({ data }) => {
-    if (!data) return;
-    editUsuarioId = id;
-    document.getElementById('mu-title').textContent = 'Editar usuário';
-    document.getElementById('nu-btn-txt').textContent = 'Salvar alterações';
-    document.getElementById('nu-nome').value = data.nome || '';
-    document.getElementById('nu-login').value = data.login || '';
-    document.getElementById('nu-senha').value = '';
-    document.getElementById('nu-senha').placeholder = 'Deixe em branco para não alterar';
-    document.getElementById('nu-role').value = data.role || 'usuario';
-    document.getElementById('modal-usuario').classList.add('open');
-  });
+function openNovoUsuario() {
+  editUsuarioId = null;
+  document.getElementById('mu-title').textContent = 'Novo usuário';
+  document.getElementById('nu-btn-txt').textContent = 'Criar usuário';
+  ['nu-nome','nu-email','nu-senha'].forEach(i => document.getElementById(i).value = '');
+  document.getElementById('nu-role').value = 'usuario';
+  document.getElementById('modal-usuario').classList.add('open');
 }
 
 function fecharNovoUsuario() { document.getElementById('modal-usuario').classList.remove('open'); }
 
-async function salvarUsuario() {
-  const nome = document.getElementById('nu-nome').value.trim();
-  const login = document.getElementById('nu-login').value.trim().toLowerCase();
-  const senha = document.getElementById('nu-senha').value.trim();
-  const role = document.getElementById('nu-role').value;
-  if (!nome || !login) { toast('Preencha nome e login'); return; }
+// Chama a Edge Function no servidor do Supabase.
+// É ela quem cria/deleta usuários com segurança.
+async function chamarEdgeFunction(action, body) {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { toast('Sessão expirada. Faça login novamente.', 4000); return null; }
 
-  if (editUsuarioId) {
-    // Editar usuário existente
-    const upd = { nome, login, role };
-    if (senha) {
-      if (senha.length < 4) { toast('Senha deve ter ao menos 4 caracteres'); return; }
-      upd.senha_hash = await hashSenha(senha);
-    }
-    const { error } = await sb.from('perfis').update(upd).eq('id', editUsuarioId);
-    if (error) { toast('Erro: ' + error.message, 4000); return; }
-    toast('Usuário atualizado!');
-  } else {
-    // Criar novo usuário
-    if (!senha || senha.length < 4) { toast('Informe uma senha com ao menos 4 caracteres'); return; }
-    // Verificar se login já existe
-    const { data: existe } = await sb.from('perfis').select('id').eq('login', login).single();
-    if (existe) { toast('Este login já está em uso. Escolha outro.', 3500); return; }
-    const hash = await hashSenha(senha);
-    const { error } = await sb.from('perfis').insert({ nome, login, senha_hash: hash, role, ativo: true });
-    if (error) { toast('Erro: ' + error.message, 4000); return; }
-    toast('Usuário criado com sucesso!');
+  const resp = await fetch(SB_URL + '/functions/v1/admin-usuarios', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + session.access_token,
+      'apikey': SB_KEY
+    },
+    body: JSON.stringify({ action, ...body })
+  });
+
+  const resultado = await resp.json();
+  if (!resp.ok || resultado.error) {
+    toast('Erro: ' + (resultado.error || 'Falha na operação'), 4000);
+    return null;
   }
+  return resultado;
+}
+
+async function salvarUsuario() {
+  const nome  = document.getElementById('nu-nome').value.trim();
+  const email = document.getElementById('nu-email').value.trim();
+  const senha = document.getElementById('nu-senha').value.trim();
+  const role  = document.getElementById('nu-role').value;
+
+  if (!nome || !email || !senha) { toast('Preencha todos os campos'); return; }
+  if (senha.length < 6) { toast('Senha deve ter ao menos 6 caracteres'); return; }
+
+  toast('Criando usuário...', 8000);
+
+  // 1. Cria o usuário no Supabase Auth via Edge Function
+  const resultado = await chamarEdgeFunction('criar', { email, senha, nome, role });
+  if (!resultado) return;
+
+  toast('Usuário criado! ' + nome + ' já pode fazer login.');
   fecharNovoUsuario();
   carregarEquipe();
 }
@@ -1176,55 +1116,36 @@ async function salvarUsuario() {
 async function toggleAtivo(id, ativo) {
   const msg = ativo ? 'Desativar este usuário? Ele não conseguirá mais entrar.' : 'Reativar este usuário?';
   if (!confirm(msg)) return;
-  await sb.from('perfis').update({ ativo: !ativo }).eq('id', id);
+  await sb.from('perfis_v2').update({ ativo: !ativo }).eq('id', id);
   toast(ativo ? 'Usuário desativado' : 'Usuário reativado');
   carregarEquipe();
 }
 
-async function excluirUsuarioAuth(userId, nome) {
-  if (!confirm(`Excluir ${nome}? Esta ação não pode ser desfeita.`)) return
- 
-  const resultado = await chamarAdmin('deletar', { userId })
- 
+async function excluirUsuario(id, nome) {
+  if (!confirm(`Excluir permanentemente o usuário ${nome}? Esta ação não pode ser desfeita.`)) return;
+  const resultado = await chamarEdgeFunction('deletar', { userId: id });
   if (resultado) {
-    toast('Usuário removido')
-    carregarEquipe()
+    toast('Usuário excluído');
+    carregarEquipe();
   }
 }
 
 // ── ALTERAR SENHA ────────────────────────────────────────────
-async function alterarMinhaSenha() {
-  const nova = document.getElementById('s-nova').value
-  const conf = document.getElementById('s-conf').value
- 
-  if (!nova || !conf) {
-    toast('Preencha os campos de nova senha')
-    return
-  }
- 
-  if (nova.length < 6) {
-    toast('Nova senha deve ter ao menos 6 caracteres')
-    return
-  }
- 
-  if (nova !== conf) {
-    toast('As senhas não coincidem')
-    return
-  }
- 
-  // Com Supabase Auth, não precisa verificar a senha atual —
-  // o usuário já está autenticado com JWT válido
-  const { error } = await sb.auth.updateUser({ password: nova })
- 
-  if (error) {
-    toast('Erro: ' + error.message)
-    return
-  }
- 
-  toast('Senha alterada com sucesso!')
-  ;['s-nova', 's-conf'].forEach(i => { document.getElementById(i).value = '' })
-}
+// Com Supabase Auth, não precisamos verificar a senha atual.
+// O usuário já está autenticado com JWT válido — isso é suficiente.
+async function salvarSenha() {
+  const nova = document.getElementById('s-nova').value;
+  const conf = document.getElementById('s-conf').value;
+  if (!nova || !conf) { toast('Preencha os campos de nova senha'); return; }
+  if (nova.length < 6) { toast('Nova senha deve ter ao menos 6 caracteres'); return; }
+  if (nova !== conf) { toast('As senhas não coincidem'); return; }
 
+  const { error } = await sb.auth.updateUser({ password: nova });
+  if (error) { toast('Erro: ' + error.message); return; }
+
+  toast('Senha alterada com sucesso!');
+  ['s-nova','s-conf'].forEach(i => document.getElementById(i).value = '');
+}
 
 // ── MÁSCARAS DE ENTRADA ──────────────────────────────────────
 function mascaraCPF(input) {

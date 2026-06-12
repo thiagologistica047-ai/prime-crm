@@ -560,38 +560,108 @@ async function hashSenha(txt) {
 }
 
 // ── Inicialização ────────────────────────────────────────────
-window.addEventListener('load', () => {
-  sb = supabase.createClient(SB_URL, SB_KEY);
-  document.getElementById('page-login').style.display = 'flex';
-  document.getElementById('main-app').style.display = 'none';
-});
 
-// ── Login ────────────────────────────────────────────────────
-async function doLogin() {
-  const login = document.getElementById('l-login').value.trim().toLowerCase();
-  const senha = document.getElementById('l-senha').value;
-  const err = document.getElementById('l-err');
-  const btn = document.getElementById('l-btn');
-  if (!login || !senha) { err.textContent = 'Preencha login e senha.'; return; }
-  err.textContent = '';
-  btn.disabled = true; btn.textContent = 'Verificando...';
-  try {
-    const hash = await hashSenha(senha);
-    const { data, error } = await sb.from('perfis').select('*').eq('login', login).eq('senha_hash', hash).eq('ativo', true).single();
-    if (error || !data) {
-      err.textContent = 'Login ou senha incorretos.';
-      btn.disabled = false; btn.textContent = 'Entrar';
-      return;
-    }
-    usuarioAtual = data;
-    // Registrar último acesso
-    await sb.from('perfis').update({ ultimo_acesso: new Date().toISOString() }).eq('id', data.id);
-    entrarNoApp();
-  } catch(e) {
-    err.textContent = 'Erro de conexão. Tente novamente.';
-    btn.disabled = false; btn.textContent = 'Entrar';
-  }
+window.addEventListener('load', () => {
+  inicializarSupabase()
+ 
+  // Mostra login por padrão
+  // O onAuthStateChange vai redirecionar se houver sessão salva
+  mostrarLogin()
+})
+ 
+function mostrarLogin() {
+  document.getElementById('page-login').style.display = 'flex'
+  document.getElementById('main-app').style.display = 'none'
+  document.getElementById('l-login').value = ''
+  document.getElementById('l-senha').value = ''
+  document.getElementById('l-err').textContent = ''
+  document.getElementById('l-btn').disabled = false
+  document.getElementById('l-btn').textContent = 'Entrar'
 }
+// ── Login ────────────────────────────────────────────────────
+
+async function doLogin() {
+  const loginInput = document.getElementById('l-login').value.trim()
+  const senhaInput = document.getElementById('l-senha').value
+  const errEl = document.getElementById('l-err')
+  const btnEl = document.getElementById('l-btn')
+ 
+  if (!loginInput || !senhaInput) {
+    errEl.textContent = 'Preencha login e senha.'
+    return
+  }
+ 
+  errEl.textContent = ''
+  btnEl.disabled = true
+  btnEl.textContent = 'Verificando...'
+ 
+  // O Supabase Auth usa e-mail como identificador.
+  // Se o usuário digitar "josiel" (sem @), buscamos o email
+  // correspondente na tabela perfis_v2.
+  let emailParaLogin = loginInput
+ 
+  if (!loginInput.includes('@')) {
+    // Login por apelido — busca o email no banco
+    const { data: perfil, error: perfilErr } = await sb
+      .from('perfis_v2')
+      .select('email_auth')   // campo novo que salva o email do Auth
+      .eq('login_apelido', loginInput)
+      .eq('ativo', true)
+      .single()
+ 
+    if (perfilErr || !perfil) {
+      errEl.textContent = 'Login ou senha incorretos.'
+      btnEl.disabled = false
+      btnEl.textContent = 'Entrar'
+      return
+    }
+ 
+    emailParaLogin = perfil.email_auth
+  }
+ 
+  // Autenticação real pelo Supabase Auth
+  const { error } = await sb.auth.signInWithPassword({
+    email: emailParaLogin,
+    password: senhaInput
+  })
+ 
+  if (error) {
+    errEl.textContent = error.message === 'Invalid login credentials'
+      ? 'Login ou senha incorretos.'
+      : 'Erro de conexão. Tente novamente.'
+ 
+    btnEl.disabled = false
+    btnEl.textContent = 'Entrar'
+    return
+  }
+ 
+  // Se chegou aqui, o onAuthStateChange cuida do resto
+  // (vai chamar carregarPerfilUsuario e entrarNoApp automaticamente)
+}
+
+async function carregarPerfilUsuario(userId) {
+  const { data } = await sb
+    .from('perfis_v2')
+    .select('id, nome, role, ativo')
+    .eq('id', userId)
+    .single()
+ 
+  if (!data || !data.ativo) {
+    // Usuário desativado — força logout
+    await sb.auth.signOut()
+    document.getElementById('l-err').textContent = 'Usuário desativado. Contate o gestor.'
+    return
+  }
+ 
+  usuarioAtual = data
+ 
+  // Registra último acesso
+  await sb
+    .from('perfis_v2')
+    .update({ ultimo_acesso: new Date().toISOString() })
+    .eq('id', userId)
+}
+ 
 
 function entrarNoApp() {
   document.getElementById('page-login').style.display = 'none';
@@ -606,15 +676,41 @@ function entrarNoApp() {
   go('dashboard');
 }
 
-function doLogout() {
-  usuarioAtual = null;
-  document.getElementById('main-app').style.display = 'none';
-  document.getElementById('page-login').style.display = 'flex';
-  document.getElementById('l-login').value = '';
-  document.getElementById('l-senha').value = '';
-  document.getElementById('l-err').textContent = '';
-  document.getElementById('l-btn').disabled = false;
-  document.getElementById('l-btn').textContent = 'Entrar';
+async function doLogout() {
+  await sb.auth.signOut()
+  // O onAuthStateChange cuida de mostrar o login novamente
+}
+// ── NOVA FUNÇÃO: chamar Edge Function ────────────────────────
+// Usada para criar/deletar usuários (substitui adminCall)
+async function chamarAdmin(action, body) {
+  const { data: { session } } = await sb.auth.getSession()
+ 
+  if (!session) {
+    toast('Sessão expirada. Faça login novamente.', 4000)
+    return null
+  }
+ 
+  const resp = await fetch(
+    SB_URL + '/functions/v1/admin-usuarios',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + session.access_token,
+        'apikey': SB_KEY
+      },
+      body: JSON.stringify({ action, ...body })
+    }
+  )
+ 
+  const resultado = await resp.json()
+ 
+  if (!resp.ok || resultado.error) {
+    toast('Erro: ' + (resultado.error || 'Falha na operação'), 4000)
+    return null
+  }
+ 
+  return resultado
 }
 
 // ── Navegação ────────────────────────────────────────────────
@@ -999,14 +1095,31 @@ async function carregarEquipe() {
     </div>`).join('');
 }
 
-function openNovoUsuario() {
-  editUsuarioId = null;
-  document.getElementById('mu-title').textContent = 'Novo usuário';
-  document.getElementById('nu-btn-txt').textContent = 'Criar usuário';
-  ['nu-nome','nu-login','nu-senha'].forEach(i => document.getElementById(i).value = '');
-  document.getElementById('nu-role').value = 'usuario';
-  document.getElementById('nu-senha').placeholder = 'Mínimo 4 caracteres';
-  document.getElementById('modal-usuario').classList.add('open');
+async function criarUsuario() {
+  const nome  = document.getElementById('nu-nome').value.trim()
+  const email = document.getElementById('nu-email').value.trim()
+  const senha = document.getElementById('nu-senha').value.trim()
+  const role  = document.getElementById('nu-role').value
+ 
+  if (!nome || !email || !senha) {
+    toast('Preencha todos os campos')
+    return
+  }
+ 
+  if (senha.length < 6) {
+    toast('Senha deve ter ao menos 6 caracteres')
+    return
+  }
+ 
+  toast('Criando usuário...', 8000)
+ 
+  const resultado = await chamarAdmin('criar', { email, senha, nome, role })
+ 
+  if (resultado) {
+    toast('Usuário criado com sucesso!')
+    fecharNovoUsuario()
+    carregarEquipe()
+  }
 }
 
 function editarUsuario(id) {
@@ -1068,32 +1181,50 @@ async function toggleAtivo(id, ativo) {
   carregarEquipe();
 }
 
-async function excluirUsuario(id, nome) {
-  if (!confirm(`Excluir permanentemente o usuário ${nome}? Esta ação não pode ser desfeita.`)) return;
-  const { error } = await sb.from('perfis').delete().eq('id', id);
-  if (error) { toast('Erro: ' + error.message, 4000); return; }
-  toast('Usuário excluído');
-  carregarEquipe();
+async function excluirUsuarioAuth(userId, nome) {
+  if (!confirm(`Excluir ${nome}? Esta ação não pode ser desfeita.`)) return
+ 
+  const resultado = await chamarAdmin('deletar', { userId })
+ 
+  if (resultado) {
+    toast('Usuário removido')
+    carregarEquipe()
+  }
 }
 
 // ── ALTERAR SENHA ────────────────────────────────────────────
-async function salvarSenha() {
-  const atual = document.getElementById('s-atual').value;
-  const nova = document.getElementById('s-nova').value;
-  const conf = document.getElementById('s-conf').value;
-  if (!atual || !nova || !conf) { toast('Preencha todos os campos'); return; }
-  if (nova.length < 4) { toast('Nova senha deve ter ao menos 4 caracteres'); return; }
-  if (nova !== conf) { toast('As senhas não coincidem'); return; }
-  // Verificar senha atual
-  const hashAtual = await hashSenha(atual);
-  if (hashAtual !== usuarioAtual.senha_hash) { toast('Senha atual incorreta'); return; }
-  const novoHash = await hashSenha(nova);
-  const { error } = await sb.from('perfis').update({ senha_hash: novoHash }).eq('id', usuarioAtual.id);
-  if (error) { toast('Erro: ' + error.message); return; }
-  usuarioAtual.senha_hash = novoHash;
-  toast('Senha alterada com sucesso!');
-  ['s-atual','s-nova','s-conf'].forEach(i => document.getElementById(i).value = '');
+async function alterarMinhaSenha() {
+  const nova = document.getElementById('s-nova').value
+  const conf = document.getElementById('s-conf').value
+ 
+  if (!nova || !conf) {
+    toast('Preencha os campos de nova senha')
+    return
+  }
+ 
+  if (nova.length < 6) {
+    toast('Nova senha deve ter ao menos 6 caracteres')
+    return
+  }
+ 
+  if (nova !== conf) {
+    toast('As senhas não coincidem')
+    return
+  }
+ 
+  // Com Supabase Auth, não precisa verificar a senha atual —
+  // o usuário já está autenticado com JWT válido
+  const { error } = await sb.auth.updateUser({ password: nova })
+ 
+  if (error) {
+    toast('Erro: ' + error.message)
+    return
+  }
+ 
+  toast('Senha alterada com sucesso!')
+  ;['s-nova', 's-conf'].forEach(i => { document.getElementById(i).value = '' })
 }
+
 
 // ── MÁSCARAS DE ENTRADA ──────────────────────────────────────
 function mascaraCPF(input) {

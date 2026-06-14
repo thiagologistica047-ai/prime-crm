@@ -559,20 +559,15 @@ const COLS = ['#185FA5','#3B6D11','#854F0B','#A32D2D','#0F6E56','#534AB7','#993C
 window.addEventListener('load', async () => {
   sb = supabase.createClient(SB_URL, SB_KEY, {
     auth: {
-      persistSession: true,
-      autoRefreshToken: true,
+      persistSession: false,   // não salva sessão — usuário precisa logar sempre
+      autoRefreshToken: false,
       detectSessionInUrl: false,
       storageKey: 'prime_crm_auth'
     }
   });
 
-  // Verifica se já existe sessão salva do login anterior
-  const { data: { session } } = await sb.auth.getSession();
-  if (session && session.user) {
-    await carregarPerfil(session.user.id);
-  } else {
-    mostrarLogin();
-  }
+  // Sempre mostra o login — comportamento seguro e previsível
+  mostrarLogin();
 });
 
 // ── Mostrar tela de login ────────────────────────────────────
@@ -676,10 +671,10 @@ function entrarNoApp() {
 }
 
 // ── Logout ───────────────────────────────────────────────────
-// Avisa o Supabase que o usuário saiu.
-// O onAuthStateChange detecta e chama mostrarLogin() automaticamente.
 async function doLogout() {
+  usuarioAtual = null;
   await sb.auth.signOut();
+  mostrarLogin();
 }
 
 // ── Navegação ────────────────────────────────────────────────

@@ -178,7 +178,7 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
     <div class="lerr" id="l-err"></div>
     <button class="lbtn" id="l-btn" onclick="doLogin()">Entrar</button>
   </div>
-  <div style="font-size:11px;color:var(--t3)">Prime Correspondente Bancário · Caixa Econômica Federal</div>
+  <div style="font-size:11px;color:var(--t3)">Prime Correspondente Bancário</div>
 </div>
 
 <!-- ── APP PRINCIPAL ── -->
@@ -556,35 +556,23 @@ const PBADGE = {'Habitacional MCMV':'b-teal','Conta Corrente':'b-blue','Poupanç
 const COLS = ['#185FA5','#3B6D11','#854F0B','#A32D2D','#0F6E56','#534AB7','#993C1D','#888780','#D4537E','#378ADD'];
 
 // ── Inicialização ────────────────────────────────────────────
-// Quando a página carrega, conecta ao Supabase e fica
-// "escutando" se o usuário já tem uma sessão salva no browser.
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
   sb = supabase.createClient(SB_URL, SB_KEY, {
     auth: {
-      persistSession: true,       // mantém o usuário logado ao fechar e reabrir
-      autoRefreshToken: true,     // renova o token automaticamente
+      persistSession: true,
+      autoRefreshToken: true,
       detectSessionInUrl: false,
       storageKey: 'prime_crm_auth'
     }
   });
 
-  // Este "ouvinte" é chamado automaticamente em 3 situações:
-  //   1. Quando o usuário faz login
-  //   2. Quando o browser é reaberto e ainda há sessão salva
-  //   3. Quando o usuário faz logout
-  sb.auth.onAuthStateChange(async (evento, sessao) => {
-    if (sessao && sessao.user) {
-      // Tem sessão válida → buscar perfil e entrar no app
-      await carregarPerfil(sessao.user.id);
-    } else {
-      // Sem sessão → mostrar tela de login
-      usuarioAtual = null;
-      mostrarLogin();
-    }
-  });
-
-  // Mostra a tela de login enquanto verifica sessão
-  mostrarLogin();
+  // Verifica se já existe sessão salva do login anterior
+  const { data: { session } } = await sb.auth.getSession();
+  if (session && session.user) {
+    await carregarPerfil(session.user.id);
+  } else {
+    mostrarLogin();
+  }
 });
 
 // ── Mostrar tela de login ────────────────────────────────────
@@ -599,8 +587,6 @@ function mostrarLogin() {
 }
 
 // ── Login com Supabase Auth ──────────────────────────────────
-// O usuário digita e-mail + senha.
-// O Supabase verifica e devolve um token (JWT) se estiver correto.
 async function doLogin() {
   const email = document.getElementById('l-login').value.trim();
   const senha = document.getElementById('l-senha').value;
@@ -613,17 +599,25 @@ async function doLogin() {
   btn.disabled = true;
   btn.textContent = 'Verificando...';
 
-  const { error } = await sb.auth.signInWithPassword({ email, password: senha });
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: senha });
 
-  if (error) {
-    err.textContent = error.message === 'Invalid login credentials'
-      ? 'E-mail ou senha incorretos.'
-      : 'Erro de conexão. Tente novamente.';
+    if (error) {
+      err.textContent = error.message === 'Invalid login credentials'
+        ? 'E-mail ou senha incorretos.'
+        : 'Erro: ' + error.message;
+      btn.disabled = false;
+      btn.textContent = 'Entrar';
+      return;
+    }
+
+    await carregarPerfil(data.user.id);
+
+  } catch(e) {
+    err.textContent = 'Erro de conexão. Tente novamente.';
     btn.disabled = false;
     btn.textContent = 'Entrar';
-    return;
   }
-  // Se chegou aqui, o onAuthStateChange acima cuida do resto automaticamente
 }
 
 // ── Carregar perfil do usuário logado ────────────────────────

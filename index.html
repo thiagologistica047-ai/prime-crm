@@ -627,35 +627,46 @@ async function doLogin() {
 }
 
 // ── Carregar perfil do usuário logado ────────────────────────
-// Após o login, buscamos os dados do usuário na tabela perfis_v2
-// (nome, role, ativo) para saber o que mostrar no app.
 async function carregarPerfil(userId) {
-  const { data, error } = await sb
-    .from('perfis_v2')
-    .select('id, nome, role, ativo')
-    .eq('id', userId)
-    .single();
+  try {
+    // Lê da tabela perfis (nome definitivo após Etapa 4)
+    const { data, error } = await sb
+      .from('perfis')
+      .select('id, nome, role, ativo')
+      .eq('id', userId)
+      .single();
 
-  if (error || !data) {
-    // Usuário existe no Auth mas não tem perfil cadastrado ainda
-    document.getElementById('l-err').textContent = 'Perfil não encontrado. Contate o gestor.';
-    await sb.auth.signOut();
-    return;
+    if (error || !data) {
+      document.getElementById('l-err').textContent = 'Perfil não encontrado. Contate o gestor.';
+      document.getElementById('l-btn').disabled = false;
+      document.getElementById('l-btn').textContent = 'Entrar';
+      await sb.auth.signOut();
+      return;
+    }
+
+    if (!data.ativo) {
+      document.getElementById('l-err').textContent = 'Usuário desativado. Contate o gestor.';
+      document.getElementById('l-btn').disabled = false;
+      document.getElementById('l-btn').textContent = 'Entrar';
+      await sb.auth.signOut();
+      return;
+    }
+
+    usuarioAtual = data;
+
+    // Registra último acesso — ignora erro silenciosamente se falhar
+    sb.from('perfis')
+      .update({ ultimo_acesso: new Date().toISOString() })
+      .eq('id', userId)
+      .then(() => {});
+
+    entrarNoApp();
+
+  } catch(e) {
+    document.getElementById('l-err').textContent = 'Erro ao carregar perfil. Tente novamente.';
+    document.getElementById('l-btn').disabled = false;
+    document.getElementById('l-btn').textContent = 'Entrar';
   }
-
-  if (!data.ativo) {
-    // Usuário desativado pelo gestor
-    document.getElementById('l-err').textContent = 'Usuário desativado. Contate o gestor.';
-    await sb.auth.signOut();
-    return;
-  }
-
-  usuarioAtual = data;
-
-  // Registra a data/hora do acesso
-  await sb.from('perfis_v2').update({ ultimo_acesso: new Date().toISOString() }).eq('id', userId);
-
-  entrarNoApp();
 }
 
 // ── Entrar no app ────────────────────────────────────────────
@@ -1032,7 +1043,7 @@ async function doneTask(id) {
 
 // ── GESTÃO DE EQUIPE ─────────────────────────────────────────
 async function carregarEquipe() {
-  const { data, error } = await sb.from('perfis_v2').select('*').order('nome');
+  const { data, error } = await sb.from('perfis').select('*').order('nome');
   const grid = document.getElementById('team-grid');
   if (error || !data || !data.length) {
     grid.innerHTML = '<div style="color:var(--t3);font-size:13px;padding:20px">Nenhum usuário cadastrado ainda.</div>';
@@ -1116,7 +1127,7 @@ async function salvarUsuario() {
 async function toggleAtivo(id, ativo) {
   const msg = ativo ? 'Desativar este usuário? Ele não conseguirá mais entrar.' : 'Reativar este usuário?';
   if (!confirm(msg)) return;
-  await sb.from('perfis_v2').update({ ativo: !ativo }).eq('id', id);
+  await sb.from('perfis').update({ ativo: !ativo }).eq('id', id);
   toast(ativo ? 'Usuário desativado' : 'Usuário reativado');
   carregarEquipe();
 }

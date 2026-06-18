@@ -236,7 +236,7 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
       <div class="logo-mark" style="width:36px;height:36px;font-size:18px;border-radius:8px">P</div>
       <div><div style="font-size:16px;font-weight:700">Prime CRM</div><div style="font-size:11px;color:var(--t2)">Correspondente Caixa</div></div>
     </div>
-    <div class="lf"><label>Login</label><input id="l-login" type="text" placeholder="Ex: prime, josiel, leilane" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('l-senha').focus()"></div>
+    <div class="lf"><label>E-mail ou login</label><input id="l-login" type="text" placeholder="E-mail ou login (ex: prime)" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('l-senha').focus()"></div>
     <div class="lf"><label>Senha</label><input id="l-senha" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="lerr" id="l-err"></div>
     <button class="lbtn" id="l-btn" onclick="doLogin()">Entrar</button>
@@ -485,8 +485,8 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
   <div class="hdr"><div class="hdr-title">Alterar minha senha</div></div>
   <div class="cnt">
     <div class="cfg" style="max-width:400px">
-      <h2>Nova senha</h2><p>Mínimo 4 caracteres.</p>
-      <div class="cf"><label>Senha atual</label><input id="s-atual" type="password" placeholder="••••••••"></div>
+      <h2>Nova senha</h2><p>Mínimo 6 caracteres. Não é necessário informar a senha atual.</p>
+      <!-- senha atual não necessária com Supabase Auth -->
       <div class="cf"><label>Nova senha</label><input id="s-nova" type="password" placeholder="••••••••"></div>
       <div class="cf"><label>Confirmar nova senha</label><input id="s-conf" type="password" placeholder="••••••••"></div>
       <button class="btn p" onclick="salvarSenha()" style="width:100%;justify-content:center;padding:9px"><i class="ti ti-device-floppy"></i> Salvar nova senha</button>
@@ -746,29 +746,45 @@ async function hashSenha(txt){
 
 // ── Init ─────────────────────────────────────────────────────
 window.addEventListener('load',()=>{
-  sb=supabase.createClient(SB_URL,SB_KEY);
+  sb=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
   document.getElementById('page-login').style.display='flex';
   document.getElementById('main-app').style.display='none';
 });
 
 // ── Login ────────────────────────────────────────────────────
 async function doLogin(){
-  const loginRaw=document.getElementById('l-login').value.trim().toLowerCase();
-  // Aceita 'josiel' ou 'josiel@prime.crm' — extrai só o prefixo
-  const login=loginRaw.includes('@')?loginRaw.split('@')[0]:loginRaw;
+  const emailRaw=document.getElementById('l-login').value.trim().toLowerCase();
   const senha=document.getElementById('l-senha').value;
   const err=document.getElementById('l-err');
   const btn=document.getElementById('l-btn');
-  if(!login||!senha){err.textContent='Preencha login e senha.';return;}
+  if(!emailRaw||!senha){err.textContent='Preencha e-mail e senha.';return;}
   err.textContent='';btn.disabled=true;btn.textContent='Verificando...';
   try{
-    const hash=await hashSenha(senha);
-    const{data,error}=await sb.from('operadores').select('*').eq('login',login).eq('senha_hash',hash).eq('ativo',true).single();
-    if(error||!data){err.textContent='Login ou senha incorretos.';btn.disabled=false;btn.textContent='Entrar';return;}
-    usuarioAtual=data;
-    await sb.from('operadores').update({ultimo_acesso:new Date().toISOString()}).eq('id',data.id);
+    // Normaliza: aceita 'prime' como 'prime@prime.crm' e e-mail completo direto
+    const dominios=['@prime.crm','@gmail.com'];
+    let email=emailRaw;
+    if(!email.includes('@')){email=email+'@prime.crm';}
+    // Autenticar via Supabase Auth (JWT seguro)
+    const{data:authData,error:authErr}=await sb.auth.signInWithPassword({email,password:senha});
+    if(authErr||!authData?.user){
+      err.textContent='E-mail ou senha incorretos.';
+      btn.disabled=false;btn.textContent='Entrar';return;
+    }
+    // Buscar perfil do operador na tabela operadores
+    const{data:opData}=await sb.from('operadores').select('*').eq('id',authData.user.id).maybeSingle();
+    if(!opData){
+      // Fallback: buscar por e-mail se id não bater
+      const{data:opData2}=await sb.from('operadores').select('*').ilike('login',email.split('@')[0]).maybeSingle();
+      usuarioAtual=opData2||{id:authData.user.id,nome:authData.user.email?.split('@')[0]||'Usuário',role:'usuario',ativo:true};
+    }else{
+      usuarioAtual=opData;
+    }
+    await sb.from('operadores').update({ultimo_acesso:new Date().toISOString()}).eq('id',usuarioAtual.id).maybeSingle();
     entrarNoApp();
-  }catch(e){err.textContent='Erro de conexão.';btn.disabled=false;btn.textContent='Entrar';}
+  }catch(e){
+    err.textContent='Erro de conexão. Tente novamente.';
+    btn.disabled=false;btn.textContent='Entrar';
+  }
 }
 
 async function entrarNoApp(){
@@ -783,7 +799,8 @@ async function entrarNoApp(){
   setTimeout(()=>mostrarPopupAlertas(),800);
 }
 
-function doLogout(){
+async function doLogout(){
+  await sb.auth.signOut();
   usuarioAtual=null;
   document.getElementById('main-app').style.display='none';
   document.getElementById('page-login').style.display='flex';
@@ -1440,7 +1457,7 @@ function fecharPopup(){document.getElementById('popup-alertas').classList.remove
 
 // ── GESTÃO DE EQUIPE ─────────────────────────────────────────
 async function carregarEquipe(){
-  const{data}=await sb.from('operadores').select('*').order('nome');
+  const{data}=await sb.from('operadores').select('id,nome,login,email,role,ativo,ultimo_acesso').order('nome');
   const grid=document.getElementById('team-grid');
   if(!data||!data.length){grid.innerHTML='<div style="color:var(--t3);font-size:13px;padding:20px">Nenhum usuário.</div>';return;}
   grid.innerHTML=data.map(u=>`
@@ -1519,18 +1536,13 @@ async function excluirUsuario(id,nome){
 
 // ── ALTERAR SENHA ────────────────────────────────────────────
 async function salvarSenha(){
-  const atual=document.getElementById('s-atual').value;
   const nova=document.getElementById('s-nova').value;
   const conf=document.getElementById('s-conf').value;
-  if(!atual||!nova||!conf){toast('Preencha todos os campos');return;}
-  if(nova.length<4){toast('Nova senha deve ter ao menos 4 caracteres');return;}
+  if(!nova||!conf){toast('Preencha todos os campos');return;}
+  if(nova.length<6){toast('Nova senha deve ter ao menos 6 caracteres');return;}
   if(nova!==conf){toast('As senhas não coincidem');return;}
-  const hashAtual=await hashSenha(atual);
-  if(hashAtual!==usuarioAtual.senha_hash){toast('Senha atual incorreta');return;}
-  const novoHash=await hashSenha(nova);
-  const{error}=await sb.from('operadores').update({senha_hash:novoHash}).eq('id',usuarioAtual.id);
+  const{error}=await sb.auth.updateUser({password:nova});
   if(error){toast('Erro: '+error.message);return;}
-  usuarioAtual.senha_hash=novoHash;
   toast('Senha alterada com sucesso!');
   ['s-atual','s-nova','s-conf'].forEach(i=>document.getElementById(i).value='');
 }

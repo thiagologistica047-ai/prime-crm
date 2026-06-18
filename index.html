@@ -236,7 +236,7 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
       <div class="logo-mark" style="width:36px;height:36px;font-size:18px;border-radius:8px">P</div>
       <div><div style="font-size:16px;font-weight:700">Prime CRM</div><div style="font-size:11px;color:var(--t2)">Correspondente Caixa</div></div>
     </div>
-    <div class="lf"><label>Login</label><input id="l-login" type="text" placeholder="Seu login de acesso" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('l-senha').focus()"></div>
+    <div class="lf"><label>Login</label><input id="l-login" type="text" placeholder="Ex: prime, josiel, leilane" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('l-senha').focus()"></div>
     <div class="lf"><label>Senha</label><input id="l-senha" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="lerr" id="l-err"></div>
     <button class="lbtn" id="l-btn" onclick="doLogin()">Entrar</button>
@@ -753,7 +753,9 @@ window.addEventListener('load',()=>{
 
 // ── Login ────────────────────────────────────────────────────
 async function doLogin(){
-  const login=document.getElementById('l-login').value.trim().toLowerCase();
+  const loginRaw=document.getElementById('l-login').value.trim().toLowerCase();
+  // Aceita 'josiel' ou 'josiel@prime.crm' — extrai só o prefixo
+  const login=loginRaw.includes('@')?loginRaw.split('@')[0]:loginRaw;
   const senha=document.getElementById('l-senha').value;
   const err=document.getElementById('l-err');
   const btn=document.getElementById('l-btn');

@@ -19,7 +19,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .logo-mark{width:30px;height:30px;background:var(--blue);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;margin-bottom:7px}
 .logo-name{font-size:14px;font-weight:600;color:var(--t)}
 .logo-sub{font-size:11px;color:var(--t2);margin-top:1px}
-.nav{padding:10px 6px;flex:1}
+.nav{padding:10px 6px;flex:1;overflow-y:auto}
 .ni{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--rs);cursor:pointer;color:var(--t2);font-size:13px;margin-bottom:1px;user-select:none}
 .ni:hover{background:var(--sf2);color:var(--t)}
 .ni.active{background:var(--blue-l);color:var(--blue);font-weight:500}
@@ -27,20 +27,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .ns{font-size:10px;font-weight:600;color:var(--t3);letter-spacing:.08em;padding:10px 10px 5px;text-transform:uppercase}
 .hdr{background:var(--sf);border-bottom:.5px solid var(--bd);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .hdr-title{font-size:15px;font-weight:600}
-.hdr-acts{display:flex;gap:7px;align-items:center}
+.hdr-acts{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
 .btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--rs);border:.5px solid var(--bd);background:var(--sf);color:var(--t);font-size:13px;cursor:pointer;white-space:nowrap}
 .btn:hover{background:var(--sf2)}
 .btn.p{background:var(--blue);color:#fff;border-color:var(--blue)}
 .btn.p:hover{background:#0C447C}
+.btn.danger{background:var(--red);color:#fff;border-color:var(--red)}
 .btn i{font-size:14px}
 .cnt{padding:20px;flex:1}
 .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:20px}
-.metric{background:var(--sf2);border-radius:var(--rs);padding:12px 14px}
+.metric{background:var(--sf2);border-radius:var(--rs);padding:12px 14px;cursor:pointer;transition:box-shadow .15s}
+.metric:hover{box-shadow:0 2px 8px rgba(0,0,0,.1)}
 .mv{font-size:24px;font-weight:700;color:var(--t);line-height:1}
 .ml{font-size:12px;color:var(--t2);margin-top:3px}
+.metric.alerta .mv{color:var(--red)}
+.metric.legado-badge{border:.5px solid var(--amber);background:var(--amber-l)}
 .cr{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
 .cc{background:var(--sf);border:.5px solid var(--bd);border-radius:var(--r);padding:14px}
-.ct{font-size:12px;font-weight:600;margin-bottom:12px;color:var(--t)}
+.ct{font-size:12px;font-weight:600;margin-bottom:12px;color:var(--t);display:flex;align-items:center;justify-content:space-between}
 .cw{height:190px;position:relative}
 .tc{background:var(--sf);border:.5px solid var(--bd);border-radius:var(--r);overflow:hidden}
 .th2{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:.5px solid var(--bd);flex-wrap:wrap;gap:8px}
@@ -71,56 +75,81 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
 .ab:hover{background:var(--sf2);color:var(--t)}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;padding:16px}
 .overlay.open{display:flex}
-.modal{background:var(--sf);border-radius:var(--r);border:.5px solid var(--bd);width:min(560px,100%);max-height:92vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.18)}
+.modal{background:var(--sf);border-radius:var(--r);border:.5px solid var(--bd);width:min(640px,100%);max-height:92vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.18)}
+.modal.sm{width:min(420px,100%)}
 .mh{padding:16px 18px 0;display:flex;align-items:center;justify-content:space-between}
 .mh h3{font-size:14px;font-weight:600}
 .mc{font-size:20px;background:none;border:none;cursor:pointer;color:var(--t2)}
 .mb{padding:14px 18px 0}
 .mf{padding:14px 18px 18px;display:flex;justify-content:flex-end;gap:7px;border-top:.5px solid var(--bd);margin-top:14px}
+.sec{font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin:14px 0 7px}
 .fg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .fg.full{grid-template-columns:1fr}
+.fg.t3{grid-template-columns:1fr 1fr 1fr}
 .fl label{display:block;font-size:11px;color:var(--t2);margin-bottom:3px}
 .fl input,.fl select,.fl textarea{width:100%;padding:7px 9px;border:.5px solid var(--bd);border-radius:var(--rs);background:var(--sf2);color:var(--t);font-size:12px;font-family:inherit}
 .fl textarea{height:75px;resize:vertical}
 .fl{margin-bottom:3px}
-.kanban{display:flex;gap:12px;overflow-x:auto;padding-bottom:12px;align-items:flex-start}
-.kol{flex-shrink:0;width:220px;background:var(--sf2);border-radius:var(--r);overflow:hidden}
-.kh{padding:9px 11px;display:flex;align-items:center;justify-content:space-between;border-bottom:.5px solid var(--bd);background:var(--sf)}
+/* ── Kanban ── */
+.kanban-wrap{display:flex;flex-direction:column;gap:14px;height:calc(100vh - 130px)}
+.kanban-tabs{display:flex;gap:8px;flex-shrink:0}
+.ktab{padding:6px 14px;border-radius:var(--rs);border:.5px solid var(--bd);background:var(--sf);cursor:pointer;font-size:12px;color:var(--t2)}
+.ktab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.kanban{display:flex;gap:12px;overflow-x:auto;padding-bottom:12px;align-items:flex-start;flex:1}
+.kol{flex-shrink:0;width:230px;background:var(--sf2);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;max-height:calc(100vh - 220px)}
+.kh{padding:9px 11px;display:flex;align-items:center;justify-content:space-between;border-bottom:.5px solid var(--bd);background:var(--sf);flex-shrink:0}
 .kht{font-size:12px;font-weight:600}
 .khc{font-size:11px;background:var(--bd);border-radius:20px;padding:1px 6px;color:var(--t2)}
-.kb{padding:7px;display:flex;flex-direction:column;gap:5px;min-height:60px;max-height:calc(100vh - 200px);overflow-y:auto}
-.kc{background:var(--sf);border:.5px solid var(--bd);border-radius:var(--rs);padding:9px;cursor:pointer}
-.kc:hover{border-color:#378ADD}
-.kcn{font-size:12px;font-weight:500;margin-bottom:3px}
-.kcm{font-size:11px;color:var(--t2);display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.kb{padding:7px;display:flex;flex-direction:column;gap:5px;overflow-y:auto;flex:1}
+.kc{background:var(--sf);border:.5px solid var(--bd);border-radius:var(--rs);padding:10px;cursor:pointer;transition:border-color .15s}
+.kc:hover{border-color:var(--blue)}
+.kc.alerta-r1{border-left:3px solid var(--red)}
+.kc.alerta-r2{border-left:3px solid var(--amber)}
+.kc.legado-card{opacity:.75}
+.kcn{font-size:12px;font-weight:600;margin-bottom:4px}
+.kcm{font-size:11px;color:var(--t2);display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:4px}
+.kc-dias{font-size:10px;margin-top:4px;display:flex;align-items:center;gap:4px}
+.kc-dias.ok{color:var(--green)}
+.kc-dias.warn{color:var(--amber)}
+.kc-dias.late{color:var(--red);font-weight:600}
+/* ── Detalhe cliente ── */
 .detail{display:grid;grid-template-columns:1fr 300px;gap:14px}
 .dc{display:flex;flex-direction:column;gap:14px}
 .card{background:var(--sf);border:.5px solid var(--bd);border-radius:var(--r);padding:14px}
-.card-t{font-size:13px;font-weight:600;margin-bottom:10px;color:var(--t)}
+.card-t{font-size:13px;font-weight:600;margin-bottom:10px;color:var(--t);display:flex;align-items:center;justify-content:space-between}
 .ir{display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-bottom:.5px solid var(--bd);font-size:12px}
 .ir:last-child{border-bottom:none}
-.il{color:var(--t2);flex-shrink:0;margin-right:12px}
+.il{color:var(--t2);flex-shrink:0;margin-right:12px;min-width:110px}
 .iv{text-align:right;font-weight:500;max-width:220px;word-break:break-word}
-.hi{padding:7px 0;border-bottom:.5px solid var(--bd);font-size:12px}
+.hi{padding:8px 0;border-bottom:.5px solid var(--bd);font-size:12px}
 .hi:last-child{border-bottom:none}
-.ht{font-size:11px;color:var(--t2);margin-bottom:2px}
+.ht{font-size:11px;color:var(--t2);margin-bottom:3px;display:flex;align-items:center;gap:6px}
+/* ── Docs no card ── */
+.doc-list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.doc-item{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--sf2);border-radius:var(--rs);border:.5px solid var(--bd);font-size:12px}
+.doc-item a{color:var(--blue);text-decoration:none;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc-item a:hover{text-decoration:underline}
+.doc-icon{font-size:16px;flex-shrink:0;color:var(--t2)}
+.doc-del{background:none;border:none;cursor:pointer;color:var(--t3);font-size:14px;padding:2px;flex-shrink:0}
+.doc-del:hover{color:var(--red)}
+.drop-zone{border:1.5px dashed var(--bd);border-radius:var(--rs);padding:16px;text-align:center;font-size:12px;color:var(--t3);cursor:pointer;margin-top:8px;transition:border-color .15s}
+.drop-zone:hover,.drop-zone.drag{border-color:var(--blue);color:var(--blue)}
+/* ── Tarefas ── */
 .ti2{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:.5px solid var(--bd)}
 .ti2:last-child{border-bottom:none}
-.tc2{width:15px;height:15px;border:.5px solid var(--bd);border-radius:3px;cursor:pointer;margin-top:1px;flex-shrink:0}
+.tc2{width:15px;height:15px;border:.5px solid var(--bd);border-radius:3px;cursor:pointer;margin-top:1px;flex-shrink:0;accent-color:var(--blue)}
 .tb{flex:1;font-size:12px}
 .td2{font-size:11px;color:var(--t3);margin-top:2px}
 .td2.ov{color:var(--red)}
 .es{padding:24px;text-align:center;color:var(--t3);font-size:12px}
 .spin{display:inline-block;width:16px;height:16px;border:2px solid var(--bd);border-top-color:var(--blue);border-radius:50%;animation:sp .7s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
-.toast{position:fixed;bottom:20px;right:20px;background:#1a1a1a;color:#fff;padding:9px 16px;border-radius:var(--rs);font-size:12px;z-index:2000;display:none}
+.toast{position:fixed;bottom:20px;right:20px;background:#1a1a1a;color:#fff;padding:9px 16px;border-radius:var(--rs);font-size:12px;z-index:9999;display:none;max-width:320px}
 .toast.show{display:block;animation:fi .2s}
 @keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 /* ── Login ── */
 #page-login{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9000;flex-direction:column;gap:14px}
 .lbox{background:var(--sf);border:.5px solid var(--bd);border-radius:var(--r);padding:32px 28px;width:min(360px,94vw);box-shadow:0 8px 32px rgba(0,0,0,.12)}
-.lbox h2{font-size:17px;font-weight:700;margin-bottom:4px}
-.lbox p{font-size:12px;color:var(--t2);margin-bottom:22px}
 .lf{margin-bottom:12px}
 .lf label{display:block;font-size:11px;color:var(--t2);font-weight:500;margin-bottom:4px}
 .lf input{width:100%;padding:9px 11px;border:.5px solid var(--bd);border-radius:var(--rs);background:var(--sf2);color:var(--t);font-size:13px;font-family:inherit}
@@ -129,7 +158,26 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
 .lbtn{width:100%;padding:10px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:13px;font-weight:600;cursor:pointer}
 .lbtn:hover{background:#0C447C}
 .lbtn:disabled{opacity:.5;cursor:not-allowed}
-/* ── Rodapé sidebar com usuário ── */
+/* ── Pop-up alertas ── */
+.popup-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:8000;align-items:center;justify-content:center;padding:16px}
+.popup-overlay.open{display:flex}
+.popup-box{background:var(--sf);border-radius:var(--r);width:min(520px,100%);max-height:80vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.popup-hdr{padding:16px 18px;border-bottom:.5px solid var(--bd);display:flex;align-items:center;justify-content:space-between;background:var(--red-l)}
+.popup-hdr h3{font-size:14px;font-weight:600;color:var(--red)}
+.popup-body{overflow-y:auto;flex:1;padding:8px 0}
+.popup-item{display:flex;align-items:center;gap:12px;padding:10px 18px;border-bottom:.5px solid var(--bd);cursor:pointer;transition:background .1s}
+.popup-item:hover{background:var(--sf2)}
+.popup-item:last-child{border-bottom:none}
+.popup-badge{width:36px;height:36px;border-radius:50%;background:var(--red-l);color:var(--red);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.popup-badge.r2{background:var(--amber-l);color:var(--amber)}
+.popup-info{flex:1;min-width:0}
+.popup-nome{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.popup-sub{font-size:11px;color:var(--t2);margin-top:1px}
+.popup-ftr{padding:12px 18px;border-top:.5px solid var(--bd);display:flex;justify-content:flex-end}
+/* ── Modal busca card ── */
+.busca-resultado{background:var(--blue-l);border:.5px solid var(--blue);border-radius:var(--rs);padding:10px 13px;margin-bottom:10px;font-size:12px;color:#0C447C;display:none}
+.busca-resultado.warn{background:var(--amber-l);border-color:var(--amber);color:var(--amber)}
+/* ── Sidebar usuário ── */
 .sf-user{display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:.5px solid var(--bd);font-size:12px}
 .sf-av{width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
 .sf-nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--t2)}
@@ -142,46 +190,61 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
 .tcard-av{width:36px;height:36px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0}
 .tcard-nome{font-size:13px;font-weight:600}
 .tcard-login{font-size:11px;color:var(--t2);margin-top:1px}
-.tcard-meta{font-size:11px;color:var(--t3);margin-bottom:10px}
+.tcard-meta{font-size:11px;color:var(--t3);margin-bottom:6px}
 .tcard-acts{display:flex;gap:6px;padding-top:10px;border-top:.5px solid var(--bd)}
-/* ── Alterar senha ── */
+/* ── Vistorias ── */
+.vcard{background:var(--sf);border:.5px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:10px}
+.vcard-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.vcard-end{font-size:12px;color:var(--t2);margin-top:3px}
+/* ── Legado tag ── */
+.tag-legado{display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;background:var(--amber-l);color:var(--amber);margin-left:6px}
+/* ── Campos habitacional ── */
+.hab-fields{display:none}
+.hab-fields.show{display:contents}
+/* ── Comissão (só gestor) ── */
+.comissao-block{display:none}
+/* ── Cfg ── */
 .cfg{background:var(--sf);border:.5px solid var(--bd);border-radius:var(--r);padding:22px;max-width:520px;margin:0 auto}
 .cfg h2{font-size:15px;font-weight:600;margin-bottom:5px}
 .cfg p{color:var(--t2);font-size:13px;margin-bottom:18px;line-height:1.6}
-.hint{background:var(--blue-l);border-radius:var(--rs);padding:10px 13px;font-size:12px;color:#0C447C;margin-bottom:18px;line-height:1.6}
 .cf{margin-bottom:12px}
 .cf label{display:block;font-size:11px;color:var(--t2);margin-bottom:5px;font-weight:500}
 .cf input{width:100%;padding:9px 11px;border:.5px solid var(--bd);border-radius:var(--rs);background:var(--sf2);color:var(--t);font-size:12px;font-family:monospace}
-@media(max-width:768px){.sidebar{display:none}.cr{grid-template-columns:1fr}.fg{grid-template-columns:1fr}.detail{grid-template-columns:1fr}td.ob{display:none}.sb input{width:120px}}
+@media(max-width:768px){.sidebar{display:none}.cr{grid-template-columns:1fr}.fg{grid-template-columns:1fr}.fg.t3{grid-template-columns:1fr 1fr}.detail{grid-template-columns:1fr}td.ob{display:none}.sb input{width:120px}}
 </style>
 </head>
 <body>
 
-<!-- ── TELA DE LOGIN ── -->
+<!-- ── POP-UP DE ALERTAS ── -->
+<div class="popup-overlay" id="popup-alertas">
+  <div class="popup-box">
+    <div class="popup-hdr">
+      <h3><i class="ti ti-bell-ringing"></i> Clientes que precisam de atenção</h3>
+      <button class="mc" onclick="fecharPopup()">×</button>
+    </div>
+    <div class="popup-body" id="popup-lista"></div>
+    <div class="popup-ftr">
+      <button class="btn p" onclick="fecharPopup()">Entendido — fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── LOGIN ── -->
 <div id="page-login">
   <div class="lbox">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
       <div class="logo-mark" style="width:36px;height:36px;font-size:18px;border-radius:8px">P</div>
-      <div>
-        <div style="font-size:16px;font-weight:700">Prime CRM</div>
-        <div style="font-size:11px;color:var(--t2)">Correspondente Caixa</div>
-      </div>
+      <div><div style="font-size:16px;font-weight:700">Prime CRM</div><div style="font-size:11px;color:var(--t2)">Correspondente Caixa</div></div>
     </div>
-    <div class="lf">
-      <label>E-mail</label>
-      <input id="l-login" type="email" placeholder="seu@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')document.getElementById('l-senha').focus()">
-    </div>
-    <div class="lf">
-      <label>Senha</label>
-      <input id="l-senha" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
-    </div>
+    <div class="lf"><label>Login</label><input id="l-login" type="text" placeholder="Seu login de acesso" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('l-senha').focus()"></div>
+    <div class="lf"><label>Senha</label><input id="l-senha" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="lerr" id="l-err"></div>
     <button class="lbtn" id="l-btn" onclick="doLogin()">Entrar</button>
   </div>
-  <div style="font-size:11px;color:var(--t3)">Prime Correspondente Bancário</div>
+  <div style="font-size:11px;color:var(--t3)">Prime Correspondente Bancário · Caixa Econômica Federal</div>
 </div>
 
-<!-- ── APP PRINCIPAL ── -->
+<!-- ── APP ── -->
 <div class="app" id="main-app" style="display:none">
 <aside class="sidebar">
   <div class="logo">
@@ -190,10 +253,13 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
     <div class="logo-sub">Correspondente Caixa</div>
   </div>
   <nav class="nav">
-    <div class="ns">Principal</div>
-    <div class="ni active" onclick="go('dashboard')"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
+    <div class="ns">Operação</div>
+    <div class="ni active" onclick="go('kanban')"><i class="ti ti-columns"></i> Quadro</div>
+    <div class="ni" onclick="go('posvenda')"><i class="ti ti-archive"></i> Pós-venda</div>
+    <div class="ni" onclick="go('vistorias')"><i class="ti ti-home-search"></i> Vistorias</div>
+    <div class="ns">Gestão</div>
+    <div class="ni" onclick="go('dashboard')"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
     <div class="ni" onclick="go('clientes')"><i class="ti ti-users"></i> Clientes</div>
-    <div class="ni" onclick="go('kanban')"><i class="ti ti-columns"></i> Funil</div>
     <div class="ni" onclick="go('tarefas')"><i class="ti ti-checkbox"></i> Tarefas</div>
     <div class="ns">Sistema</div>
     <div class="ni" id="nav-equipe" style="display:none" onclick="go('equipe')"><i class="ti ti-users-group"></i> Equipe</div>
@@ -208,24 +274,81 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
 
 <div class="main">
 
+<!-- QUADRO KANBAN -->
+<div id="page-kanban" class="page" style="display:flex;flex-direction:column">
+  <div class="hdr">
+    <div class="hdr-title">Quadro operacional</div>
+    <div class="hdr-acts">
+      <button class="btn" onclick="loadAll()"><i class="ti ti-refresh"></i> Atualizar</button>
+      <button class="btn p" onclick="abrirNovoCard()"><i class="ti ti-plus"></i> Novo card</button>
+    </div>
+  </div>
+  <div class="cnt" style="padding:14px 20px;overflow:hidden;display:flex;flex-direction:column">
+    <div class="kanban" id="kanban"></div>
+  </div>
+</div>
+
+<!-- PÓS-VENDA -->
+<div id="page-posvenda" class="page" style="display:none;flex-direction:column">
+  <div class="hdr">
+    <div class="hdr-title">Pós-venda</div>
+    <div class="hdr-acts"><span style="font-size:12px;color:var(--t2)">Clientes concluídos em acompanhamento</span></div>
+  </div>
+  <div class="cnt">
+    <div class="tc">
+      <div class="th2"><div class="tt" id="pv-count">Carregando...</div></div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Nome</th><th>Operador</th><th>Produto</th><th>Próx. contato</th><th>Alerta</th><th>Ações</th></tr></thead>
+          <tbody id="tbody-pv"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VISTORIAS -->
+<div id="page-vistorias" class="page" style="display:none;flex-direction:column">
+  <div class="hdr">
+    <div class="hdr-title">Vistorias e Laudos</div>
+    <div class="hdr-acts"><button class="btn p" onclick="abrirNovaVistoria()"><i class="ti ti-plus"></i> Nova vistoria</button></div>
+  </div>
+  <div class="cnt"><div id="lista-vistorias"><div class="es"><div class="spin"></div></div></div></div>
+</div>
+
 <!-- DASHBOARD -->
-<div id="page-dashboard" class="page" style="display:flex;flex-direction:column">
+<div id="page-dashboard" class="page" style="display:none;flex-direction:column">
   <div class="hdr">
     <div class="hdr-title">Dashboard</div>
     <div class="hdr-acts">
+      <select id="dash-legado" onchange="renderDashboard()" style="padding:5px 9px;border:.5px solid var(--bd);border-radius:var(--rs);background:var(--sf2);color:var(--t);font-size:12px">
+        <option value="todos">Todos os clientes</option>
+        <option value="ativos">Apenas ativos (quadro)</option>
+        <option value="legados">Apenas legados</option>
+      </select>
       <button class="btn" onclick="loadAll()"><i class="ti ti-refresh"></i> Atualizar</button>
-      <button class="btn p" onclick="openModal()"><i class="ti ti-plus"></i> Novo cliente</button>
     </div>
   </div>
   <div class="cnt">
     <div class="metrics" id="metrics"><div class="metric"><div class="spin"></div></div></div>
+    <div style="background:var(--red-l);border:.5px solid var(--red);border-radius:var(--rs);padding:10px 14px;margin-bottom:16px;font-size:12px;display:none" id="dash-alertas-bloco">
+      <b style="color:var(--red)">⚠ Alertas ativos:</b> <span id="dash-alertas-txt"></span>
+    </div>
     <div class="cr">
-      <div class="cc"><div class="ct">Clientes por status</div><div class="cw"><canvas id="cStatus"></canvas></div></div>
-      <div class="cc"><div class="ct">Carteira por corretor</div><div class="cw"><canvas id="cCorretor"></canvas></div></div>
+      <div class="cc"><div class="ct">Clientes por status <span id="ct-periodo" style="font-size:10px;color:var(--t3)"></span></div><div class="cw"><canvas id="cStatus"></canvas></div></div>
+      <div class="cc"><div class="ct">Carteira por operador</div><div class="cw"><canvas id="cCorretor"></canvas></div></div>
     </div>
     <div class="cr">
       <div class="cc"><div class="ct">Produtos</div><div class="cw"><canvas id="cProd"></canvas></div></div>
       <div class="cc"><div class="ct">Funil Habitacional MCMV</div><div class="cw"><canvas id="cFunil"></canvas></div></div>
+    </div>
+    <div class="tc" style="margin-bottom:16px">
+      <div class="th2"><div class="tt">Clientes com alerta R1 — precisam de contato</div></div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Nome</th><th>Status</th><th>Operador</th><th>Dias atraso</th><th>Ação</th></tr></thead><tbody id="tbody-alerta-r1"></tbody></table></div>
+    </div>
+    <div class="tc" id="bloco-r2">
+      <div class="th2"><div class="tt">Clientes parados na etapa — alerta R2</div></div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Nome</th><th>Status</th><th>Operador</th><th>Dias na etapa</th><th>Ação</th></tr></thead><tbody id="tbody-alerta-r2"></tbody></table></div>
     </div>
   </div>
 </div>
@@ -236,7 +359,7 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
     <div class="hdr-title">Clientes</div>
     <div class="hdr-acts">
       <button class="btn" onclick="exportarCSV()"><i class="ti ti-download"></i> Exportar CSV</button>
-      <button class="btn p" onclick="openModal()"><i class="ti ti-plus"></i> Novo cliente</button>
+      <button class="btn p" onclick="openModal()"><i class="ti ti-plus"></i> Novo cadastro</button>
     </div>
   </div>
   <div class="cnt">
@@ -244,32 +367,32 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
       <div class="th2">
         <div class="tt" id="tbl-count">Carregando...</div>
         <div class="sb">
-          <input type="text" id="q" placeholder="Buscar nome, CPF..." oninput="filterTable()">
-          <select id="fProd" onchange="filterTable()">
-            <option value="">Todos os produtos</option>
-            <option>Habitacional MCMV</option><option>Habitacional SBPE</option><option>Conta Corrente</option><option>Poupança</option>
-            <option>Cartão de Crédito</option><option>Consórcio</option><option>Consignado</option>
-            <option>Seguro de Vida</option><option>Rapidex/Amparo</option><option>Múltiplo</option>
+          <input type="text" id="q" placeholder="Buscar nome, CPF, tel..." oninput="filterTable()">
+          <select id="fLegado" onchange="filterTable()">
+            <option value="">Todos</option>
+            <option value="0">Ativos (quadro)</option>
+            <option value="1">Legados</option>
           </select>
           <select id="fStatus" onchange="filterTable()">
             <option value="">Todos os status</option>
-            <option>Em andamento</option><option>Simulação</option><option>SICAQ</option><option>SIOPI</option>
-            <option>Aguardando</option><option>Concluído</option><option>Reprovado</option><option>Restrição</option><option>Perdeu</option>
+            <option>Lead</option><option>Andamento</option><option>Condicionado</option>
+            <option>Reprovado</option><option>Aprovado</option><option>Conformidade</option>
+            <option>Assinatura</option><option>Cartório/Prefeitura</option><option>Concluído</option><option>Pós-venda</option>
+          </select>
+          <select id="fProd" onchange="filterTable()">
+            <option value="">Todos os produtos</option>
+            <option>Habitacional MCMV</option><option>Habitacional SBPE</option><option>Conta Corrente</option>
+            <option>Poupança</option><option>Cartão de Crédito</option><option>Consórcio</option>
+            <option>Consignado</option><option>Seguro de Vida</option><option>Rapidex/Amparo</option><option>Múltiplo</option>
           </select>
           <select id="fCorretor" onchange="filterTable()">
-            <option value="">Todos os corretores</option>
-            <option>Josiel</option><option>Leilane</option><option>Manoel</option><option>Romário</option>
-            <option>Thiago</option><option>Simone</option><option>Edivan</option><option>Ketlen</option>
-            <option>Bruno</option><option>Amanda</option><option>Ygor</option><option>Uembley</option>
+            <option value="">Todos os operadores</option>
           </select>
         </div>
       </div>
       <div style="overflow-x:auto">
         <table>
-          <thead><tr>
-            <th>Nome</th><th>CPF</th><th>Produto</th><th>Status</th>
-            <th>Corretor</th><th>Parceiro</th><th class="ob">Observação</th><th>Ações</th>
-          </tr></thead>
+          <thead><tr><th>Nome</th><th>CPF</th><th>Produto</th><th>Status</th><th>Operador</th><th>Indicado por</th><th class="ob">Observação</th><th>Ações</th></tr></thead>
           <tbody id="tbody"></tbody>
         </table>
       </div>
@@ -282,15 +405,6 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
   </div>
 </div>
 
-<!-- KANBAN -->
-<div id="page-kanban" class="page" style="display:none;flex-direction:column">
-  <div class="hdr">
-    <div class="hdr-title">Funil de clientes</div>
-    <div class="hdr-acts"><button class="btn p" onclick="openModal()"><i class="ti ti-plus"></i> Novo cliente</button></div>
-  </div>
-  <div class="cnt"><div class="kanban" id="kanban"></div></div>
-</div>
-
 <!-- TAREFAS -->
 <div id="page-tarefas" class="page" style="display:none;flex-direction:column">
   <div class="hdr">
@@ -301,10 +415,8 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
     <div class="tc">
       <div class="th2"><div class="tt">Tarefas pendentes</div></div>
       <div style="overflow-x:auto">
-        <table>
-          <thead><tr><th>Cliente</th><th>Tarefa</th><th>Responsável</th><th>Vencimento</th><th>Ações</th></tr></thead>
-          <tbody id="tbody-tasks"></tbody>
-        </table>
+        <table><thead><tr><th>Cliente</th><th>Tarefa</th><th>Responsável</th><th>Vencimento</th><th>Ações</th></tr></thead>
+        <tbody id="tbody-tasks"></tbody></table>
       </div>
     </div>
   </div>
@@ -315,7 +427,8 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
   <div class="hdr">
     <div class="hdr-title" id="detail-title">Cliente</div>
     <div class="hdr-acts">
-      <button class="btn" onclick="go('clientes')"><i class="ti ti-arrow-left"></i> Voltar</button>
+      <button class="btn" onclick="voltarDeDetalhe()"><i class="ti ti-arrow-left"></i> Voltar</button>
+      <button class="btn" id="btn-criar-card" onclick="criarCardDoLegado()" style="display:none"><i class="ti ti-layout-kanban"></i> Criar card</button>
       <button class="btn p" onclick="editCurrent()"><i class="ti ti-edit"></i> Editar</button>
     </div>
   </div>
@@ -323,11 +436,15 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
     <div class="detail">
       <div class="dc">
         <div class="card">
-          <div class="card-t">Dados do cliente</div>
+          <div class="card-t">Dados do cliente <span id="detail-legado-tag"></span></div>
           <div id="detail-info"></div>
         </div>
+        <div class="card" id="comissao-card" style="display:none">
+          <div class="card-t">Comissionamento <span style="font-size:10px;color:var(--t3)">(só gestores)</span></div>
+          <div id="detail-comissao"></div>
+        </div>
         <div class="card">
-          <div class="card-t" style="display:flex;align-items:center;justify-content:space-between">
+          <div class="card-t">
             Histórico de interações
             <button class="btn" onclick="openHistModal()" style="font-size:11px;padding:3px 9px"><i class="ti ti-plus"></i> Registrar</button>
           </div>
@@ -336,32 +453,31 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
       </div>
       <div class="dc">
         <div class="card">
-          <div class="card-t" style="display:flex;align-items:center;justify-content:space-between">
-            Tarefas
-            <button class="btn" id="btn-task-detail" onclick="openTaskModal(null)" style="font-size:11px;padding:3px 9px"><i class="ti ti-plus"></i> Criar</button>
+          <div class="card-t">
+            Documentos
+            <button class="btn" onclick="abrirAddDoc()" style="font-size:11px;padding:3px 9px"><i class="ti ti-paperclip"></i> Adicionar</button>
           </div>
-          <div id="detail-tasks"><div class="es">Nenhuma tarefa pendente</div></div>
+          <div id="detail-docs"><div class="es">Nenhum documento</div></div>
         </div>
         <div class="card">
-          <div class="card-t">Arquivo vinculado</div>
-          <div id="detail-arquivo" style="font-size:12px;color:var(--t2)">—</div>
+          <div class="card-t">
+            Tarefas
+            <button class="btn" id="btn-task-detail" style="font-size:11px;padding:3px 9px"><i class="ti ti-plus"></i> Criar</button>
+          </div>
+          <div id="detail-tasks"><div class="es">Nenhuma tarefa pendente</div></div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- EQUIPE (só gestor) -->
+<!-- EQUIPE -->
 <div id="page-equipe" class="page" style="display:none;flex-direction:column">
   <div class="hdr">
     <div class="hdr-title">Gestão da Equipe</div>
-    <div class="hdr-acts">
-      <button class="btn p" onclick="openNovoUsuario()"><i class="ti ti-user-plus"></i> Novo usuário</button>
-    </div>
+    <div class="hdr-acts"><button class="btn p" onclick="openNovoUsuario()"><i class="ti ti-user-plus"></i> Novo usuário</button></div>
   </div>
-  <div class="cnt">
-    <div class="team-grid" id="team-grid"></div>
-  </div>
+  <div class="cnt"><div class="team-grid" id="team-grid"></div></div>
 </div>
 
 <!-- ALTERAR SENHA -->
@@ -369,8 +485,8 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
   <div class="hdr"><div class="hdr-title">Alterar minha senha</div></div>
   <div class="cnt">
     <div class="cfg" style="max-width:400px">
-      <h2>Nova senha</h2>
-      <p>Escolha uma senha com pelo menos 6 caracteres. Como você já está autenticado, não é necessário informar a senha atual.</p>
+      <h2>Nova senha</h2><p>Mínimo 4 caracteres.</p>
+      <div class="cf"><label>Senha atual</label><input id="s-atual" type="password" placeholder="••••••••"></div>
       <div class="cf"><label>Nova senha</label><input id="s-nova" type="password" placeholder="••••••••"></div>
       <div class="cf"><label>Confirmar nova senha</label><input id="s-conf" type="password" placeholder="••••••••"></div>
       <button class="btn p" onclick="salvarSenha()" style="width:100%;justify-content:center;padding:9px"><i class="ti ti-device-floppy"></i> Salvar nova senha</button>
@@ -378,71 +494,83 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
   </div>
 </div>
 
-</div><!-- /main -->
-</div><!-- /app -->
+</div></div>
 
-<!-- MODAL CLIENTE -->
+<!-- MODAL CLIENTE / CARD -->
 <div class="overlay" id="modal-cliente">
-  <div class="modal" style="width:min(640px,100%)">
-    <div class="mh"><h3 id="modal-title">Novo cliente</h3><button class="mc" onclick="closeModal()">&times;</button></div>
+  <div class="modal">
+    <div class="mh"><h3 id="modal-title">Novo cadastro</h3><button class="mc" onclick="closeModal()">×</button></div>
     <div class="mb">
-
-      <!-- Alerta de CPF duplicado -->
-      <div id="alerta-dup" style="display:none;background:#FAEEDA;border:.5px solid #854F0B;border-radius:var(--rs);padding:9px 13px;margin-bottom:10px;font-size:12px;color:#854F0B">
-        <b>⚠️ CPF já cadastrado!</b> <span id="alerta-dup-nome"></span>
-        <button onclick="irParaDuplicado()" style="margin-left:8px;background:none;border:.5px solid #854F0B;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:11px;color:#854F0B">Ver cadastro</button>
-      </div>
-
-      <!-- Seção: Dados pessoais -->
-      <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px">Dados pessoais</div>
+      <!-- Busca por CPF/Tel -->
+      <div class="busca-resultado" id="busca-res"></div>
+      <div class="sec">Identificação</div>
       <div class="fg">
+        <div class="fl"><label>CPF</label><input id="f-cpf" type="text" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this);buscaClienteAuto()" inputmode="numeric"></div>
+        <div class="fl"><label>Telefone / WhatsApp *</label><input id="f-tel" type="text" placeholder="(61) 9 9999-9999" maxlength="16" oninput="mascaraTel(this);buscaClienteAuto()" inputmode="numeric"></div>
         <div class="fl"><label>Nome completo *</label><input id="f-nome" type="text" placeholder="Nome do cliente" oninput="this.value=this.value.toUpperCase()"></div>
-        <div class="fl">
-          <label>CPF</label>
-          <input id="f-cpf" type="text" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this);verificarCPFdup(this)" inputmode="numeric">
-        </div>
-        <div class="fl">
-          <label>Telefone / WhatsApp</label>
-          <input id="f-tel" type="text" placeholder="(61) 9 9999-9999" maxlength="16" oninput="mascaraTel(this)" inputmode="numeric">
-        </div>
-        <div class="fl">
-          <label>E-mail</label>
-          <input id="f-email" type="email" placeholder="cliente@email.com">
-        </div>
+        <div class="fl"><label>E-mail</label><input id="f-email" type="email" placeholder="cliente@email.com"></div>
       </div>
-
-      <!-- Seção: Atendimento -->
-      <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin:12px 0 7px">Atendimento</div>
+      <div class="sec">Atendimento</div>
       <div class="fg">
-        <div class="fl"><label>Corretor responsável</label>
-          <select id="f-corretor"><option value="">Selecione</option>
-            <option>PRIME</option><option>Josiel</option><option>Leilane</option><option>Manoel</option>
-            <option>Romário</option><option>Thiago</option><option>Simone</option><option>Edivan</option>
-            <option>Ketlen</option><option>Bruno</option><option>Amanda</option><option>Ygor</option>
-            <option>Uembley</option><option>Outros</option>
-          </select>
+        <div class="fl"><label>Operador responsável *</label>
+          <select id="f-operador"><option value="">Selecione</option></select>
         </div>
-        <div class="fl"><label>Parceiro / Indicação</label><input id="f-parceiro" type="text" placeholder="Nome do parceiro ou indicação..."></div>
-        <div class="fl"><label>Produto em negociação *</label>
-          <select id="f-prod"><option value="">Selecione</option>
-            <option>Habitacional MCMV</option><option>Habitacional SBPE</option><option>Conta Corrente</option><option>Poupança</option>
-            <option>Cartão de Crédito</option><option>Consórcio</option><option>Consignado</option>
-            <option>Seguro de Vida</option><option>Rapidex/Amparo</option><option>Múltiplo</option>
-          </select>
-        </div>
-        <div class="fl"><label>Status</label>
+        <div class="fl" id="f-operador-outro-wrap" style="display:none"><label>Nome do operador</label><input id="f-operador-outro" type="text" placeholder="Digite o nome"></div>
+        <div class="fl"><label>Status *</label>
           <select id="f-status">
-            <option>Em andamento</option><option>Simulação</option><option>SICAQ</option><option>SIOPI</option>
-            <option>Aguardando</option><option>Concluído</option><option>Reprovado</option><option>Restrição</option><option>Perdeu</option>
+            <option>Lead</option><option>Andamento</option><option>Condicionado</option>
+            <option>Reprovado</option><option>Aprovado</option><option>Conformidade</option>
+            <option>Assinatura</option><option>Cartório/Prefeitura</option><option>Concluído</option><option>Pós-venda</option>
           </select>
+        </div>
+        <div class="fl"><label>Produto</label>
+          <select id="f-prod" onchange="toggleHabFields()">
+            <option value="">Selecione</option>
+            <option>Habitacional MCMV</option><option>Habitacional SBPE</option><option>Conta Corrente</option>
+            <option>Poupança</option><option>Cartão de Crédito</option><option>Consórcio</option>
+            <option>Consignado</option><option>Seguro de Vida</option><option>Rapidex/Amparo</option><option>Múltiplo</option>
+          </select>
+        </div>
+        <div class="fl"><label>Indicado por / Parceiro</label><input id="f-indicado" type="text" placeholder="Nome do indicador..."></div>
+        <div class="fl"><label>Corretor externo</label>
+          <select id="f-corretor-ext"><option value="">Nenhum</option></select>
+        </div>
+        <div class="fl"><label>Construtor / Vendedor</label>
+          <select id="f-construtor"><option value="">Nenhum</option></select>
         </div>
         <div class="fl"><label>Data de entrada</label><input id="f-dtentrada" type="date"></div>
-        <div class="fl"><label>Última atualização</label><input id="f-dtupd" type="date"></div>
-        <div class="fl" style="grid-column:1/-1"><label>Origem / Lista de origem</label><input id="f-origem" type="text" placeholder="Ex: Lista Quente / Hot List / Indicação Josiel / clientes_prime.xlsx..."></div>
+        <div class="fl"><label>Próximo contato</label><input id="f-proxcontato" type="date"></div>
+        <div class="fl fg full"><label>Origem / Lista de origem</label><input id="f-origem" type="text" placeholder="Ex: Lista Quente / Indicação / WhatsApp..."></div>
       </div>
-
-      <!-- Seção: Produtos já contratados -->
-      <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin:12px 0 7px">Produtos já contratados com a Caixa</div>
+      <div class="sec">Renda</div>
+      <div class="fg t3">
+        <div class="fl"><label>Renda principal (R$)</label><input id="f-renda1" type="number" placeholder="0,00" min="0" step="0.01" oninput="calcRendaTotal()"></div>
+        <div class="fl"><label>Renda secundária (R$)</label><input id="f-renda2" type="number" placeholder="0,00" min="0" step="0.01" oninput="calcRendaTotal()"></div>
+        <div class="fl"><label>Renda total (R$)</label><input id="f-renda-total" type="number" placeholder="0,00" readonly style="background:var(--sf);color:var(--t2)"></div>
+      </div>
+      <!-- Campos habitacional (só aparecem quando produto = MCMV ou SBPE) -->
+      <div id="hab-section" style="display:none">
+        <div class="sec">Financiamento habitacional</div>
+        <div class="fg">
+          <div class="fl"><label>Valor do imóvel (R$)</label><input id="f-vimovel" type="number" placeholder="0,00" min="0" step="0.01"></div>
+          <div class="fl"><label>Valor do financiamento (R$)</label><input id="f-vfinanc" type="number" placeholder="0,00" min="0" step="0.01"></div>
+          <div class="fl"><label>Subsídio (R$)</label><input id="f-vsubsidio" type="number" placeholder="0,00" min="0" step="0.01"></div>
+          <div class="fl"><label>Prestação estimada (R$)</label><input id="f-vprestacao" type="number" placeholder="0,00" min="0" step="0.01"></div>
+          <div class="fl"><label>Número do contrato</label><input id="f-contrato" type="text" placeholder="Ex: 1.4444.2529285-4"></div>
+        </div>
+      </div>
+      <!-- Comissão (só gestor vê) -->
+      <div id="comissao-section" style="display:none">
+        <div class="sec">Comissionamento <span style="font-size:10px;color:var(--t3)">(só gestores)</span></div>
+        <div class="fg t3">
+          <div class="fl"><label>Valor da comissão (R$)</label><input id="f-comval" type="number" placeholder="0,00" min="0" step="0.01"></div>
+          <div class="fl"><label>Status</label>
+            <select id="f-comstatus"><option value="">—</option><option>Previsto</option><option>A receber</option><option>Pago</option></select>
+          </div>
+          <div class="fl"><label>Observação</label><input id="f-comobs" type="text" placeholder="Detalhes..."></div>
+        </div>
+      </div>
+      <div class="sec">Produtos já contratados com a Caixa</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:10px 12px;background:var(--sf2);border-radius:var(--rs);border:.5px solid var(--bd)">
         <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="pc-hab" value="Habitacional MCMV"> Habitacional MCMV</label>
         <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="pc-sbpe" value="Habitacional SBPE"> Habitacional SBPE</label>
@@ -453,17 +581,9 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
         <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="pc-csig" value="Consignado"> Consignado</label>
         <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="pc-seg" value="Seguro de Vida"> Seguro de Vida</label>
         <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="pc-rpx" value="Rapidex/Amparo"> Rapidex/Amparo</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="pc-fgts" value="FGTS Aniversário"> FGTS Aniversário</label>
       </div>
-
-      <!-- Seção: Outros -->
-      <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin:12px 0 7px">Outros</div>
-      <div class="fg">
-        <div class="fl fg full"><label>Pasta / arquivo vinculado</label><input id="f-arquivo" type="text" placeholder="Habitação\NOME_CLIENTE"></div>
-      </div>
-      <div class="fg full" style="margin-top:4px">
-        <div class="fl"><label>Observações</label><textarea id="f-obs" placeholder="Situação atual, próximos passos..."></textarea></div>
-      </div>
+      <div class="sec">Observações</div>
+      <div class="fg full"><div class="fl"><textarea id="f-obs" placeholder="Situação atual, próximos passos..." style="height:80px"></textarea></div></div>
     </div>
     <div class="mf">
       <button class="btn" onclick="closeModal()">Cancelar</button>
@@ -472,18 +592,44 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
   </div>
 </div>
 
-<!-- MODAL HISTÓRICO -->
+<!-- MODAL INTERAÇÃO RÁPIDA (do card) -->
+<div class="overlay" id="modal-interacao">
+  <div class="modal sm">
+    <div class="mh"><h3 id="int-title">Registrar interação</h3><button class="mc" onclick="fecharInteracao()">×</button></div>
+    <div class="mb">
+      <div class="fg">
+        <div class="fl"><label>Tipo</label>
+          <select id="int-tipo"><option>WhatsApp</option><option>Ligação</option><option>Email</option><option>Visita</option><option>Nota</option><option>Status alterado</option></select>
+        </div>
+        <div class="fl"><label>Mover para status</label>
+          <select id="int-status">
+            <option value="">Manter status atual</option>
+            <option>Lead</option><option>Andamento</option><option>Condicionado</option>
+            <option>Reprovado</option><option>Aprovado</option><option>Conformidade</option>
+            <option>Assinatura</option><option>Cartório/Prefeitura</option><option>Concluído</option><option>Pós-venda</option>
+          </select>
+        </div>
+      </div>
+      <div class="fl" style="margin-top:9px"><label>Descrição *</label><textarea id="int-desc" placeholder="O que foi feito / combinado / próximo passo..." style="height:90px"></textarea></div>
+      <div class="fl" style="margin-top:9px"><label>Próximo contato</label><input id="int-prox" type="datetime-local"></div>
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="fecharInteracao()">Cancelar</button>
+      <button class="btn p" onclick="salvarInteracao()"><i class="ti ti-device-floppy"></i> Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL HISTÓRICO (ficha) -->
 <div class="overlay" id="modal-hist">
-  <div class="modal" style="max-width:420px">
-    <div class="mh"><h3>Registrar interação</h3><button class="mc" onclick="closeHistModal()">&times;</button></div>
+  <div class="modal sm">
+    <div class="mh"><h3>Registrar interação</h3><button class="mc" onclick="closeHistModal()">×</button></div>
     <div class="mb">
       <div class="fl"><label>Tipo</label>
-        <select id="h-tipo"><option>Nota</option><option>Ligação</option><option>WhatsApp</option><option>Email</option><option>Visita</option><option>Status alterado</option></select>
+        <select id="h-tipo"><option>WhatsApp</option><option>Ligação</option><option>Email</option><option>Visita</option><option>Nota</option><option>Status alterado</option></select>
       </div>
-      <div class="fl" style="margin-top:9px"><label>Descrição *</label>
-        <textarea id="h-desc" placeholder="O que foi feito / combinado / próximo passo..." style="height:95px"></textarea>
-      </div>
-      <div class="fl" style="margin-top:9px"><label>Registrado por</label><input id="h-user" type="text" placeholder="Seu nome"></div>
+      <div class="fl" style="margin-top:9px"><label>Descrição *</label><textarea id="h-desc" placeholder="O que foi feito / combinado..." style="height:90px"></textarea></div>
+      <div class="fl" style="margin-top:9px"><label>Próximo contato</label><input id="h-prox" type="datetime-local"></div>
     </div>
     <div class="mf">
       <button class="btn" onclick="closeHistModal()">Cancelar</button>
@@ -494,16 +640,14 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
 
 <!-- MODAL TAREFA -->
 <div class="overlay" id="modal-task">
-  <div class="modal" style="max-width:420px">
-    <div class="mh"><h3>Nova tarefa</h3><button class="mc" onclick="closeTaskModal()">&times;</button></div>
+  <div class="modal sm">
+    <div class="mh"><h3>Nova tarefa</h3><button class="mc" onclick="closeTaskModal()">×</button></div>
     <div class="mb">
-      <div class="fl"><label>Cliente</label>
-        <select id="t-cliente"><option value="">Selecione o cliente</option></select>
-      </div>
+      <div class="fl"><label>Cliente</label><select id="t-cliente"><option value="">Selecione o cliente</option></select></div>
       <div class="fl" style="margin-top:9px"><label>Tarefa *</label><input id="t-titulo" type="text" placeholder="Ex: Ligar para confirmar documentos"></div>
       <div class="fl" style="margin-top:9px"><label>Descrição</label><textarea id="t-desc" placeholder="Detalhes..." style="height:65px"></textarea></div>
       <div class="fg" style="margin-top:9px">
-        <div class="fl"><label>Responsável</label><input id="t-resp" type="text" placeholder="Nome do corretor"></div>
+        <div class="fl"><label>Responsável</label><input id="t-resp" type="text" placeholder="Nome do responsável"></div>
         <div class="fl"><label>Vencimento</label><input id="t-venc" type="date"></div>
       </div>
     </div>
@@ -514,22 +658,60 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
   </div>
 </div>
 
-<!-- MODAL NOVO USUÁRIO -->
-<div class="overlay" id="modal-usuario">
-  <div class="modal" style="max-width:400px">
-    <div class="mh"><h3 id="mu-title">Novo usuário</h3><button class="mc" onclick="fecharNovoUsuario()">&times;</button></div>
+<!-- MODAL DOCUMENTO -->
+<div class="overlay" id="modal-doc">
+  <div class="modal sm">
+    <div class="mh"><h3>Adicionar documento</h3><button class="mc" onclick="fecharDoc()">×</button></div>
     <div class="mb">
-      <div class="fl"><label>Nome completo *</label><input id="nu-nome" type="text" placeholder="Ex: Josiel Santos"></div>
-      <div class="fl" style="margin-top:8px"><label>E-mail *</label><input id="nu-email" type="email" placeholder="Ex: josiel@prime.com.br"></div>
-      <div class="fl" style="margin-top:8px"><label>Senha *</label><input id="nu-senha" type="password" placeholder="Mínimo 6 caracteres"></div>
-      <div class="fl" style="margin-top:8px"><label>Perfil</label>
-        <select id="nu-role" style="width:100%;padding:7px 9px;border:.5px solid var(--bd);border-radius:var(--rs);background:var(--sf2);color:var(--t);font-size:12px">
-          <option value="usuario">Usuário — acesso normal ao CRM</option>
-          <option value="gestor">Gestor — acesso total + gerenciar equipe</option>
+      <div class="fl"><label>Nome do arquivo *</label><input id="doc-nome" type="text" placeholder="Ex: RG João Silva"></div>
+      <div class="fl" style="margin-top:9px"><label>Link do Google Drive *</label><input id="doc-url" type="url" placeholder="https://drive.google.com/..."></div>
+      <div style="margin-top:10px;font-size:11px;color:var(--t2);background:var(--blue-l);padding:9px 12px;border-radius:var(--rs);line-height:1.6">
+        📁 Salve o arquivo no Google Drive da empresa e cole o link de compartilhamento aqui.<br>
+        O arquivo aparecerá listado na ficha do cliente.
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="fecharDoc()">Cancelar</button>
+      <button class="btn p" onclick="salvarDoc()"><i class="ti ti-link"></i> Vincular</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VISTORIA -->
+<div class="overlay" id="modal-vistoria">
+  <div class="modal sm">
+    <div class="mh"><h3 id="vist-title">Nova vistoria</h3><button class="mc" onclick="fecharVistoria()">×</button></div>
+    <div class="mb">
+      <div class="fl"><label>Matrícula do imóvel</label><input id="v-matricula" type="text" placeholder="Número da matrícula"></div>
+      <div class="fl" style="margin-top:9px"><label>Construtor / Responsável</label><input id="v-construtor" type="text" placeholder="Nome do construtor"></div>
+      <div class="fl" style="margin-top:9px"><label>Endereço do imóvel</label><input id="v-endereco" type="text" placeholder="Endereço completo"></div>
+      <div class="fl" style="margin-top:9px"><label>Status</label>
+        <select id="v-status" style="width:100%;padding:7px 9px;border:.5px solid var(--bd);border-radius:var(--rs);background:var(--sf2);color:var(--t);font-size:12px">
+          <option>Aguardando</option><option>Em andamento</option><option>Concluído</option><option>Reprovado</option>
         </select>
       </div>
-      <div style="margin-top:10px;font-size:11px;color:var(--t2);background:var(--blue-l);padding:9px 12px;border-radius:var(--rs);line-height:1.6">
-        O e-mail será usado para fazer login. A senha pode ser alterada depois em <b>Alterar senha</b>.
+      <div class="fl" style="margin-top:9px"><label>Observações</label><textarea id="v-obs" placeholder="Informações relevantes..." style="height:80px"></textarea></div>
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="fecharVistoria()">Cancelar</button>
+      <button class="btn p" onclick="salvarVistoria()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOVO USUÁRIO -->
+<div class="overlay" id="modal-usuario">
+  <div class="modal sm">
+    <div class="mh"><h3 id="mu-title">Novo usuário</h3><button class="mc" onclick="fecharNovoUsuario()">×</button></div>
+    <div class="mb">
+      <div class="fl"><label>Nome completo *</label><input id="nu-nome" type="text" placeholder="Ex: Josiel Santos"></div>
+      <div class="fl" style="margin-top:8px"><label>Login *</label><input id="nu-login" type="text" placeholder="Ex: josiel (sem espaços)"></div>
+      <div class="fl" style="margin-top:8px"><label>Senha *</label><input id="nu-senha" type="text" placeholder="Mínimo 4 caracteres"></div>
+      <div class="fl" style="margin-top:8px"><label>Perfil</label>
+        <select id="nu-role" style="width:100%;padding:7px 9px;border:.5px solid var(--bd);border-radius:var(--rs);background:var(--sf2);color:var(--t);font-size:12px">
+          <option value="usuario">Operador — acesso ao quadro e clientes</option>
+          <option value="gestor">Gestor — acesso total</option>
+        </select>
       </div>
     </div>
     <div class="mf">
@@ -542,317 +724,417 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
 <div class="toast" id="toast"></div>
 
 <script>
-// ── Configuração Supabase ────────────────────────────────────
+// ── Configuração ─────────────────────────────────────────────
 const SB_URL = 'https://dvkniqxjudcxzpbmptbb.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2a25pcXhqdWRjeHpwYm1wdGJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0NTI5NzgsImV4cCI6MjA5NjAyODk3OH0.dq2hOHXZmazJqsiW9tGiCCiyjZlaF_C7w80mN__I4eo';
 
-let sb = null;
-let all = [], filtered = [], pg = 0, PER = 25, detailId = null, editId = null, charts = {};
-let usuarioAtual = null;
-let editUsuarioId = null;
+let sb, all=[], filtered=[], pg=0, PER=25, detailId=null, editId=null, charts={};
+let usuarioAtual=null, editUsuarioId=null, voltarPara='kanban', interacaoClienteId=null;
+let corretores=[], construtores=[], etapasConfig=[];
 
-const SBADGE = {'Em andamento':'b-blue','Simulação':'b-amber','SICAQ':'b-blue','SIOPI':'b-purple','Aguardando':'b-amber','Concluído':'b-green','Reprovado':'b-red','Restrição':'b-red','Perdeu':'b-coral'};
-const PBADGE = {'Habitacional MCMV':'b-teal','Conta Corrente':'b-blue','Poupança':'b-blue','Cartão de Crédito':'b-purple','Consórcio':'b-amber','Consignado':'b-amber','Seguro de Vida':'b-green','Rapidex/Amparo':'b-gray','Múltiplo':'b-purple'};
-const COLS = ['#185FA5','#3B6D11','#854F0B','#A32D2D','#0F6E56','#534AB7','#993C1D','#888780','#D4537E','#378ADD'];
+const STATUS_ORDER=['Lead','Andamento','Condicionado','Reprovado','Aprovado','Conformidade','Assinatura','Cartório/Prefeitura','Concluído'];
+const SBADGE={'Lead':'b-teal','Andamento':'b-blue','Condicionado':'b-amber','Reprovado':'b-red','Aprovado':'b-green','Conformidade':'b-purple','Assinatura':'b-purple','Cartório/Prefeitura':'b-coral','Concluído':'b-green','Pós-venda':'b-gray'};
+const PBADGE={'Habitacional MCMV':'b-teal','Habitacional SBPE':'b-teal','Conta Corrente':'b-blue','Poupança':'b-blue','Cartão de Crédito':'b-purple','Consórcio':'b-amber','Consignado':'b-amber','Seguro de Vida':'b-green','Rapidex/Amparo':'b-gray','Múltiplo':'b-purple'};
+const COLS=['#185FA5','#3B6D11','#854F0B','#A32D2D','#0F6E56','#534AB7','#993C1D','#888780','#D4537E','#378ADD'];
+const PC_IDS=['pc-hab','pc-sbpe','pc-cc','pc-poup','pc-cart','pc-cons','pc-csig','pc-seg','pc-rpx'];
 
-// ── Inicialização ────────────────────────────────────────────
-window.addEventListener('load', async () => {
-  sb = supabase.createClient(SB_URL, SB_KEY, {
-    auth: {
-      persistSession: false,   // não salva sessão — usuário precisa logar sempre
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
-      storageKey: 'prime_crm_auth'
-    }
-  });
+// ── Hash senha ───────────────────────────────────────────────
+async function hashSenha(txt){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(txt));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
 
-  // Sempre mostra o login — comportamento seguro e previsível
-  mostrarLogin();
+// ── Init ─────────────────────────────────────────────────────
+window.addEventListener('load',()=>{
+  sb=supabase.createClient(SB_URL,SB_KEY);
+  document.getElementById('page-login').style.display='flex';
+  document.getElementById('main-app').style.display='none';
 });
 
-// ── Mostrar tela de login ────────────────────────────────────
-function mostrarLogin() {
-  document.getElementById('page-login').style.display = 'flex';
-  document.getElementById('main-app').style.display = 'none';
-  document.getElementById('l-login').value = '';
-  document.getElementById('l-senha').value = '';
-  document.getElementById('l-err').textContent = '';
-  document.getElementById('l-btn').disabled = false;
-  document.getElementById('l-btn').textContent = 'Entrar';
-}
-
-// ── Login com Supabase Auth ──────────────────────────────────
-async function doLogin() {
-  const email = document.getElementById('l-login').value.trim();
-  const senha = document.getElementById('l-senha').value;
-  const err = document.getElementById('l-err');
-  const btn = document.getElementById('l-btn');
-
-  if (!email || !senha) { err.textContent = 'Preencha e-mail e senha.'; return; }
-
-  err.textContent = '';
-  btn.disabled = true;
-  btn.textContent = 'Verificando...';
-
-  try {
-    const { data, error } = await sb.auth.signInWithPassword({ email, password: senha });
-
-    if (error) {
-      err.textContent = error.message === 'Invalid login credentials'
-        ? 'E-mail ou senha incorretos.'
-        : 'Erro: ' + error.message;
-      btn.disabled = false;
-      btn.textContent = 'Entrar';
-      return;
-    }
-
-    await carregarPerfil(data.user.id);
-
-  } catch(e) {
-    err.textContent = 'Erro de conexão. Tente novamente.';
-    btn.disabled = false;
-    btn.textContent = 'Entrar';
-  }
-}
-
-// ── Carregar perfil do usuário logado ────────────────────────
-async function carregarPerfil(userId) {
-  try {
-    // Lê da tabela perfis (nome definitivo após Etapa 4)
-    const { data, error } = await sb
-      .from('perfis')
-      .select('id, nome, role, ativo')
-      .eq('id', userId)
-      .single();
-
-    if (error || !data) {
-      document.getElementById('l-err').textContent = 'Perfil não encontrado. Contate o gestor.';
-      document.getElementById('l-btn').disabled = false;
-      document.getElementById('l-btn').textContent = 'Entrar';
-      await sb.auth.signOut();
-      return;
-    }
-
-    if (!data.ativo) {
-      document.getElementById('l-err').textContent = 'Usuário desativado. Contate o gestor.';
-      document.getElementById('l-btn').disabled = false;
-      document.getElementById('l-btn').textContent = 'Entrar';
-      await sb.auth.signOut();
-      return;
-    }
-
-    usuarioAtual = data;
-
-    // Registra último acesso — ignora erro silenciosamente se falhar
-    sb.from('perfis')
-      .update({ ultimo_acesso: new Date().toISOString() })
-      .eq('id', userId)
-      .then(() => {});
-
+// ── Login ────────────────────────────────────────────────────
+async function doLogin(){
+  const login=document.getElementById('l-login').value.trim().toLowerCase();
+  const senha=document.getElementById('l-senha').value;
+  const err=document.getElementById('l-err');
+  const btn=document.getElementById('l-btn');
+  if(!login||!senha){err.textContent='Preencha login e senha.';return;}
+  err.textContent='';btn.disabled=true;btn.textContent='Verificando...';
+  try{
+    const hash=await hashSenha(senha);
+    const{data,error}=await sb.from('perfis').select('*').eq('login',login).eq('senha_hash',hash).eq('ativo',true).single();
+    if(error||!data){err.textContent='Login ou senha incorretos.';btn.disabled=false;btn.textContent='Entrar';return;}
+    usuarioAtual=data;
+    await sb.from('perfis').update({ultimo_acesso:new Date().toISOString()}).eq('id',data.id);
     entrarNoApp();
-
-  } catch(e) {
-    document.getElementById('l-err').textContent = 'Erro ao carregar perfil. Tente novamente.';
-    document.getElementById('l-btn').disabled = false;
-    document.getElementById('l-btn').textContent = 'Entrar';
-  }
+  }catch(e){err.textContent='Erro de conexão.';btn.disabled=false;btn.textContent='Entrar';}
 }
 
-// ── Entrar no app ────────────────────────────────────────────
-function entrarNoApp() {
-  document.getElementById('page-login').style.display = 'none';
-  document.getElementById('main-app').style.display = 'flex';
-  const inicial = (usuarioAtual.nome || '?').charAt(0).toUpperCase();
-  document.getElementById('sf-av').textContent = inicial;
-  document.getElementById('sf-nm').textContent = usuarioAtual.nome;
-  document.getElementById('nav-equipe').style.display = usuarioAtual.role === 'gestor' ? 'flex' : 'none';
-  loadAll();
-  go('dashboard');
+async function entrarNoApp(){
+  document.getElementById('page-login').style.display='none';
+  document.getElementById('main-app').style.display='flex';
+  const ini=(usuarioAtual.nome||'?').charAt(0).toUpperCase();
+  document.getElementById('sf-av').textContent=ini;
+  document.getElementById('sf-nm').textContent=usuarioAtual.nome;
+  document.getElementById('nav-equipe').style.display=usuarioAtual.role==='gestor'?'flex':'none';
+  await loadAll();
+  go('kanban');
+  setTimeout(()=>mostrarPopupAlertas(),800);
 }
 
-// ── Logout ───────────────────────────────────────────────────
-async function doLogout() {
-  usuarioAtual = null;
-  await sb.auth.signOut();
-  mostrarLogin();
+function doLogout(){
+  usuarioAtual=null;
+  document.getElementById('main-app').style.display='none';
+  document.getElementById('page-login').style.display='flex';
+  document.getElementById('l-login').value='';
+  document.getElementById('l-senha').value='';
+  document.getElementById('l-err').textContent='';
+  document.getElementById('l-btn').disabled=false;
+  document.getElementById('l-btn').textContent='Entrar';
+}
+
+// ── Carregar dados ───────────────────────────────────────────
+async function loadAll(){
+  if(!sb)return;
+  // Recalcular alertas via RPC
+  await sb.rpc('fn_recalcular_alertas');
+  // Carregar dados em paralelo
+  const[{data:cls},{data:corr},{data:const_},{data:etapas}]=await Promise.all([
+    sb.from('clientes').select('id,nome,cpf,telefone,email,produto,status,operador,corretor,indicado_por,corretor_externo,construtor_vendedor,observacoes,origem_arquivo,dt_entrada,dt_atualizacao,legado,tem_card,em_alerta_r1,em_alerta_r2,proxima_interacao,ultima_interacao,dt_entrada_etapa,renda_principal,renda_secundaria,renda_total,valor_imovel,valor_financiamento,valor_subsidio,valor_prestacao,numero_contrato,comissao_valor,comissao_status,comissao_obs,produtos_contratados').order('nome'),
+    sb.from('corretores').select('nome').eq('ativo',true).order('nome'),
+    sb.from('construtores').select('nome,tipo').eq('ativo',true).order('nome'),
+    sb.from('etapas_config').select('nome_etapa,prazo_r1_dias,prazo_r2_dias')
+  ]);
+  all=cls||[];filtered=[...all];
+  corretores=corr||[];construtores=const_||[];etapasConfig=etapas||[];
+  popularSelectCorretores();
+  renderKanban();renderPosvenda();renderTable();renderMetrics();renderCharts();renderDashboardAlertas();
+  if(document.getElementById('page-tarefas').style.display!=='none')loadTasks();
+}
+
+function popularSelectCorretores(){
+  const opts='<option value="">Selecione</option>'+corretores.map(c=>`<option>${c.nome}</option>`).join('')+'<option value="Outros">Outros</option>';
+  document.getElementById('f-operador').innerHTML=opts;
+  const fCorr=document.getElementById('fCorretor');
+  if(fCorr)fCorr.innerHTML='<option value="">Todos os operadores</option>'+corretores.map(c=>`<option>${c.nome}</option>`).join('');
+  const cExt=document.getElementById('f-corretor-ext');
+  if(cExt)cExt.innerHTML='<option value="">Nenhum</option>'+corretores.map(c=>`<option>${c.nome}</option>`).join('');
+  const cCons=document.getElementById('f-construtor');
+  if(cCons)cCons.innerHTML='<option value="">Nenhum</option>'+construtores.map(c=>`<option>${c.nome} (${c.tipo})</option>`).join('');
 }
 
 // ── Navegação ────────────────────────────────────────────────
-function go(p) {
-  document.querySelectorAll('.page').forEach(x => { x.style.display = 'none'; });
-  const navIds = ['dashboard','clientes','kanban','tarefas','equipe','senha'];
-  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
-  const pg2 = document.getElementById('page-' + p);
-  if (pg2) { pg2.style.display = 'flex'; pg2.style.flexDirection = 'column'; }
-  const idx = navIds.indexOf(p);
-  if (idx >= 0) document.querySelectorAll('.ni')[idx]?.classList.add('active');
-  if (p === 'clientes') renderTable();
-  if (p === 'kanban') renderKanban();
-  if (p === 'tarefas') loadTasks();
-  if (p === 'equipe') carregarEquipe();
+function go(p){
+  document.querySelectorAll('.page').forEach(x=>{x.style.display='none';});
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  const pg2=document.getElementById('page-'+p);
+  if(pg2){pg2.style.display='flex';pg2.style.flexDirection='column';}
+  const navMap={kanban:0,posvenda:1,vistorias:2,dashboard:3,clientes:4,tarefas:5,equipe:6,senha:7};
+  const allNi=document.querySelectorAll('.ni');
+  if(navMap[p]!==undefined&&allNi[navMap[p]])allNi[navMap[p]].classList.add('active');
+  if(p==='clientes')renderTable();
+  if(p==='tarefas')loadTasks();
+  if(p==='equipe')carregarEquipe();
+  if(p==='vistorias')carregarVistorias();
+  if(p==='dashboard')renderDashboard();
+  if(p==='posvenda')renderPosvenda();
 }
 
-// ── Carregar clientes ────────────────────────────────────────
-async function loadAll() {
-  if (!sb) return;
-  const { data, error } = await sb.from('clientes').select('*').order('nome');
-  if (error) { toast('Erro ao carregar: ' + error.message, 3000); return; }
-  all = data || []; filtered = [...all];
-  renderMetrics(); renderCharts(); renderTable(); renderKanban(); loadTasks();
+// ── KANBAN ───────────────────────────────────────────────────
+function renderKanban(){
+  const ativos=all.filter(c=>c.status!=='Pós-venda'&&c.tem_card);
+  document.getElementById('kanban').innerHTML=STATUS_ORDER.map(s=>{
+    const cards=ativos.filter(c=>c.status===s);
+    const alertas=cards.filter(c=>c.em_alerta_r1).length;
+    return`<div class="kol">
+      <div class="kh">
+        <span class="kht">${s}</span>
+        <span style="display:flex;align-items:center;gap:4px">
+          ${alertas>0?`<span style="background:var(--red-l);color:var(--red);border-radius:20px;padding:1px 5px;font-size:10px;font-weight:700">⚠${alertas}</span>`:''}
+          <span class="khc">${cards.length}</span>
+        </span>
+      </div>
+      <div class="kb">${cards.length?cards.map(c=>renderCard(c)).join(''):'<div style="padding:10px;font-size:11px;color:var(--t3);text-align:center">Vazio</div>'}
+      </div>
+    </div>`;
+  }).join('');
 }
 
-function renderMetrics() {
-  const t = all.length, con = all.filter(c => c.status === 'Concluído').length;
-  const and = all.filter(c => ['Em andamento','SICAQ','SIOPI','Simulação'].includes(c.status)).length;
-  const at = all.filter(c => ['Restrição','Reprovado','Perdeu','Aguardando'].includes(c.status)).length;
-  const hab = all.filter(c => c.produto === 'Habitacional MCMV').length;
-  document.getElementById('metrics').innerHTML = `
+function renderCard(c){
+  const dias=c.ultima_interacao?Math.floor((Date.now()-new Date(c.ultima_interacao))/(86400000)):null;
+  let diasCls='ok',diasTxt='Hoje';
+  if(dias!==null&&dias>0){diasTxt=dias===1?'1 dia':dias+' dias';diasCls=c.em_alerta_r1?'late':dias>1?'warn':'ok';}
+  const etapa=etapasConfig.find(e=>e.nome_etapa===c.status);
+  const diasEtapa=c.dt_entrada_etapa?Math.floor((Date.now()-new Date(c.dt_entrada_etapa))/(86400000)):0;
+  const alertaR2=etapa&&diasEtapa>=etapa.prazo_r2_dias;
+  return`<div class="kc${c.em_alerta_r1?' alerta-r1':alertaR2?' alerta-r2':''}${c.legado?' legado-card':''}" onclick="openDetail('${c.id}','kanban')">
+    <div class="kcn">${c.nome}${c.legado?'<span class="tag-legado">L</span>':''}</div>
+    <div class="kcm">
+      <span class="badge ${PBADGE[c.produto]||'b-gray'}" style="font-size:10px">${c.produto||'—'}</span>
+      ${c.operador?`<span style="font-size:10px">${c.operador}</span>`:''}
+    </div>
+    <div class="kc-dias ${diasCls}">
+      <i class="ti ti-clock" style="font-size:11px"></i>
+      <span>${diasTxt} sem contato</span>
+      ${c.em_alerta_r1?'<i class="ti ti-alert-circle" style="font-size:11px"></i>':''}
+    </div>
+    ${c.proxima_interacao?`<div style="font-size:10px;color:var(--t3);margin-top:2px">📅 Próx: ${new Date(c.proxima_interacao).toLocaleDateString('pt-BR')}</div>`:''}
+    <div style="display:flex;gap:4px;margin-top:6px">
+      <button class="ab" style="font-size:10px;padding:2px 7px" onclick="event.stopPropagation();abrirInteracao('${c.id}','${c.nome.replace(/'/g,"\\'")}','${c.status}')"><i class="ti ti-message"></i> Interagir</button>
+    </div>
+  </div>`;
+}
+
+// ── PÓS-VENDA ────────────────────────────────────────────────
+function renderPosvenda(){
+  const pv=all.filter(c=>c.status==='Pós-venda');
+  document.getElementById('pv-count').textContent=`${pv.length} clientes em pós-venda`;
+  const tbody=document.getElementById('tbody-pv');
+  if(!pv.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--t3)">Nenhum cliente em pós-venda</td></tr>';return;}
+  tbody.innerHTML=pv.map(c=>{
+    const prox=c.proxima_interacao?new Date(c.proxima_interacao).toLocaleDateString('pt-BR'):'—';
+    return`<tr>
+      <td class="nm">${c.nome}${c.legado?'<span class="tag-legado">L</span>':''}</td>
+      <td style="font-size:11px">${c.operador||'—'}</td>
+      <td><span class="badge ${PBADGE[c.produto]||'b-gray'}">${c.produto||'—'}</span></td>
+      <td style="font-size:11px">${prox}</td>
+      <td>${c.em_alerta_r1?'<span class="badge b-red">⚠ Vencido</span>':'<span class="badge b-green">OK</span>'}</td>
+      <td><button class="ab" onclick="openDetail('${c.id}','posvenda')">Ver</button>
+          <button class="ab" style="margin-left:3px" onclick="reativarPosvenda('${c.id}')">Reativar</button></td>
+    </tr>`;
+  }).join('');
+}
+
+async function reativarPosvenda(id){
+  if(!confirm('Mover cliente de volta para Andamento?'))return;
+  await sb.from('clientes').update({status:'Andamento',tem_card:true}).eq('id',id);
+  toast('Cliente reativado no quadro');await loadAll();
+}
+
+// ── DASHBOARD ────────────────────────────────────────────────
+function renderDashboard(){
+  renderMetrics();renderCharts();renderDashboardAlertas();
+}
+
+function renderMetrics(){
+  const filtro=document.getElementById('dash-legado')?.value||'todos';
+  let base=all;
+  if(filtro==='ativos')base=all.filter(c=>!c.legado&&c.status!=='Pós-venda');
+  if(filtro==='legados')base=all.filter(c=>c.legado);
+  const t=base.length,con=base.filter(c=>c.status==='Concluído').length;
+  const and=base.filter(c=>['Andamento','Aprovado','Conformidade','Assinatura'].includes(c.status)).length;
+  const al=base.filter(c=>c.em_alerta_r1).length;
+  const al2=base.filter(c=>c.em_alerta_r2).length;
+  const hab=base.filter(c=>c.produto==='Habitacional MCMV').length;
+  document.getElementById('metrics').innerHTML=`
     <div class="metric"><div class="mv">${t}</div><div class="ml">Total clientes</div></div>
     <div class="metric"><div class="mv">${hab}</div><div class="ml">Habitacional MCMV</div></div>
     <div class="metric"><div class="mv" style="color:var(--green)">${con}</div><div class="ml">Concluídos</div></div>
     <div class="metric"><div class="mv" style="color:var(--blue)">${and}</div><div class="ml">Em andamento</div></div>
-    <div class="metric"><div class="mv" style="color:var(--amber)">${at}</div><div class="ml">Precisam atenção</div></div>`;
+    <div class="metric alerta" onclick="go('dashboard')"><div class="mv">${al}</div><div class="ml">Alerta R1 (contato)</div></div>
+    <div class="metric" style="border:.5px solid var(--amber)"><div class="mv" style="color:var(--amber)">${al2}</div><div class="ml">Alerta R2 (etapa)</div></div>`;
 }
 
-function renderCharts() {
-  const destroy = id => { if (charts[id]) charts[id].destroy(); };
-  const sg = {}; all.forEach(c => { sg[c.status] = (sg[c.status] || 0) + 1; });
-  const sl = Object.keys(sg), sd = Object.values(sg);
-  destroy('s'); charts.s = new Chart(document.getElementById('cStatus'), {type:'doughnut',data:{labels:sl,datasets:[{data:sd,backgroundColor:COLS.slice(0,sl.length),borderWidth:0}]},options:{plugins:{legend:{position:'right',labels:{font:{size:10},padding:8}}},maintainAspectRatio:false}});
-  const cg = {}; all.forEach(c => { if (c.corretor) cg[c.corretor] = (cg[c.corretor] || 0) + 1; });
-  const cl = Object.keys(cg).sort((a,b) => cg[b]-cg[a]).slice(0,9), cd = cl.map(l => cg[l]);
-  destroy('c'); charts.c = new Chart(document.getElementById('cCorretor'), {type:'bar',data:{labels:cl,datasets:[{data:cd,backgroundColor:'#185FA5',borderRadius:3}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}},maintainAspectRatio:false}});
-  const pg3 = {}; all.forEach(c => { if (c.produto) pg3[c.produto] = (pg3[c.produto] || 0) + 1; });
-  const pl = Object.keys(pg3), pd = Object.values(pg3);
-  destroy('p'); charts.p = new Chart(document.getElementById('cProd'), {type:'bar',data:{labels:pl,datasets:[{data:pd,backgroundColor:'#0F6E56',borderRadius:3}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}},maintainAspectRatio:false}});
-  const fo = ['Simulação','SICAQ','SIOPI','Aguardando','Concluído'];
-  const fd = fo.map(s => all.filter(c => c.produto === 'Habitacional MCMV' && c.status === s).length);
-  destroy('f'); charts.f = new Chart(document.getElementById('cFunil'), {type:'bar',data:{labels:fo,datasets:[{data:fd,backgroundColor:['#EF9F27','#378ADD','#534AB7','#888780','#639922'],borderRadius:3}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}},maintainAspectRatio:false}});
+function renderDashboardAlertas(){
+  // Tabela R1
+  const r1=all.filter(c=>c.em_alerta_r1).slice(0,20);
+  document.getElementById('tbody-alerta-r1').innerHTML=r1.length?r1.map(c=>{
+    const dias=c.proxima_interacao?Math.floor((Date.now()-new Date(c.proxima_interacao))/86400000):0;
+    return`<tr><td class="nm">${c.nome}</td><td><span class="badge ${SBADGE[c.status]||'b-gray'}">${c.status}</span></td><td style="font-size:11px">${c.operador||'—'}</td><td style="color:var(--red);font-weight:600">${dias}d</td><td><button class="ab" onclick="openDetail('${c.id}','dashboard')">Ver</button></td></tr>`;
+  }).join(''):'<tr><td colspan="5" style="text-align:center;padding:16px;color:var(--t3)">Nenhum alerta</td></tr>';
+  // Tabela R2 (só gestor)
+  const blocoR2=document.getElementById('bloco-r2');
+  if(usuarioAtual?.role==='gestor'){
+    blocoR2.style.display='';
+    const r2=all.filter(c=>c.em_alerta_r2).slice(0,20);
+    document.getElementById('tbody-alerta-r2').innerHTML=r2.length?r2.map(c=>{
+      const dias=c.dt_entrada_etapa?Math.floor((Date.now()-new Date(c.dt_entrada_etapa))/86400000):0;
+      return`<tr><td class="nm">${c.nome}</td><td><span class="badge ${SBADGE[c.status]||'b-gray'}">${c.status}</span></td><td style="font-size:11px">${c.operador||'—'}</td><td style="color:var(--amber);font-weight:600">${dias}d</td><td><button class="ab" onclick="openDetail('${c.id}','dashboard')">Ver</button></td></tr>`;
+    }).join(''):'<tr><td colspan="5" style="text-align:center;padding:16px;color:var(--t3)">Nenhum alerta</td></tr>';
+    const bloco=document.getElementById('dash-alertas-bloco');
+    const al2=all.filter(c=>c.em_alerta_r2).length;
+    if(al2>0){bloco.style.display='';document.getElementById('dash-alertas-txt').textContent=`${all.filter(c=>c.em_alerta_r1).length} clientes precisam de contato · ${al2} clientes parados na etapa`;}
+  }else{blocoR2.style.display='none';}
 }
 
-function filterTable() {
-  const q = (document.getElementById('q').value || '').toLowerCase();
-  const fp = document.getElementById('fProd').value;
-  const fs = document.getElementById('fStatus').value;
-  const fc = document.getElementById('fCorretor').value;
-  filtered = all.filter(c =>
-    (!q || (c.nome||'').toLowerCase().includes(q) || (c.cpf||'').includes(q) || (c.corretor||'').toLowerCase().includes(q) || (c.observacoes||'').toLowerCase().includes(q)) &&
-    (!fp || c.produto === fp) && (!fs || c.status === fs) && (!fc || c.corretor === fc));
-  pg = 0; renderTable();
+function renderCharts(){
+  const filtro=document.getElementById('dash-legado')?.value||'todos';
+  let base=all;
+  if(filtro==='ativos')base=all.filter(c=>!c.legado&&c.status!=='Pós-venda');
+  if(filtro==='legados')base=all.filter(c=>c.legado);
+  const destroy=id=>{if(charts[id])charts[id].destroy();};
+  const sg={};base.forEach(c=>{if(c.status)sg[c.status]=(sg[c.status]||0)+1;});
+  const sl=Object.keys(sg),sd=Object.values(sg);
+  destroy('s');const cs=document.getElementById('cStatus');if(cs)charts.s=new Chart(cs,{type:'doughnut',data:{labels:sl,datasets:[{data:sd,backgroundColor:COLS.slice(0,sl.length),borderWidth:0}]},options:{plugins:{legend:{position:'right',labels:{font:{size:10},padding:8}}},maintainAspectRatio:false}});
+  const cg={};base.forEach(c=>{if(c.operador)cg[c.operador]=(cg[c.operador]||0)+1;else if(c.corretor)cg[c.corretor]=(cg[c.corretor]||0)+1;});
+  const cl=Object.keys(cg).sort((a,b)=>cg[b]-cg[a]).slice(0,9),cd=cl.map(l=>cg[l]);
+  destroy('c');const cc=document.getElementById('cCorretor');if(cc)charts.c=new Chart(cc,{type:'bar',data:{labels:cl,datasets:[{data:cd,backgroundColor:'#185FA5',borderRadius:3}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}},maintainAspectRatio:false}});
+  const pg3={};base.forEach(c=>{if(c.produto)pg3[c.produto]=(pg3[c.produto]||0)+1;});
+  const pl=Object.keys(pg3),pd=Object.values(pg3);
+  destroy('p');const cp=document.getElementById('cProd');if(cp)charts.p=new Chart(cp,{type:'bar',data:{labels:pl,datasets:[{data:pd,backgroundColor:'#0F6E56',borderRadius:3}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}},maintainAspectRatio:false}});
+  const fo=['Andamento','Condicionado','Aprovado','Conformidade','Assinatura','Concluído'];
+  const fd=fo.map(s=>base.filter(c=>['Habitacional MCMV','Habitacional SBPE'].includes(c.produto)&&c.status===s).length);
+  destroy('f');const cf=document.getElementById('cFunil');if(cf)charts.f=new Chart(cf,{type:'bar',data:{labels:fo,datasets:[{data:fd,backgroundColor:['#378ADD','#EF9F27','#639922','#534AB7','#534AB7','#3B6D11'],borderRadius:3}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}},maintainAspectRatio:false}});
 }
 
-function renderTable() {
-  const start = pg * PER, slice = filtered.slice(start, start + PER);
-  document.getElementById('tbl-count').textContent = `${filtered.length} clientes`;
-  document.getElementById('pag-info').textContent = `${start+1}–${Math.min(start+PER,filtered.length)} de ${filtered.length}`;
-  document.getElementById('pp').disabled = pg === 0;
-  document.getElementById('pn').disabled = start + PER >= filtered.length;
-  document.getElementById('tbody').innerHTML = slice.length ? slice.map(c => `
+// ── TABELA CLIENTES ──────────────────────────────────────────
+function filterTable(){
+  const q=(document.getElementById('q').value||'').toLowerCase();
+  const fL=document.getElementById('fLegado').value;
+  const fs=document.getElementById('fStatus').value;
+  const fp=document.getElementById('fProd').value;
+  const fc=document.getElementById('fCorretor')?.value||'';
+  filtered=all.filter(c=>
+    (!q||(c.nome||'').toLowerCase().includes(q)||(c.cpf||'').includes(q)||(c.telefone||'').includes(q)||(c.observacoes||'').toLowerCase().includes(q))&&
+    (fL===''||(fL==='0'?!c.legado:c.legado))&&
+    (!fs||c.status===fs)&&(!fp||c.produto===fp)&&(!fc||(c.operador===fc||c.corretor===fc)));
+  pg=0;renderTable();
+}
+
+function renderTable(){
+  const start=pg*PER,slice=filtered.slice(start,start+PER);
+  document.getElementById('tbl-count').textContent=`${filtered.length} clientes`;
+  document.getElementById('pag-info').textContent=`${start+1}–${Math.min(start+PER,filtered.length)} de ${filtered.length}`;
+  document.getElementById('pp').disabled=pg===0;
+  document.getElementById('pn').disabled=start+PER>=filtered.length;
+  document.getElementById('tbody').innerHTML=slice.length?slice.map(c=>`
     <tr>
-      <td class="nm">${c.nome}</td>
+      <td class="nm">${c.nome}${c.legado?'<span class="tag-legado">L</span>':''}</td>
       <td style="font-size:11px;color:var(--t2)">${c.cpf||'—'}</td>
       <td><span class="badge ${PBADGE[c.produto]||'b-gray'}">${c.produto||'—'}</span></td>
       <td><span class="badge ${SBADGE[c.status]||'b-gray'}">${c.status||'—'}</span></td>
-      <td style="font-size:11px">${c.corretor||'—'}</td>
-      <td style="font-size:11px">${c.parceiro||'—'}</td>
-      <td class="ob">${(c.observacoes||'').substring(0,65)}</td>
+      <td style="font-size:11px">${c.operador||c.corretor||'—'}</td>
+      <td style="font-size:11px">${c.indicado_por||'—'}</td>
+      <td class="ob">${(c.observacoes||'').substring(0,60)}</td>
       <td style="white-space:nowrap">
-        <button class="ab" onclick="openDetail('${c.id}')">Ver</button>
+        <button class="ab" onclick="openDetail('${c.id}','clientes')">Ver</button>
         <button class="ab" onclick="openEdit('${c.id}')" style="margin-left:3px">Editar</button>
         <button class="ab" onclick="delC('${c.id}')" style="margin-left:3px;color:var(--red)">Del</button>
       </td>
-    </tr>`).join('') : '<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--t3)">Nenhum cliente encontrado</td></tr>';
+    </tr>`).join(''):'<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--t3)">Nenhum cliente encontrado</td></tr>';
+}
+function changePage(d){pg+=d;renderTable();}
+
+// ── DETALHE CLIENTE ──────────────────────────────────────────
+async function openDetail(id,from){
+  detailId=id;voltarPara=from||'clientes';
+  const c=all.find(x=>x.id===id);
+  if(!c)return;
+  document.getElementById('detail-title').textContent=c.nome;
+  document.getElementById('detail-legado-tag').innerHTML=c.legado?'<span class="tag-legado">Legado</span>':'';
+  // Botão criar card (só legados sem card)
+  document.getElementById('btn-criar-card').style.display=(c.legado&&!c.tem_card)?'':'none';
+  // Info
+  const pcRaw=c.produtos_contratados;
+  const pcArr=Array.isArray(pcRaw)?pcRaw:(pcRaw?pcRaw.split(',').map(v=>v.trim()):[]);
+  const pc=pcArr.length?pcArr.map(p=>`<span class="badge b-gray" style="font-size:10px;margin:1px 2px">${p}</span>`).join(' '):'—';
+  let rows=[
+    ['CPF',c.cpf||'—'],['Telefone',c.telefone||'—'],['E-mail',c.email||'—'],
+    ['Produto',c.produto?`<span class="badge ${PBADGE[c.produto]||'b-gray'}">${c.produto}</span>`:'—'],
+    ['Status',c.status?`<span class="badge ${SBADGE[c.status]||'b-gray'}">${c.status}</span>`:'—'],
+    ['Operador',c.operador||c.corretor||'—'],['Indicado por',c.indicado_por||'—'],
+    ['Corretor externo',c.corretor_externo||'—'],['Construtor/Vendedor',c.construtor_vendedor||'—'],
+    ['Renda total',c.renda_total?'R$ '+Number(c.renda_total).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'],
+  ];
+  if(['Habitacional MCMV','Habitacional SBPE'].includes(c.produto)){
+    rows=rows.concat([
+      ['Valor do imóvel',c.valor_imovel?'R$ '+Number(c.valor_imovel).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'],
+      ['Financiamento',c.valor_financiamento?'R$ '+Number(c.valor_financiamento).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'],
+      ['Prestação',c.valor_prestacao?'R$ '+Number(c.valor_prestacao).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'],
+      ['Contrato',c.numero_contrato||'—'],
+    ]);
+  }
+  rows=rows.concat([
+    ['Produtos contratados',pc],
+    ['Próx. contato',c.proxima_interacao?new Date(c.proxima_interacao).toLocaleString('pt-BR'):'—'],
+    ['Origem',c.origem_arquivo||'—'],
+    ['Data entrada',c.dt_entrada||'—'],
+    ['Observações',c.observacoes||'—'],
+  ]);
+  document.getElementById('detail-info').innerHTML=rows.map(([l,v])=>`<div class="ir"><span class="il">${l}</span><span class="iv">${v}</span></div>`).join('');
+  // Comissão (só gestor)
+  const comCard=document.getElementById('comissao-card');
+  if(usuarioAtual?.role==='gestor'){
+    comCard.style.display='';
+    document.getElementById('detail-comissao').innerHTML=[
+      ['Valor',c.comissao_valor?'R$ '+Number(c.comissao_valor).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'],
+      ['Status',c.comissao_status||'—'],
+      ['Observação',c.comissao_obs||'—'],
+    ].map(([l,v])=>`<div class="ir"><span class="il">${l}</span><span class="iv">${v}</span></div>`).join('');
+  }else{comCard.style.display='none';}
+  document.getElementById('btn-task-detail').onclick=()=>openTaskModal(id);
+  await Promise.all([loadHist(id),loadDetailTasks(id),loadDocs(id)]);
+  go('detail');
 }
 
-function changePage(d) { pg += d; renderTable(); }
+function voltarDeDetalhe(){go(voltarPara||'clientes');}
 
-const KCOLS = ['Simulação','SICAQ','SIOPI','Em andamento','Aguardando','Concluído','Reprovado','Restrição','Perdeu'];
-function renderKanban() {
-  document.getElementById('kanban').innerHTML = KCOLS.map(s => {
-    const cols = all.filter(c => c.status === s);
-    return `<div class="kol">
-      <div class="kh"><span class="kht">${s}</span><span class="khc">${cols.length}</span></div>
-      <div class="kb">${cols.length ? cols.map(c => `
-        <div class="kc" onclick="openDetail('${c.id}')">
-          <div class="kcn">${c.nome}</div>
-          <div class="kcm">
-            <span class="badge ${PBADGE[c.produto]||'b-gray'}" style="font-size:10px">${c.produto||'—'}</span>
-            ${c.corretor ? `<span>${c.corretor}</span>` : ''}
-          </div>
-        </div>`).join('') : '<div style="padding:10px;font-size:11px;color:var(--t3);text-align:center">Vazio</div>'}
-      </div>
-    </div>`;
-  }).join('');
+async function criarCardDoLegado(){
+  if(!detailId)return;
+  if(!confirm('Criar card no quadro para este cliente?'))return;
+  await sb.from('clientes').update({tem_card:true}).eq('id',detailId);
+  toast('Card criado no quadro!');
+  const c=all.find(x=>x.id===detailId);
+  if(c){c.tem_card=true;document.getElementById('btn-criar-card').style.display='none';}
+  await loadAll();
 }
 
-async function openDetail(id) {
-  detailId = id;
-  const c = all.find(x => x.id === id);
-  if (!c) return;
-  document.getElementById('detail-title').textContent = c.nome;
-  const pcRaw2 = c.produtos_contratados;
-  const pcArr = Array.isArray(pcRaw2) ? pcRaw2 : (pcRaw2 ? pcRaw2.split(',').map(v=>v.trim()) : []);
-  const pc = pcArr.length
-    ? pcArr.map(p => `<span class="badge b-gray" style="font-size:10px;margin:1px 2px">${p}</span>`).join(' ')
-    : '—';
-  document.getElementById('detail-info').innerHTML = [
-    ['CPF', c.cpf||'—'], ['Telefone', c.telefone||'—'], ['E-mail', c.email||'—'],
-    ['Produto negociado', c.produto ? `<span class="badge ${PBADGE[c.produto]||'b-gray'}">${c.produto}</span>` : '—'],
-    ['Produtos contratados', pc],
-    ['Status', c.status ? `<span class="badge ${SBADGE[c.status]||'b-gray'}">${c.status}</span>` : '—'],
-    ['Corretor', c.corretor||'—'], ['Parceiro', c.parceiro||'—'],
-    ['Origem', c.origem_arquivo||'—'],
-    ['Data entrada', c.dt_entrada||'—'], ['Última atualiz.', c.dt_atualizacao||'—'],
-    ['Observações', c.observacoes||'—'],
-  ].map(([l,v]) => `<div class="ir"><span class="il">${l}</span><span class="iv">${v}</span></div>`).join('');
-  document.getElementById('detail-arquivo').innerHTML = c.arquivo_vinculado
-    ? `<code style="font-size:11px;background:var(--sf2);padding:3px 7px;border-radius:4px">${c.arquivo_vinculado}</code>` : '—';
-  document.getElementById('btn-task-detail').onclick = () => openTaskModal(id);
-  await loadHist(id); await loadDetailTasks(id); go('detail');
-}
-
-async function loadHist(cid) {
-  if (!sb) return;
-  const { data } = await sb.from('historico').select('*').eq('cliente_id', cid).order('created_at', {ascending:false});
-  const el = document.getElementById('detail-hist');
-  if (!data || !data.length) { el.innerHTML = '<div class="es">Nenhuma interação registrada.<br>Use "Registrar" para adicionar.</div>'; return; }
-  el.innerHTML = data.map(h => `
+async function loadHist(cid){
+  const{data}=await sb.from('historico').select('id,tipo,descricao,proxima_interacao,registrado_por,created_at').eq('cliente_id',cid).order('created_at',{ascending:false});
+  const el=document.getElementById('detail-hist');
+  if(!data||!data.length){el.innerHTML='<div class="es">Nenhuma interação.<br>Use "Registrar" para adicionar.</div>';return;}
+  el.innerHTML=data.map(h=>`
     <div class="hi">
-      <div class="ht"><span class="badge b-gray" style="font-size:10px">${h.tipo}</span>${h.usuario?' · '+h.usuario:''} · ${new Date(h.created_at).toLocaleDateString('pt-BR')}</div>
+      <div class="ht">
+        <span class="badge b-gray" style="font-size:10px">${h.tipo}</span>
+        ${h.registrado_por?`<span style="font-size:10px">${h.registrado_por}</span>`:''}
+        <span style="font-size:10px;color:var(--t3)">${new Date(h.created_at).toLocaleDateString('pt-BR')}</span>
+      </div>
       <div>${h.descricao}</div>
+      ${h.proxima_interacao?`<div style="font-size:10px;color:var(--blue);margin-top:2px">📅 Próx: ${new Date(h.proxima_interacao).toLocaleString('pt-BR')}</div>`:''}
     </div>`).join('');
 }
 
-async function loadDetailTasks(cid) {
-  if (!sb) return;
-  const { data } = await sb.from('tarefas').select('*').eq('cliente_id', cid).eq('concluida', false).order('dt_vencimento');
-  const el = document.getElementById('detail-tasks');
-  if (!data || !data.length) { el.innerHTML = '<div class="es">Nenhuma tarefa pendente.</div>'; return; }
-  const today = new Date(); today.setHours(0,0,0,0);
-  el.innerHTML = data.map(t => {
-    const v = t.dt_vencimento ? new Date(t.dt_vencimento + 'T12:00:00') : null;
-    const ov = v && v < today;
-    return `<div class="ti2">
+async function loadDetailTasks(cid){
+  const{data}=await sb.from('tarefas').select('*').eq('cliente_id',cid).eq('concluida',false).order('dt_vencimento');
+  const el=document.getElementById('detail-tasks');
+  if(!data||!data.length){el.innerHTML='<div class="es">Nenhuma tarefa pendente.</div>';return;}
+  const today=new Date();today.setHours(0,0,0,0);
+  el.innerHTML=data.map(t=>{
+    const v=t.dt_vencimento?new Date(t.dt_vencimento+'T12:00:00'):null;
+    const ov=v&&v<today;
+    return`<div class="ti2">
       <input type="checkbox" class="tc2" onchange="doneTask('${t.id}')">
       <div class="tb">
         <div>${t.titulo}</div>
-        ${t.descricao ? `<div style="font-size:11px;color:var(--t2);margin-top:1px">${t.descricao}</div>` : ''}
-        ${t.dt_vencimento ? `<div class="td2 ${ov?'ov':''}"><i class="ti ti-calendar" style="font-size:11px"></i> ${new Date(t.dt_vencimento+'T12:00:00').toLocaleDateString('pt-BR')}${t.responsavel?' · '+t.responsavel:''}</div>` : ''}
+        ${t.descricao?`<div style="font-size:11px;color:var(--t2)">${t.descricao}</div>`:''}
+        ${t.dt_vencimento?`<div class="td2${ov?' ov':''}"><i class="ti ti-calendar" style="font-size:11px"></i> ${new Date(t.dt_vencimento+'T12:00:00').toLocaleDateString('pt-BR')}${t.responsavel?' · '+t.responsavel:''}</div>`:''}
       </div>
     </div>`;
   }).join('');
 }
 
-async function loadTasks() {
-  if (!sb) return;
-  const { data } = await sb.from('tarefas').select('*, clientes(nome)').eq('concluida', false).order('dt_vencimento');
-  const tbody = document.getElementById('tbody-tasks');
-  if (!data || !data.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:28px;color:var(--t3)">Nenhuma tarefa pendente</td></tr>'; return; }
-  const today = new Date(); today.setHours(0,0,0,0);
-  tbody.innerHTML = data.map(t => {
-    const v = t.dt_vencimento ? new Date(t.dt_vencimento + 'T12:00:00') : null;
-    const ov = v && v < today;
-    return `<tr>
+async function loadDocs(cid){
+  const{data}=await sb.from('documentos_cliente').select('*').eq('cliente_id',cid).order('created_at');
+  const el=document.getElementById('detail-docs');
+  if(!data||!data.length){el.innerHTML='<div class="es">Nenhum documento vinculado.</div>';return;}
+  el.innerHTML='<div class="doc-list">'+data.map(d=>`
+    <div class="doc-item">
+      <i class="ti ti-file doc-icon"></i>
+      <a href="${d.url}" target="_blank" rel="noopener">${d.nome_arquivo}</a>
+      <button class="doc-del" onclick="delDoc('${d.id}')" title="Remover"><i class="ti ti-x"></i></button>
+    </div>`).join('')+'</div>';
+}
+
+// ── TAREFAS ──────────────────────────────────────────────────
+async function loadTasks(){
+  const{data}=await sb.from('tarefas').select('*, clientes(nome)').eq('concluida',false).order('dt_vencimento');
+  const tbody=document.getElementById('tbody-tasks');
+  if(!data||!data.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:28px;color:var(--t3)">Nenhuma tarefa pendente</td></tr>';return;}
+  const today=new Date();today.setHours(0,0,0,0);
+  tbody.innerHTML=data.map(t=>{
+    const v=t.dt_vencimento?new Date(t.dt_vencimento+'T12:00:00'):null;
+    const ov=v&&v<today;
+    return`<tr>
       <td style="font-weight:500">${t.clientes?.nome||'—'}</td>
       <td>${t.titulo}${t.descricao?`<br><span style="font-size:11px;color:var(--t2)">${t.descricao}</span>`:''}</td>
       <td style="font-size:11px">${t.responsavel||'—'}</td>
@@ -862,335 +1144,433 @@ async function loadTasks() {
   }).join('');
 }
 
-// IDs dos checkboxes de produtos contratados
-const PC_IDS = ['pc-hab','pc-sbpe','pc-cc','pc-poup','pc-cart','pc-cons','pc-csig','pc-seg','pc-rpx','pc-fgts'];
+// ── MODAL CLIENTE ────────────────────────────────────────────
+function abrirNovoCard(){editId=null;document.getElementById('modal-title').textContent='Novo card / cadastro';clearForm();document.getElementById('modal-cliente').classList.add('open');}
+function openModal(){editId=null;document.getElementById('modal-title').textContent='Novo cadastro';clearForm();document.getElementById('modal-cliente').classList.add('open');}
+function closeModal(){document.getElementById('modal-cliente').classList.remove('open');}
 
-function openModal() {
-  editId = null;
-  document.getElementById('modal-title').textContent = 'Novo cliente';
-  document.getElementById('alerta-dup').style.display = 'none';
-  clearForm();
-  document.getElementById('modal-cliente').classList.add('open');
-}
-function closeModal() { document.getElementById('modal-cliente').classList.remove('open'); }
-
-function openEdit(id) {
-  editId = id;
-  const c = all.find(x => x.id === id);
-  if (!c) return;
-  document.getElementById('modal-title').textContent = 'Editar cliente';
-  document.getElementById('alerta-dup').style.display = 'none';
-  document.getElementById('f-nome').value = c.nome||'';
-  document.getElementById('f-cpf').value = c.cpf||'';
-  document.getElementById('f-tel').value = c.telefone||'';
-  document.getElementById('f-email').value = c.email||'';
-  document.getElementById('f-corretor').value = c.corretor||'';
-  document.getElementById('f-prod').value = c.produto||'';
-  document.getElementById('f-status').value = c.status||'Em andamento';
-  document.getElementById('f-parceiro').value = c.parceiro||'';
-  document.getElementById('f-arquivo').value = c.arquivo_vinculado||'';
-  document.getElementById('f-obs').value = c.observacoes||'';
-  document.getElementById('f-dtentrada').value = c.dt_entrada||'';
-  document.getElementById('f-dtupd').value = c.dt_atualizacao||'';
-  document.getElementById('f-origem').value = c.origem_arquivo||'';
-  // Marcar checkboxes de produtos contratados
-  // Suporta tanto array (text[]) quanto string separada por vírgula (text)
-  const pcRaw = c.produtos_contratados;
-  const pc = Array.isArray(pcRaw)
-    ? pcRaw
-    : (pcRaw ? pcRaw.split(',').map(v => v.trim()) : []);
-  PC_IDS.forEach(pid => {
-    const el = document.getElementById(pid);
-    if (el) el.checked = pc.includes(el.value);
-  });
+function openEdit(id){
+  editId=id;const c=all.find(x=>x.id===id);if(!c)return;
+  document.getElementById('modal-title').textContent='Editar cliente';
+  document.getElementById('f-nome').value=c.nome||'';document.getElementById('f-cpf').value=c.cpf||'';
+  document.getElementById('f-tel').value=c.telefone||'';document.getElementById('f-email').value=c.email||'';
+  document.getElementById('f-operador').value=c.operador||'';
+  document.getElementById('f-status').value=c.status||'Lead';
+  document.getElementById('f-prod').value=c.produto||'';toggleHabFields();
+  document.getElementById('f-indicado').value=c.indicado_por||'';
+  document.getElementById('f-corretor-ext').value=c.corretor_externo||'';
+  document.getElementById('f-construtor').value=c.construtor_vendedor||'';
+  document.getElementById('f-dtentrada').value=c.dt_entrada||'';
+  document.getElementById('f-origem').value=c.origem_arquivo||'';
+  document.getElementById('f-obs').value=c.observacoes||'';
+  document.getElementById('f-renda1').value=c.renda_principal||'';
+  document.getElementById('f-renda2').value=c.renda_secundaria||'';
+  document.getElementById('f-renda-total').value=c.renda_total||'';
+  document.getElementById('f-vimovel').value=c.valor_imovel||'';
+  document.getElementById('f-vfinanc').value=c.valor_financiamento||'';
+  document.getElementById('f-vsubsidio').value=c.valor_subsidio||'';
+  document.getElementById('f-vprestacao').value=c.valor_prestacao||'';
+  document.getElementById('f-contrato').value=c.numero_contrato||'';
+  if(usuarioAtual?.role==='gestor'){
+    document.getElementById('comissao-section').style.display='';
+    document.getElementById('f-comval').value=c.comissao_valor||'';
+    document.getElementById('f-comstatus').value=c.comissao_status||'';
+    document.getElementById('f-comobs').value=c.comissao_obs||'';
+  }
+  const pcRaw=c.produtos_contratados;
+  const pc=Array.isArray(pcRaw)?pcRaw:(pcRaw?pcRaw.split(',').map(v=>v.trim()):[]);
+  PC_IDS.forEach(pid=>{const el=document.getElementById(pid);if(el)el.checked=pc.includes(el.value);});
+  document.getElementById('busca-res').style.display='none';
   document.getElementById('modal-cliente').classList.add('open');
 }
 
-function editCurrent() { if (detailId) openEdit(detailId); }
+function editCurrent(){if(detailId)openEdit(detailId);}
 
-function clearForm() {
-  ['f-nome','f-cpf','f-tel','f-email','f-parceiro','f-arquivo','f-obs','f-dtentrada','f-dtupd','f-origem']
-    .forEach(i => { const el=document.getElementById(i); if(el) el.value=''; });
-  document.getElementById('f-corretor').value = '';
-  document.getElementById('f-prod').value = '';
-  document.getElementById('f-status').value = 'Em andamento';
-  PC_IDS.forEach(pid => { const el=document.getElementById(pid); if(el) el.checked=false; });
+function clearForm(){
+  ['f-nome','f-cpf','f-tel','f-email','f-indicado','f-origem','f-obs','f-dtentrada','f-proxcontato',
+   'f-renda1','f-renda2','f-renda-total','f-vimovel','f-vfinanc','f-vsubsidio','f-vprestacao','f-contrato',
+   'f-comval','f-comobs'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  document.getElementById('f-operador').value='';
+  document.getElementById('f-status').value='Lead';
+  document.getElementById('f-prod').value='';
+  document.getElementById('f-corretor-ext').value='';
+  document.getElementById('f-construtor').value='';
+  document.getElementById('f-comstatus').value='';
+  PC_IDS.forEach(pid=>{const el=document.getElementById(pid);if(el)el.checked=false;});
+  document.getElementById('hab-section').style.display='none';
+  document.getElementById('busca-res').style.display='none';
+  document.getElementById('comissao-section').style.display=usuarioAtual?.role==='gestor'?'':'none';
 }
 
-// Verificação de CPF duplicado em tempo real
-let dupId = null;
-function verificarCPFdup(input) {
-  const digitos = input.value.replace(/\D/g,'');
-  const alerta = document.getElementById('alerta-dup');
-  if (digitos.length !== 11) { alerta.style.display='none'; dupId=null; return; }
-  const cpfFmt = digitos.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-  const dup = all.find(c => c.cpf === cpfFmt && c.id !== editId);
-  if (dup) {
-    dupId = dup.id;
-    document.getElementById('alerta-dup-nome').textContent = `O cliente "${dup.nome}" já possui este CPF.`;
-    alerta.style.display = 'block';
-  } else {
-    dupId = null;
-    alerta.style.display = 'none';
-  }
+function toggleHabFields(){
+  const prod=document.getElementById('f-prod').value;
+  const isHab=['Habitacional MCMV','Habitacional SBPE'].includes(prod);
+  document.getElementById('hab-section').style.display=isHab?'':'none';
 }
 
-function irParaDuplicado() {
-  if (!dupId) return;
-  closeModal();
-  openDetail(dupId);
+function calcRendaTotal(){
+  const r1=parseFloat(document.getElementById('f-renda1').value)||0;
+  const r2=parseFloat(document.getElementById('f-renda2').value)||0;
+  document.getElementById('f-renda-total').value=(r1+r2).toFixed(2);
 }
 
-async function saveCliente() {
-  const nome = document.getElementById('f-nome').value.trim();
-  if (!nome) { toast('Informe o nome do cliente'); return; }
+// ── Busca automática por CPF/Tel ─────────────────────────────
+let buscaTimer=null;
+async function buscaClienteAuto(){
+  clearTimeout(buscaTimer);
+  if(editId)return; // não buscar durante edição
+  buscaTimer=setTimeout(async()=>{
+    const cpf=document.getElementById('f-cpf').value.replace(/\D/g,'');
+    const tel=document.getElementById('f-tel').value.replace(/\D/g,'');
+    if(cpf.length<9&&tel.length<8)return;
+    const{data}=await sb.rpc('fn_buscar_cliente_card',{p_cpf:cpf,p_telefone:tel});
+    const res=document.getElementById('busca-res');
+    if(!data||!data.length)return;
+    const r=data[0];
+    if(r.situacao==='card'){
+      res.className='busca-resultado warn';
+      res.style.display='';
+      res.innerHTML=`⚠ <b>Card já existe</b> para "${r.nome}" — <button onclick="openDetail('${r.cliente_id}','clientes');closeModal()" style="background:none;border:.5px solid var(--amber);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:11px">Abrir card</button>`;
+    }else if(r.situacao==='crm'){
+      res.className='busca-resultado';res.style.display='';
+      res.innerHTML=`ℹ Cadastro encontrado: <b>${r.nome}</b> — dados preenchidos automaticamente.`;
+      document.getElementById('f-nome').value=r.nome||'';
+      if(r.produto)document.getElementById('f-prod').value=r.produto;
+      toggleHabFields();
+    }else{res.style.display='none';}
+  },600);
+}
 
-  // Validar CPF
-  const cpfRaw = document.getElementById('f-cpf').value.trim();
-  if (cpfRaw) {
-    const digitos = cpfRaw.replace(/\D/g,'');
-    if (digitos.length !== 11) { toast('CPF inválido — deve ter 11 dígitos'); return; }
-    const cpfFmt = digitos.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-    const dup = all.find(c => c.cpf === cpfFmt && c.id !== editId);
-    if (dup) { toast(`CPF já cadastrado: ${dup.nome}`, 4000); return; }
-  }
+let dupId=null;
+function verificarCPFdup(input){
+  const digitos=input.value.replace(/\D/g,'');
+  if(digitos.length!==11)return;
+  const cpfFmt=digitos.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4');
+  const dup=all.find(c=>c.cpf===cpfFmt&&c.id!==editId);
+  if(dup){dupId=dup.id;}
+}
 
-  // Validar e-mail
-  const emailRaw = document.getElementById('f-email').value.trim().toLowerCase();
-  if (emailRaw && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailRaw)) {
-    toast('E-mail inválido'); return;
-  }
-
-  // Coletar produtos contratados
-  const produtosContratados = PC_IDS
-    .map(pid => document.getElementById(pid))
-    .filter(el => el && el.checked)
-    .map(el => el.value);
-
-  const pay = {
-    nome,
-    cpf: cpfRaw || null,
-    telefone: document.getElementById('f-tel').value || null,
-    email: emailRaw || null,
-    produto: document.getElementById('f-prod').value || null,
-    status: document.getElementById('f-status').value,
-    corretor: document.getElementById('f-corretor').value || null,
-    parceiro: document.getElementById('f-parceiro').value || null,
-    arquivo_vinculado: document.getElementById('f-arquivo').value || null,
-    observacoes: document.getElementById('f-obs').value || null,
-    origem_arquivo: document.getElementById('f-origem').value || null,
-    dt_atualizacao: new Date().toISOString().split('T')[0],
-    produtos_contratados: produtosContratados.length ? produtosContratados : null
+async function saveCliente(){
+  const nome=document.getElementById('f-nome').value.trim();
+  if(!nome){toast('Informe o nome do cliente');return;}
+  const cpfRaw=document.getElementById('f-cpf').value.trim();
+  const emailRaw=document.getElementById('f-email').value.trim().toLowerCase();
+  if(emailRaw&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailRaw)){toast('E-mail inválido');return;}
+  const produtosContratados=PC_IDS.map(pid=>document.getElementById(pid)).filter(el=>el&&el.checked).map(el=>el.value);
+  const operadorVal=document.getElementById('f-operador').value;
+  const operadorFinal=operadorVal==='Outros'?document.getElementById('f-operador-outro').value.trim():operadorVal;
+  const proxVal=document.getElementById('f-proxcontato').value;
+  const pay={
+    nome,cpf:cpfRaw||null,telefone:document.getElementById('f-tel').value||null,
+    email:emailRaw||null,produto:document.getElementById('f-prod').value||null,
+    status:document.getElementById('f-status').value,
+    operador:operadorFinal||null,
+    indicado_por:document.getElementById('f-indicado').value||null,
+    corretor_externo:document.getElementById('f-corretor-ext').value||null,
+    construtor_vendedor:document.getElementById('f-construtor').value||null,
+    origem_arquivo:document.getElementById('f-origem').value||null,
+    observacoes:document.getElementById('f-obs').value||null,
+    dt_atualizacao:new Date().toISOString().split('T')[0],
+    renda_principal:parseFloat(document.getElementById('f-renda1').value)||null,
+    renda_secundaria:parseFloat(document.getElementById('f-renda2').value)||null,
+    valor_imovel:parseFloat(document.getElementById('f-vimovel').value)||null,
+    valor_financiamento:parseFloat(document.getElementById('f-vfinanc').value)||null,
+    valor_subsidio:parseFloat(document.getElementById('f-vsubsidio').value)||null,
+    valor_prestacao:parseFloat(document.getElementById('f-vprestacao').value)||null,
+    numero_contrato:document.getElementById('f-contrato').value||null,
+    proxima_interacao:proxVal?new Date(proxVal).toISOString():null,
+    produtos_contratados:produtosContratados.length?produtosContratados:null,
+    tem_card:document.getElementById('f-status').value!=='Pós-venda',
+    legado:false
   };
-  // dt_entrada só na criação (não sobrescreve em edições)
-  if (!editId) pay.dt_entrada = new Date().toISOString().split('T')[0];
-  const res = editId
-    ? await sb.from('clientes').update(pay).eq('id', editId)
-    : await sb.from('clientes').insert(pay);
-  if (res.error) { toast('Erro: ' + res.error.message, 3000); return; }
-  toast(editId ? 'Cliente atualizado!' : 'Cliente cadastrado!');
-  closeModal(); loadAll();
+  if(usuarioAtual?.role==='gestor'){
+    pay.comissao_valor=parseFloat(document.getElementById('f-comval').value)||null;
+    pay.comissao_status=document.getElementById('f-comstatus').value||null;
+    pay.comissao_obs=document.getElementById('f-comobs').value||null;
+  }
+  if(!editId)pay.dt_entrada=new Date().toISOString().split('T')[0];
+  const res=editId?await sb.from('clientes').update(pay).eq('id',editId):await sb.from('clientes').insert(pay);
+  if(res.error){toast('Erro: '+res.error.message,3000);return;}
+  toast(editId?'Cliente atualizado!':'Cliente cadastrado!');closeModal();await loadAll();
 }
 
-async function delC(id) {
-  const c = all.find(x => x.id === id);
-  if (!confirm(`Remover ${c?.nome}?`)) return;
-  const { error } = await sb.from('clientes').delete().eq('id', id);
-  if (error) { toast('Erro: ' + error.message); return; }
-  toast('Cliente removido'); loadAll();
+async function delC(id){
+  const c=all.find(x=>x.id===id);
+  if(!confirm(`Remover ${c?.nome}?`))return;
+  const{error}=await sb.from('clientes').delete().eq('id',id);
+  if(error){toast('Erro: '+error.message);return;}
+  toast('Cliente removido');await loadAll();
 }
 
-function openHistModal() { document.getElementById('h-desc').value=''; document.getElementById('modal-hist').classList.add('open'); }
-function closeHistModal() { document.getElementById('modal-hist').classList.remove('open'); }
-async function saveHist() {
-  const desc = document.getElementById('h-desc').value.trim();
-  if (!desc) { toast('Informe a descrição'); return; }
-  const { error } = await sb.from('historico').insert({cliente_id:detailId, tipo:document.getElementById('h-tipo').value, descricao:desc, usuario:document.getElementById('h-user').value||null});
-  if (error) { toast('Erro: ' + error.message); return; }
-  toast('Interação registrada!'); closeHistModal(); loadHist(detailId);
+// ── INTERAÇÃO RÁPIDA DO CARD ─────────────────────────────────
+function abrirInteracao(id,nome,status){
+  interacaoClienteId=id;
+  document.getElementById('int-title').textContent=`Interagir — ${nome}`;
+  document.getElementById('int-status').value='';
+  document.getElementById('int-desc').value='';
+  document.getElementById('int-prox').value='';
+  document.getElementById('modal-interacao').classList.add('open');
+}
+function fecharInteracao(){document.getElementById('modal-interacao').classList.remove('open');}
+
+async function salvarInteracao(){
+  const desc=document.getElementById('int-desc').value.trim();
+  if(!desc){toast('Informe a descrição');return;}
+  const novoStatus=document.getElementById('int-status').value;
+  const prox=document.getElementById('int-prox').value;
+  const payload={
+    cliente_id:interacaoClienteId,
+    tipo:document.getElementById('int-tipo').value,
+    descricao:desc,
+    registrado_por:usuarioAtual?.nome||null,
+    proxima_interacao:prox?new Date(prox).toISOString():null
+  };
+  const{error}=await sb.from('historico').insert(payload);
+  if(error){toast('Erro: '+error.message);return;}
+  if(novoStatus){
+    await sb.from('clientes').update({
+      status:novoStatus,
+      tem_card:novoStatus!=='Pós-venda'
+    }).eq('id',interacaoClienteId);
+  }
+  toast('Interação registrada!');fecharInteracao();await loadAll();
 }
 
-function openTaskModal(cid) {
-  const sel = document.getElementById('t-cliente');
-  sel.innerHTML = '<option value="">Selecione o cliente</option>' + all.map(c => `<option value="${c.id}"${c.id===cid?' selected':''}>${c.nome}</option>`).join('');
-  ['t-titulo','t-desc','t-resp','t-venc'].forEach(i => document.getElementById(i).value='');
+// ── HISTÓRICO FICHA ──────────────────────────────────────────
+function openHistModal(){document.getElementById('h-desc').value='';document.getElementById('modal-hist').classList.add('open');}
+function closeHistModal(){document.getElementById('modal-hist').classList.remove('open');}
+async function saveHist(){
+  const desc=document.getElementById('h-desc').value.trim();
+  if(!desc){toast('Informe a descrição');return;}
+  const prox=document.getElementById('h-prox').value;
+  const{error}=await sb.from('historico').insert({
+    cliente_id:detailId,tipo:document.getElementById('h-tipo').value,
+    descricao:desc,registrado_por:usuarioAtual?.nome||null,
+    proxima_interacao:prox?new Date(prox).toISOString():null
+  });
+  if(error){toast('Erro: '+error.message);return;}
+  toast('Interação registrada!');closeHistModal();await loadHist(detailId);
+  await loadAll();
+}
+
+// ── DOCUMENTOS ───────────────────────────────────────────────
+function abrirAddDoc(){document.getElementById('doc-nome').value='';document.getElementById('doc-url').value='';document.getElementById('modal-doc').classList.add('open');}
+function fecharDoc(){document.getElementById('modal-doc').classList.remove('open');}
+async function salvarDoc(){
+  const nome=document.getElementById('doc-nome').value.trim();
+  const url=document.getElementById('doc-url').value.trim();
+  if(!nome||!url){toast('Preencha nome e link');return;}
+  const{error}=await sb.from('documentos_cliente').insert({cliente_id:detailId,nome_arquivo:nome,tipo:'gdrive',url,criado_por:usuarioAtual?.nome||null});
+  if(error){toast('Erro: '+error.message);return;}
+  toast('Documento vinculado!');fecharDoc();await loadDocs(detailId);
+}
+async function delDoc(id){
+  if(!confirm('Remover este documento?'))return;
+  await sb.from('documentos_cliente').delete().eq('id',id);
+  toast('Documento removido');await loadDocs(detailId);
+}
+
+// ── TAREFAS ──────────────────────────────────────────────────
+function openTaskModal(cid){
+  const sel=document.getElementById('t-cliente');
+  sel.innerHTML='<option value="">Selecione o cliente</option>'+all.map(c=>`<option value="${c.id}"${c.id===cid?' selected':''}>${c.nome}</option>`).join('');
+  ['t-titulo','t-desc','t-resp','t-venc'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('modal-task').classList.add('open');
 }
-function closeTaskModal() { document.getElementById('modal-task').classList.remove('open'); }
-async function saveTask() {
-  const titulo = document.getElementById('t-titulo').value.trim();
-  if (!titulo) { toast('Informe a tarefa'); return; }
-  const cid = document.getElementById('t-cliente').value || null;
-  const { error } = await sb.from('tarefas').insert({cliente_id:cid, titulo, descricao:document.getElementById('t-desc').value||null, responsavel:document.getElementById('t-resp').value||null, dt_vencimento:document.getElementById('t-venc').value||null});
-  if (error) { toast('Erro: ' + error.message); return; }
-  toast('Tarefa criada!'); closeTaskModal(); loadTasks(); if (detailId) loadDetailTasks(detailId);
+function closeTaskModal(){document.getElementById('modal-task').classList.remove('open');}
+async function saveTask(){
+  const titulo=document.getElementById('t-titulo').value.trim();
+  if(!titulo){toast('Informe a tarefa');return;}
+  const{error}=await sb.from('tarefas').insert({cliente_id:document.getElementById('t-cliente').value||null,titulo,descricao:document.getElementById('t-desc').value||null,responsavel:document.getElementById('t-resp').value||null,dt_vencimento:document.getElementById('t-venc').value||null});
+  if(error){toast('Erro: '+error.message);return;}
+  toast('Tarefa criada!');closeTaskModal();loadTasks();if(detailId)loadDetailTasks(detailId);
 }
-async function doneTask(id) {
-  await sb.from('tarefas').update({concluida:true}).eq('id', id);
-  toast('Tarefa concluída!'); loadTasks(); if (detailId) loadDetailTasks(detailId);
+async function doneTask(id){
+  await sb.from('tarefas').update({concluida:true}).eq('id',id);
+  toast('Tarefa concluída!');loadTasks();if(detailId)loadDetailTasks(detailId);
 }
 
+// ── VISTORIAS ────────────────────────────────────────────────
+function abrirNovaVistoria(){document.getElementById('vist-title').textContent='Nova vistoria';['v-matricula','v-construtor','v-endereco','v-obs'].forEach(i=>document.getElementById(i).value='');document.getElementById('v-status').value='Aguardando';document.getElementById('modal-vistoria').classList.add('open');}
+function fecharVistoria(){document.getElementById('modal-vistoria').classList.remove('open');}
+async function salvarVistoria(){
+  const end=document.getElementById('v-endereco').value.trim();
+  if(!end){toast('Informe o endereço');return;}
+  const{error}=await sb.from('vistorias').insert({matricula:document.getElementById('v-matricula').value||null,construtor:document.getElementById('v-construtor').value||null,endereco:end,status:document.getElementById('v-status').value,observacoes:document.getElementById('v-obs').value||null,operador:usuarioAtual?.nome||null});
+  if(error){toast('Erro: '+error.message);return;}
+  toast('Vistoria cadastrada!');fecharVistoria();carregarVistorias();
+}
+async function carregarVistorias(){
+  const{data}=await sb.from('vistorias').select('*').order('created_at',{ascending:false});
+  const el=document.getElementById('lista-vistorias');
+  if(!data||!data.length){el.innerHTML='<div class="es">Nenhuma vistoria cadastrada.</div>';return;}
+  el.innerHTML=data.map(v=>`
+    <div class="vcard">
+      <div class="vcard-hdr">
+        <div>
+          <div style="font-size:13px;font-weight:600">${v.endereco}</div>
+          <div class="vcard-end">Matrícula: ${v.matricula||'—'} · Construtor: ${v.construtor||'—'}</div>
+        </div>
+        <span class="badge ${v.status==='Concluído'?'b-green':v.status==='Reprovado'?'b-red':'b-amber'}">${v.status}</span>
+      </div>
+      ${v.observacoes?`<div style="font-size:12px;color:var(--t2);margin-top:6px">${v.observacoes}</div>`:''}
+      <div style="font-size:11px;color:var(--t3);margin-top:6px">Operador: ${v.operador||'—'} · ${new Date(v.created_at).toLocaleDateString('pt-BR')}</div>
+    </div>`).join('');
+}
+
+// ── POP-UP DE ALERTAS ────────────────────────────────────────
+async function mostrarPopupAlertas(){
+  const{data}=await sb.rpc('fn_alertas_login',{p_operador:usuarioAtual?.nome||'',p_role:usuarioAtual?.role||'usuario'});
+  if(!data||!data.length)return;
+  const lista=document.getElementById('popup-lista');
+  lista.innerHTML=data.map(a=>`
+    <div class="popup-item" onclick="openDetail('${a.cliente_id}','dashboard');fecharPopup()">
+      <div class="popup-badge${a.tipo_alerta==='Parado na etapa'?' r2':''}">${a.dias_atraso||0}d</div>
+      <div class="popup-info">
+        <div class="popup-nome">${a.nome}</div>
+        <div class="popup-sub">${a.status} · ${a.tipo_alerta} · Op: ${a.operador||'—'}</div>
+      </div>
+      <i class="ti ti-chevron-right" style="color:var(--t3)"></i>
+    </div>`).join('');
+  document.getElementById('popup-alertas').classList.add('open');
+}
+function fecharPopup(){document.getElementById('popup-alertas').classList.remove('open');}
+
 // ── GESTÃO DE EQUIPE ─────────────────────────────────────────
-async function carregarEquipe() {
-  const { data, error } = await sb.from('perfis').select('*').order('nome');
-  const grid = document.getElementById('team-grid');
-  if (error || !data || !data.length) {
-    grid.innerHTML = '<div style="color:var(--t3);font-size:13px;padding:20px">Nenhum usuário cadastrado ainda.</div>';
-    return;
-  }
-  grid.innerHTML = data.map(u => `
+async function carregarEquipe(){
+  const{data}=await sb.from('perfis').select('*').order('nome');
+  const grid=document.getElementById('team-grid');
+  if(!data||!data.length){grid.innerHTML='<div style="color:var(--t3);font-size:13px;padding:20px">Nenhum usuário.</div>';return;}
+  grid.innerHTML=data.map(u=>`
     <div class="tcard">
       <div class="tcard-top">
         <div class="tcard-av">${(u.nome||'?').charAt(0).toUpperCase()}</div>
         <div>
-          <div class="tcard-nome">${u.nome||'—'} ${u.id === usuarioAtual?.id ? '<span style="font-size:10px;color:var(--t3)">(você)</span>' : ''}</div>
-          <div class="tcard-login">Perfil: <b>${u.role==='gestor'?'Gestor':'Usuário'}</b></div>
+          <div class="tcard-nome">${u.nome||'—'}${u.id===usuarioAtual?.id?' <span style="font-size:10px;color:var(--t3)">(você)</span>':''}</div>
+          <div class="tcard-login">Login: <b>${u.login||'—'}</b></div>
         </div>
       </div>
-      <span class="badge ${u.role==='gestor'?'b-purple':'b-blue'}" style="margin-bottom:8px">${u.role==='gestor'?'Gestor':'Usuário'}</span>
-      <div class="tcard-meta">Último acesso: ${u.ultimo_acesso ? new Date(u.ultimo_acesso).toLocaleString('pt-BR') : 'Nunca'}</div>
-      <div class="tcard-meta">Ativo: ${u.ativo ? 'Sim' : '<span style="color:var(--red)">Não</span>'}</div>
+      <span class="badge ${u.role==='gestor'?'b-purple':'b-blue'}" style="margin-bottom:6px">${u.role==='gestor'?'Gestor':'Operador'}</span>
+      <div class="tcard-meta">Último acesso: ${u.ultimo_acesso?new Date(u.ultimo_acesso).toLocaleString('pt-BR'):'Nunca'}</div>
+      <div class="tcard-meta">Ativo: ${u.ativo?'Sim':'<span style="color:var(--red)">Não</span>'}</div>
       <div class="tcard-acts">
-        ${u.id !== usuarioAtual?.id ? `<button class="ab" onclick="toggleAtivo('${u.id}',${u.ativo})" style="color:${u.ativo?'var(--amber)':'var(--green)'}">
-          ${u.ativo ? 'Desativar' : 'Reativar'}</button>` : ''}
-        ${u.id !== usuarioAtual?.id ? `<button class="ab" onclick="excluirUsuario('${u.id}','${u.nome}')" style="color:var(--red)">Excluir</button>` : ''}
+        <button class="ab" onclick="editarUsuario('${u.id}')"><i class="ti ti-edit"></i> Editar</button>
+        ${u.id!==usuarioAtual?.id?`<button class="ab" onclick="toggleAtivo('${u.id}',${u.ativo})" style="color:${u.ativo?'var(--amber)':'var(--green)'}">${u.ativo?'Desativar':'Reativar'}</button>`:''}
+        ${u.id!==usuarioAtual?.id?`<button class="ab" onclick="excluirUsuario('${u.id}','${u.nome}')" style="color:var(--red)">Excluir</button>`:''}
       </div>
     </div>`).join('');
 }
 
-function openNovoUsuario() {
-  editUsuarioId = null;
-  document.getElementById('mu-title').textContent = 'Novo usuário';
-  document.getElementById('nu-btn-txt').textContent = 'Criar usuário';
-  ['nu-nome','nu-email','nu-senha'].forEach(i => document.getElementById(i).value = '');
-  document.getElementById('nu-role').value = 'usuario';
-  document.getElementById('modal-usuario').classList.add('open');
-}
+function openNovoUsuario(){editUsuarioId=null;document.getElementById('mu-title').textContent='Novo usuário';document.getElementById('nu-btn-txt').textContent='Criar usuário';['nu-nome','nu-login','nu-senha'].forEach(i=>document.getElementById(i).value='');document.getElementById('nu-role').value='usuario';document.getElementById('nu-senha').placeholder='Mínimo 4 caracteres';document.getElementById('modal-usuario').classList.add('open');}
+function fecharNovoUsuario(){document.getElementById('modal-usuario').classList.remove('open');}
 
-function fecharNovoUsuario() { document.getElementById('modal-usuario').classList.remove('open'); }
-
-// Chama a Edge Function no servidor do Supabase.
-// É ela quem cria/deleta usuários com segurança.
-async function chamarEdgeFunction(action, body) {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) { toast('Sessão expirada. Faça login novamente.', 4000); return null; }
-
-  const resp = await fetch(SB_URL + '/functions/v1/admin-usuarios', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + session.access_token,
-      'apikey': SB_KEY
-    },
-    body: JSON.stringify({ action, ...body })
+function editarUsuario(id){
+  sb.from('perfis').select('*').eq('id',id).single().then(({data})=>{
+    if(!data)return;
+    editUsuarioId=id;
+    document.getElementById('mu-title').textContent='Editar usuário';
+    document.getElementById('nu-btn-txt').textContent='Salvar alterações';
+    document.getElementById('nu-nome').value=data.nome||'';
+    document.getElementById('nu-login').value=data.login||'';
+    document.getElementById('nu-senha').value='';
+    document.getElementById('nu-senha').placeholder='Deixe em branco para não alterar';
+    document.getElementById('nu-role').value=data.role||'usuario';
+    document.getElementById('modal-usuario').classList.add('open');
   });
+}
 
-  const resultado = await resp.json();
-  if (!resp.ok || resultado.error) {
-    toast('Erro: ' + (resultado.error || 'Falha na operação'), 4000);
-    return null;
+async function salvarUsuario(){
+  const nome=document.getElementById('nu-nome').value.trim();
+  const login=document.getElementById('nu-login').value.trim().toLowerCase();
+  const senha=document.getElementById('nu-senha').value.trim();
+  const role=document.getElementById('nu-role').value;
+  if(!nome||!login){toast('Preencha nome e login');return;}
+  if(editUsuarioId){
+    const upd={nome,login,role};
+    if(senha){if(senha.length<4){toast('Senha deve ter ao menos 4 caracteres');return;}upd.senha_hash=await hashSenha(senha);}
+    const{error}=await sb.from('perfis').update(upd).eq('id',editUsuarioId);
+    if(error){toast('Erro: '+error.message,4000);return;}
+    toast('Usuário atualizado!');
+  }else{
+    if(!senha||senha.length<4){toast('Informe uma senha com ao menos 4 caracteres');return;}
+    const{data:existe}=await sb.from('perfis').select('id').eq('login',login).single();
+    if(existe){toast('Este login já está em uso.',3500);return;}
+    const hash=await hashSenha(senha);
+    const{error}=await sb.from('perfis').insert({nome,login,senha_hash:hash,role,ativo:true});
+    if(error){toast('Erro: '+error.message,4000);return;}
+    toast('Usuário criado com sucesso!');
   }
-  return resultado;
+  fecharNovoUsuario();carregarEquipe();
 }
 
-async function salvarUsuario() {
-  const nome  = document.getElementById('nu-nome').value.trim();
-  const email = document.getElementById('nu-email').value.trim();
-  const senha = document.getElementById('nu-senha').value.trim();
-  const role  = document.getElementById('nu-role').value;
-
-  if (!nome || !email || !senha) { toast('Preencha todos os campos'); return; }
-  if (senha.length < 6) { toast('Senha deve ter ao menos 6 caracteres'); return; }
-
-  toast('Criando usuário...', 8000);
-
-  // 1. Cria o usuário no Supabase Auth via Edge Function
-  const resultado = await chamarEdgeFunction('criar', { email, senha, nome, role });
-  if (!resultado) return;
-
-  toast('Usuário criado! ' + nome + ' já pode fazer login.');
-  fecharNovoUsuario();
-  carregarEquipe();
+async function toggleAtivo(id,ativo){
+  if(!confirm(ativo?'Desativar este usuário?':'Reativar este usuário?'))return;
+  await sb.from('perfis').update({ativo:!ativo}).eq('id',id);
+  toast(ativo?'Usuário desativado':'Usuário reativado');carregarEquipe();
 }
-
-async function toggleAtivo(id, ativo) {
-  const msg = ativo ? 'Desativar este usuário? Ele não conseguirá mais entrar.' : 'Reativar este usuário?';
-  if (!confirm(msg)) return;
-  await sb.from('perfis').update({ ativo: !ativo }).eq('id', id);
-  toast(ativo ? 'Usuário desativado' : 'Usuário reativado');
-  carregarEquipe();
-}
-
-async function excluirUsuario(id, nome) {
-  if (!confirm(`Excluir permanentemente o usuário ${nome}? Esta ação não pode ser desfeita.`)) return;
-  const resultado = await chamarEdgeFunction('deletar', { userId: id });
-  if (resultado) {
-    toast('Usuário excluído');
-    carregarEquipe();
-  }
+async function excluirUsuario(id,nome){
+  if(!confirm(`Excluir permanentemente ${nome}?`))return;
+  const{error}=await sb.from('perfis').delete().eq('id',id);
+  if(error){toast('Erro: '+error.message,4000);return;}
+  toast('Usuário excluído');carregarEquipe();
 }
 
 // ── ALTERAR SENHA ────────────────────────────────────────────
-// Com Supabase Auth, não precisamos verificar a senha atual.
-// O usuário já está autenticado com JWT válido — isso é suficiente.
-async function salvarSenha() {
-  const nova = document.getElementById('s-nova').value;
-  const conf = document.getElementById('s-conf').value;
-  if (!nova || !conf) { toast('Preencha os campos de nova senha'); return; }
-  if (nova.length < 6) { toast('Nova senha deve ter ao menos 6 caracteres'); return; }
-  if (nova !== conf) { toast('As senhas não coincidem'); return; }
-
-  const { error } = await sb.auth.updateUser({ password: nova });
-  if (error) { toast('Erro: ' + error.message); return; }
-
+async function salvarSenha(){
+  const atual=document.getElementById('s-atual').value;
+  const nova=document.getElementById('s-nova').value;
+  const conf=document.getElementById('s-conf').value;
+  if(!atual||!nova||!conf){toast('Preencha todos os campos');return;}
+  if(nova.length<4){toast('Nova senha deve ter ao menos 4 caracteres');return;}
+  if(nova!==conf){toast('As senhas não coincidem');return;}
+  const hashAtual=await hashSenha(atual);
+  if(hashAtual!==usuarioAtual.senha_hash){toast('Senha atual incorreta');return;}
+  const novoHash=await hashSenha(nova);
+  const{error}=await sb.from('perfis').update({senha_hash:novoHash}).eq('id',usuarioAtual.id);
+  if(error){toast('Erro: '+error.message);return;}
+  usuarioAtual.senha_hash=novoHash;
   toast('Senha alterada com sucesso!');
-  ['s-nova','s-conf'].forEach(i => document.getElementById(i).value = '');
+  ['s-atual','s-nova','s-conf'].forEach(i=>document.getElementById(i).value='');
 }
 
-// ── MÁSCARAS DE ENTRADA ──────────────────────────────────────
-function mascaraCPF(input) {
-  let v = input.value.replace(/\D/g,'').substring(0,11);
-  if (v.length > 9)      v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
-  else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3');
-  else if (v.length > 3) v = v.replace(/(\d{3})(\d{0,3})/, '$1.$2');
-  input.value = v;
-  const d = v.replace(/\D/g,'');
-  input.style.borderColor = d.length === 11 ? 'var(--green)' : (d.length > 0 ? 'var(--amber)' : '');
+// ── MÁSCARAS ─────────────────────────────────────────────────
+function mascaraCPF(input){
+  let v=input.value.replace(/\D/g,'').substring(0,11);
+  if(v.length>9)v=v.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/,'$1.$2.$3-$4');
+  else if(v.length>6)v=v.replace(/(\d{3})(\d{3})(\d{0,3})/,'$1.$2.$3');
+  else if(v.length>3)v=v.replace(/(\d{3})(\d{0,3})/,'$1.$2');
+  input.value=v;
+  const d=v.replace(/\D/g,'');
+  input.style.borderColor=d.length===11?'var(--green)':(d.length>0?'var(--amber)':'');
+}
+function mascaraTel(input){
+  let v=input.value.replace(/\D/g,'').substring(0,11);
+  if(v.length===11)v=v.replace(/(\d{2})(\d{1})(\d{4})(\d{4})/,'($1) $2 $3-$4');
+  else if(v.length===10)v=v.replace(/(\d{2})(\d{4})(\d{4})/,'($1) $2-$3');
+  else if(v.length>6)v=v.replace(/(\d{2})(\d+)/,'($1) $2');
+  else if(v.length>2)v=v.replace(/(\d{2})(\d*)/,'($1) $2');
+  else if(v.length>0)v='('+v;
+  input.value=v;
 }
 
-function mascaraTel(input) {
-  let v = input.value.replace(/\D/g,'').substring(0,11);
-  if (v.length === 11)      v = v.replace(/(\d{2})(\d{1})(\d{4})(\d{4})/, '($1) $2 $3-$4');
-  else if (v.length === 10) v = v.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-  else if (v.length > 6)    v = v.replace(/(\d{2})(\d+)/, '($1) $2');
-  else if (v.length > 2)    v = v.replace(/(\d{2})(\d*)/, '($1) $2');
-  else if (v.length > 0)    v = '(' + v;
-  input.value = v;
-}
-
-// ── EXPORTAR CSV ──────────────────────────────────────────────
-function exportarCSV() {
-  if (!filtered.length) { toast('Nenhum dado para exportar'); return; }
-  const cols = ['nome','cpf','telefone','email','produto','status','corretor','parceiro','origem_arquivo','produtos_contratados','observacoes','dt_entrada','dt_atualizacao'];
-  const labels = ['Nome','CPF','Telefone','E-mail','Produto','Status','Corretor','Parceiro','Origem','Produtos Contratados','Observações','Dt Entrada','Dt Atualização'];
-  const esc = v => {
-    if (v == null) return '';
-    const s = Array.isArray(v) ? v.join(', ') : String(v);
-    return '"' + s.replace(/"/g,'""') + '"';
-  };
-  const linhas = [labels.join(';'), ...filtered.map(c => cols.map(k => esc(c[k])).join(';'))];
-  const blob = new Blob(['\uFEFF' + linhas.join('\r\n')], {type:'text/csv;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url;
-  const ts = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
-  const filtro = document.getElementById('fProd').value || document.getElementById('fStatus').value || 'todos';
-  a.download = `clientes_prime_${filtro}_${ts}.csv`;
-  a.click(); URL.revokeObjectURL(url);
+// ── EXPORT CSV ───────────────────────────────────────────────
+function exportarCSV(){
+  if(!filtered.length){toast('Nenhum dado para exportar');return;}
+  const cols=['nome','cpf','telefone','email','produto','status','operador','indicado_por','corretor_externo','construtor_vendedor','renda_total','valor_imovel','valor_financiamento','valor_prestacao','numero_contrato','origem_arquivo','observacoes','dt_entrada','dt_atualizacao','legado'];
+  const labels=['Nome','CPF','Telefone','E-mail','Produto','Status','Operador','Indicado por','Corretor externo','Construtor/Vendedor','Renda total','Valor imóvel','Financiamento','Prestação','Contrato','Origem','Observações','Dt Entrada','Dt Atualização','Legado'];
+  const esc=v=>{if(v==null)return'';const s=Array.isArray(v)?v.join(', '):String(v);return'"'+s.replace(/"/g,'""')+'"';};
+  const linhas=[labels.join(';'),...filtered.map(c=>cols.map(k=>esc(c[k])).join(';'))];
+  const blob=new Blob(['\uFEFF'+linhas.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;
+  a.download=`clientes_prime_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.csv`;
+  a.click();URL.revokeObjectURL(url);
   toast(`${filtered.length} clientes exportados!`);
 }
 
+// ── TOAST ────────────────────────────────────────────────────
 let tTimer;
-function toast(msg, ms=2500) { const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(tTimer); tTimer=setTimeout(()=>el.classList.remove('show'),ms); }
+function toast(msg,ms=2500){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(tTimer);tTimer=setTimeout(()=>el.classList.remove('show'),ms);}
 </script>
 </body>
 </html>

@@ -663,16 +663,44 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
   <div class="modal sm">
     <div class="mh"><h3>Adicionar documento</h3><button class="mc" onclick="fecharDoc()">×</button></div>
     <div class="mb">
-      <div class="fl"><label>Nome do arquivo *</label><input id="doc-nome" type="text" placeholder="Ex: RG João Silva"></div>
-      <div class="fl" style="margin-top:9px"><label>Link do Google Drive *</label><input id="doc-url" type="url" placeholder="https://drive.google.com/..."></div>
-      <div style="margin-top:10px;font-size:11px;color:var(--t2);background:var(--blue-l);padding:9px 12px;border-radius:var(--rs);line-height:1.6">
-        📁 Salve o arquivo no Google Drive da empresa e cole o link de compartilhamento aqui.<br>
-        O arquivo aparecerá listado na ficha do cliente.
+      <!-- Área de upload por arrastar -->
+      <div id="drop-zone"
+        style="border:2px dashed var(--bd);border-radius:var(--rs);padding:28px 16px;text-align:center;cursor:pointer;margin-bottom:12px;transition:border-color .15s"
+        ondragover="event.preventDefault();this.style.borderColor='var(--blue)'"
+        ondragleave="this.style.borderColor='var(--bd)'"
+        ondrop="handleDrop(event)"
+        onclick="document.getElementById('doc-file-input').click()">
+        <i class="ti ti-upload" style="font-size:28px;color:var(--t3)"></i>
+        <div style="font-size:13px;font-weight:500;margin-top:8px">Arraste o arquivo aqui</div>
+        <div style="font-size:11px;color:var(--t3);margin-top:4px">ou clique para selecionar</div>
+        <div style="font-size:10px;color:var(--t3);margin-top:4px">Máximo 10 MB · PDF, imagens, Word, Excel</div>
+        <input type="file" id="doc-file-input" style="display:none"
+          accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx"
+          onchange="handleFileSelect(this.files[0])">
       </div>
+      <!-- Preview do arquivo selecionado -->
+      <div id="doc-preview" style="display:none;background:var(--sf2);border-radius:var(--rs);padding:10px 12px;margin-bottom:12px;font-size:12px;display:none">
+        <div style="display:flex;align-items:center;gap:8px">
+          <i class="ti ti-file" style="font-size:18px;color:var(--blue)"></i>
+          <div style="flex:1;min-width:0">
+            <div id="doc-preview-nome" style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+            <div id="doc-preview-size" style="font-size:10px;color:var(--t3)"></div>
+          </div>
+          <button onclick="limparArquivo()" style="background:none;border:none;cursor:pointer;color:var(--t3)"><i class="ti ti-x"></i></button>
+        </div>
+      </div>
+      <!-- Separador OU -->
+      <div style="display:flex;align-items:center;gap:8px;margin:12px 0">
+        <div style="flex:1;height:.5px;background:var(--bd)"></div>
+        <span style="font-size:11px;color:var(--t3)">ou cole um link externo</span>
+        <div style="flex:1;height:.5px;background:var(--bd)"></div>
+      </div>
+      <div class="fl"><label>Nome do arquivo</label><input id="doc-nome" type="text" placeholder="Ex: RG João Silva (opcional se arrastar)"></div>
+      <div class="fl" style="margin-top:8px"><label>Link Google Drive / externo</label><input id="doc-url" type="url" placeholder="https://drive.google.com/..."></div>
     </div>
     <div class="mf">
       <button class="btn" onclick="fecharDoc()">Cancelar</button>
-      <button class="btn p" onclick="salvarDoc()"><i class="ti ti-link"></i> Vincular</button>
+      <button class="btn p" id="btn-salvar-doc" onclick="salvarDoc()"><i class="ti ti-paperclip"></i> Adicionar</button>
     </div>
   </div>
 </div>
@@ -730,7 +758,7 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 
 let sb, all=[], filtered=[], pg=0, PER=25, detailId=null, editId=null, charts={};
 let usuarioAtual=null, editUsuarioId=null, voltarPara='kanban', interacaoClienteId=null;
-let corretores=[], construtores=[], etapasConfig=[];
+let corretores=[], construtores=[], etapasConfig=[], operadoresList=[];
 
 const STATUS_ORDER=['Lead','Andamento','Condicionado','Reprovado','Aprovado','Conformidade','Assinatura','Cartório/Prefeitura','Concluído'];
 const SBADGE={'Lead':'b-teal','Andamento':'b-blue','Condicionado':'b-amber','Reprovado':'b-red','Aprovado':'b-green','Conformidade':'b-purple','Assinatura':'b-purple','Cartório/Prefeitura':'b-coral','Concluído':'b-green','Pós-venda':'b-gray'};
@@ -817,26 +845,32 @@ async function loadAll(){
   // Recalcular alertas via RPC
   await sb.rpc('fn_recalcular_alertas');
   // Carregar dados em paralelo
-  const[{data:cls},{data:corr},{data:const_},{data:etapas}]=await Promise.all([
+  const[{data:cls},{data:corr},{data:const_},{data:etapas},{data:ops}]=await Promise.all([
     sb.from('clientes').select('id,nome,cpf,telefone,email,produto,status,operador,corretor,indicado_por,corretor_externo,construtor_vendedor,observacoes,origem_arquivo,dt_entrada,dt_atualizacao,legado,tem_card,em_alerta_r1,em_alerta_r2,proxima_interacao,ultima_interacao,dt_entrada_etapa,renda_principal,renda_secundaria,renda_total,valor_imovel,valor_financiamento,valor_subsidio,valor_prestacao,numero_contrato,comissao_valor,comissao_status,comissao_obs,produtos_contratados').order('nome'),
     sb.from('corretores').select('nome').eq('ativo',true).order('nome'),
     sb.from('construtores').select('nome,tipo').eq('ativo',true).order('nome'),
-    sb.from('etapas_config').select('nome_etapa,prazo_r1_dias,prazo_r2_dias')
+    sb.from('etapas_config').select('nome_etapa,prazo_r1_dias,prazo_r2_dias'),
+    sb.from('operadores').select('nome,role').eq('ativo',true).order('nome')
   ]);
   all=cls||[];filtered=[...all];
-  corretores=corr||[];construtores=const_||[];etapasConfig=etapas||[];
+  corretores=corr||[];construtores=const_||[];etapasConfig=etapas||[];operadoresList=ops||[];
   popularSelectCorretores();
   renderKanban();renderPosvenda();renderTable();renderMetrics();renderCharts();renderDashboardAlertas();
   if(document.getElementById('page-tarefas').style.display!=='none')loadTasks();
 }
 
 function popularSelectCorretores(){
-  const opts='<option value="">Selecione</option>'+corretores.map(c=>`<option>${c.nome}</option>`).join('')+'<option value="Outros">Outros</option>';
-  document.getElementById('f-operador').innerHTML=opts;
+  // Operadores do sistema (tabela operadores) — para campo operador responsável
+  const optsOp='<option value="">Selecione</option>'+operadoresList.map(o=>`<option>${o.nome}</option>`).join('')+'<option value="Outros">Outros</option>';
+  const fOp=document.getElementById('f-operador');
+  if(fOp)fOp.innerHTML=optsOp;
+  // Filtro de operador na tela de clientes
   const fCorr=document.getElementById('fCorretor');
-  if(fCorr)fCorr.innerHTML='<option value="">Todos os operadores</option>'+corretores.map(c=>`<option>${c.nome}</option>`).join('');
+  if(fCorr)fCorr.innerHTML='<option value="">Todos os operadores</option>'+operadoresList.map(o=>`<option>${o.nome}</option>`).join('');
+  // Corretor externo (tabela corretores — lista separada)
   const cExt=document.getElementById('f-corretor-ext');
   if(cExt)cExt.innerHTML='<option value="">Nenhum</option>'+corretores.map(c=>`<option>${c.nome}</option>`).join('');
+  // Construtores/vendedores
   const cCons=document.getElementById('f-construtor');
   if(cCons)cCons.innerHTML='<option value="">Nenhum</option>'+construtores.map(c=>`<option>${c.nome} (${c.tipo})</option>`).join('');
 }
@@ -1065,6 +1099,7 @@ async function openDetail(id,from){
   rows=rows.concat([
     ['Produtos contratados',pc],
     ['Próx. contato',c.proxima_interacao?new Date(c.proxima_interacao).toLocaleString('pt-BR'):'—'],
+    ['Última alteração por',c.ultima_alteracao_por||'—'],
     ['Origem',c.origem_arquivo||'—'],
     ['Data entrada',c.dt_entrada||'—'],
     ['Observações',c.observacoes||'—'],
@@ -1289,6 +1324,7 @@ async function saveCliente(){
     construtor_vendedor:document.getElementById('f-construtor').value||null,
     origem_arquivo:document.getElementById('f-origem').value||null,
     observacoes:document.getElementById('f-obs').value||null,
+    ultima_alteracao_por:usuarioAtual?.nome||null,
     dt_atualizacao:new Date().toISOString().split('T')[0],
     renda_principal:parseFloat(document.getElementById('f-renda1').value)||null,
     renda_secundaria:parseFloat(document.getElementById('f-renda2').value)||null,
@@ -1344,6 +1380,11 @@ async function salvarInteracao(){
     registrado_por:usuarioAtual?.nome||null,
     proxima_interacao:prox?new Date(prox).toISOString():null
   };
+  // Registrar quem fez a última alteração no cliente
+  await sb.from('clientes').update({
+    ultima_alteracao_por:usuarioAtual?.nome||null,
+    dt_atualizacao:new Date().toISOString().split('T')[0]
+  }).eq('id',interacaoClienteId);
   const{error}=await sb.from('historico').insert(payload);
   if(error){toast('Erro: '+error.message);return;}
   if(novoStatus){
@@ -1373,16 +1414,89 @@ async function saveHist(){
 }
 
 // ── DOCUMENTOS ───────────────────────────────────────────────
-function abrirAddDoc(){document.getElementById('doc-nome').value='';document.getElementById('doc-url').value='';document.getElementById('modal-doc').classList.add('open');}
-function fecharDoc(){document.getElementById('modal-doc').classList.remove('open');}
-async function salvarDoc(){
-  const nome=document.getElementById('doc-nome').value.trim();
-  const url=document.getElementById('doc-url').value.trim();
-  if(!nome||!url){toast('Preencha nome e link');return;}
-  const{error}=await sb.from('documentos_cliente').insert({cliente_id:detailId,nome_arquivo:nome,tipo:'gdrive',url,criado_por:usuarioAtual?.nome||null});
-  if(error){toast('Erro: '+error.message);return;}
-  toast('Documento vinculado!');fecharDoc();await loadDocs(detailId);
+let arquivoSelecionado=null;
+
+function abrirAddDoc(){
+  arquivoSelecionado=null;
+  document.getElementById('doc-nome').value='';
+  document.getElementById('doc-url').value='';
+  document.getElementById('doc-preview').style.display='none';
+  document.getElementById('drop-zone').style.display='';
+  document.getElementById('doc-file-input').value='';
+  document.getElementById('modal-doc').classList.add('open');
 }
+function fecharDoc(){document.getElementById('modal-doc').classList.remove('open');arquivoSelecionado=null;}
+
+function handleDrop(event){
+  event.preventDefault();
+  document.getElementById('drop-zone').style.borderColor='var(--bd)';
+  const file=event.dataTransfer.files[0];
+  if(file)handleFileSelect(file);
+}
+
+function handleFileSelect(file){
+  if(!file)return;
+  if(file.size>10*1024*1024){toast('Arquivo maior que 10 MB. Use o link do Google Drive.',4000);return;}
+  arquivoSelecionado=file;
+  document.getElementById('doc-preview').style.display='block';
+  document.getElementById('drop-zone').style.display='none';
+  document.getElementById('doc-preview-nome').textContent=file.name;
+  document.getElementById('doc-preview-size').textContent=(file.size/1024).toFixed(0)+' KB';
+  // Preencher nome automaticamente sem a extensão
+  if(!document.getElementById('doc-nome').value){
+    document.getElementById('doc-nome').value=file.name.replace(/\.[^.]+$/,'');
+  }
+}
+
+function limparArquivo(){
+  arquivoSelecionado=null;
+  document.getElementById('doc-preview').style.display='none';
+  document.getElementById('drop-zone').style.display='';
+  document.getElementById('doc-file-input').value='';
+}
+
+async function salvarDoc(){
+  const nomeInput=document.getElementById('doc-nome').value.trim();
+  const urlInput=document.getElementById('doc-url').value.trim();
+  const btn=document.getElementById('btn-salvar-doc');
+
+  // Caso 1: upload de arquivo direto
+  if(arquivoSelecionado){
+    const nome=nomeInput||arquivoSelecionado.name;
+    btn.disabled=true;btn.textContent='Enviando...';
+    try{
+      const ext=arquivoSelecionado.name.split('.').pop();
+      const path=`${detailId}/${Date.now()}_${nome.replace(/[^a-zA-Z0-9._-]/g,'_')}.${ext}`;
+      const{data:upData,error:upErr}=await sb.storage.from('documentos-clientes').upload(path,arquivoSelecionado,{upsert:false});
+      if(upErr){toast('Erro no upload: '+upErr.message,4000);btn.disabled=false;btn.innerHTML='<i class="ti ti-paperclip"></i> Adicionar';return;}
+      const{data:urlData}=sb.storage.from('documentos-clientes').getPublicUrl(path);
+      const{error}=await sb.from('documentos_cliente').insert({
+        cliente_id:detailId,nome_arquivo:nome,tipo:'storage',
+        url:urlData.publicUrl,tamanho_kb:Math.round(arquivoSelecionado.size/1024),
+        criado_por:usuarioAtual?.nome||null
+      });
+      if(error){toast('Erro ao salvar: '+error.message,4000);return;}
+      toast('Documento enviado!');fecharDoc();await loadDocs(detailId);
+    }catch(e){toast('Erro inesperado: '+e.message,4000);}
+    btn.disabled=false;btn.innerHTML='<i class="ti ti-paperclip"></i> Adicionar';
+    return;
+  }
+
+  // Caso 2: link externo (Google Drive, etc.)
+  if(urlInput){
+    const nome=nomeInput||'Documento';
+    const{error}=await sb.from('documentos_cliente').insert({
+      cliente_id:detailId,nome_arquivo:nome,tipo:'gdrive',
+      url:urlInput,criado_por:usuarioAtual?.nome||null
+    });
+    if(error){toast('Erro: '+error.message);return;}
+    toast('Link vinculado!');fecharDoc();await loadDocs(detailId);
+    return;
+  }
+
+  toast('Selecione um arquivo ou informe um link.');
+}
+
 async function delDoc(id){
   if(!confirm('Remover este documento?'))return;
   await sb.from('documentos_cliente').delete().eq('id',id);

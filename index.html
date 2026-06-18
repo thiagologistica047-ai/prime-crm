@@ -761,10 +761,10 @@ async function doLogin(){
   err.textContent='';btn.disabled=true;btn.textContent='Verificando...';
   try{
     const hash=await hashSenha(senha);
-    const{data,error}=await sb.from('perfis').select('*').eq('login',login).eq('senha_hash',hash).eq('ativo',true).single();
+    const{data,error}=await sb.from('operadores').select('*').eq('login',login).eq('senha_hash',hash).eq('ativo',true).single();
     if(error||!data){err.textContent='Login ou senha incorretos.';btn.disabled=false;btn.textContent='Entrar';return;}
     usuarioAtual=data;
-    await sb.from('perfis').update({ultimo_acesso:new Date().toISOString()}).eq('id',data.id);
+    await sb.from('operadores').update({ultimo_acesso:new Date().toISOString()}).eq('id',data.id);
     entrarNoApp();
   }catch(e){err.textContent='Erro de conexão.';btn.disabled=false;btn.textContent='Entrar';}
 }
@@ -1438,7 +1438,7 @@ function fecharPopup(){document.getElementById('popup-alertas').classList.remove
 
 // ── GESTÃO DE EQUIPE ─────────────────────────────────────────
 async function carregarEquipe(){
-  const{data}=await sb.from('perfis').select('*').order('nome');
+  const{data}=await sb.from('operadores').select('*').order('nome');
   const grid=document.getElementById('team-grid');
   if(!data||!data.length){grid.innerHTML='<div style="color:var(--t3);font-size:13px;padding:20px">Nenhum usuário.</div>';return;}
   grid.innerHTML=data.map(u=>`
@@ -1465,7 +1465,7 @@ function openNovoUsuario(){editUsuarioId=null;document.getElementById('mu-title'
 function fecharNovoUsuario(){document.getElementById('modal-usuario').classList.remove('open');}
 
 function editarUsuario(id){
-  sb.from('perfis').select('*').eq('id',id).single().then(({data})=>{
+  sb.from('operadores').select('*').eq('id',id).single().then(({data})=>{
     if(!data)return;
     editUsuarioId=id;
     document.getElementById('mu-title').textContent='Editar usuário';
@@ -1488,15 +1488,15 @@ async function salvarUsuario(){
   if(editUsuarioId){
     const upd={nome,login,role};
     if(senha){if(senha.length<4){toast('Senha deve ter ao menos 4 caracteres');return;}upd.senha_hash=await hashSenha(senha);}
-    const{error}=await sb.from('perfis').update(upd).eq('id',editUsuarioId);
+    const{error}=await sb.from('operadores').update(upd).eq('id',editUsuarioId);
     if(error){toast('Erro: '+error.message,4000);return;}
     toast('Usuário atualizado!');
   }else{
     if(!senha||senha.length<4){toast('Informe uma senha com ao menos 4 caracteres');return;}
-    const{data:existe}=await sb.from('perfis').select('id').eq('login',login).single();
+    const{data:existe}=await sb.from('operadores').select('id').eq('login',login).single();
     if(existe){toast('Este login já está em uso.',3500);return;}
     const hash=await hashSenha(senha);
-    const{error}=await sb.from('perfis').insert({nome,login,senha_hash:hash,role,ativo:true});
+    const{error}=await sb.from('operadores').insert({nome,login,senha_hash:hash,role,ativo:true});
     if(error){toast('Erro: '+error.message,4000);return;}
     toast('Usuário criado com sucesso!');
   }
@@ -1505,12 +1505,12 @@ async function salvarUsuario(){
 
 async function toggleAtivo(id,ativo){
   if(!confirm(ativo?'Desativar este usuário?':'Reativar este usuário?'))return;
-  await sb.from('perfis').update({ativo:!ativo}).eq('id',id);
+  await sb.from('operadores').update({ativo:!ativo}).eq('id',id);
   toast(ativo?'Usuário desativado':'Usuário reativado');carregarEquipe();
 }
 async function excluirUsuario(id,nome){
   if(!confirm(`Excluir permanentemente ${nome}?`))return;
-  const{error}=await sb.from('perfis').delete().eq('id',id);
+  const{error}=await sb.from('operadores').delete().eq('id',id);
   if(error){toast('Erro: '+error.message,4000);return;}
   toast('Usuário excluído');carregarEquipe();
 }
@@ -1526,7 +1526,7 @@ async function salvarSenha(){
   const hashAtual=await hashSenha(atual);
   if(hashAtual!==usuarioAtual.senha_hash){toast('Senha atual incorreta');return;}
   const novoHash=await hashSenha(nova);
-  const{error}=await sb.from('perfis').update({senha_hash:novoHash}).eq('id',usuarioAtual.id);
+  const{error}=await sb.from('operadores').update({senha_hash:novoHash}).eq('id',usuarioAtual.id);
   if(error){toast('Erro: '+error.message);return;}
   usuarioAtual.senha_hash=novoHash;
   toast('Senha alterada com sucesso!');

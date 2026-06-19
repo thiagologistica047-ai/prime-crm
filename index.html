@@ -802,6 +802,8 @@ async function doLogin(){
       err.textContent='E-mail ou senha incorretos.';
       btn.disabled=false;btn.textContent='Entrar';return;
     }
+    // Salvar token globalmente para uso na Edge Function
+    window._authToken = authData.session?.access_token || null;
     // Buscar perfil do operador na tabela operadores
     const{data:opData}=await sb.from('operadores').select('*').eq('id',authData.user.id).maybeSingle();
     if(!opData){
@@ -833,6 +835,7 @@ async function entrarNoApp(){
 
 async function doLogout(){
   await sb.auth.signOut();
+  window._authToken = null;
   usuarioAtual=null;
   document.getElementById('main-app').style.display='none';
   document.getElementById('page-login').style.display='flex';
@@ -1659,16 +1662,38 @@ function editarUsuario(id){
 }
 
 async function chamarEdgeFunction(action,body){
-  const{data:{session}}=await sb.auth.getSession();
-  if(!session?.access_token){toast('Sessão expirada. Faça login novamente.',3000);return null;}
-  const resp=await fetch(`${SB_URL}/functions/v1/admin-usuarios`,{
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,'apikey':SB_KEY},
-    body:JSON.stringify({action,...body})
-  });
-  const data=await resp.json();
-  if(!resp.ok){toast('Erro: '+(data.error||resp.statusText),4000);return null;}
-  return data;
+  // Tenta pegar sessão ativa — funciona mesmo com persistSession:false
+  let token = null;
+  try {
+    const { data } = await sb.auth.getSession();
+    token = data?.session?.access_token || null;
+  } catch(e) { token = null; }
+
+  // Fallback: usar token salvo globalmente no login
+  if(!token && window._authToken) token = window._authToken;
+
+  if(!token){
+    toast('Sessão expirada. Faça login novamente.',3000);
+    return null;
+  }
+
+  try {
+    const resp=await fetch(`${SB_URL}/functions/v1/admin-usuarios`,{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer '+token,
+        'apikey':SB_KEY
+      },
+      body:JSON.stringify({action,...body})
+    });
+    const data=await resp.json();
+    if(!resp.ok){toast('Erro: '+(data.error||resp.statusText),4000);return null;}
+    return data;
+  } catch(e) {
+    toast('Erro de conexão com o servidor.',4000);
+    return null;
+  }
 }
 
 async function salvarUsuario(){

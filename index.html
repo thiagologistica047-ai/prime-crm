@@ -97,6 +97,8 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
 .ktab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
 .kanban{display:flex;gap:12px;overflow-x:auto;padding-bottom:12px;align-items:flex-start;flex:1}
 .kol{flex-shrink:0;width:230px;background:var(--sf2);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;max-height:calc(100vh - 220px)}
+.kol.drag-over{background:var(--blue-l);border:1.5px solid var(--blue)}
+.kc[draggable]{cursor:grab}.kc[draggable]:active{cursor:grabbing}
 .kh{padding:9px 11px;display:flex;align-items:center;justify-content:space-between;border-bottom:.5px solid var(--bd);background:var(--sf);flex-shrink:0}
 .kht{font-size:12px;font-weight:600}
 .khc{font-size:11px;background:var(--bd);border-radius:20px;padding:1px 6px;color:var(--t2)}
@@ -707,18 +709,35 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
 
 <!-- MODAL VISTORIA -->
 <div class="overlay" id="modal-vistoria">
-  <div class="modal sm">
+  <div class="modal">
     <div class="mh"><h3 id="vist-title">Nova vistoria</h3><button class="mc" onclick="fecharVistoria()">×</button></div>
     <div class="mb">
-      <div class="fl"><label>Matrícula do imóvel</label><input id="v-matricula" type="text" placeholder="Número da matrícula"></div>
-      <div class="fl" style="margin-top:9px"><label>Construtor / Responsável</label><input id="v-construtor" type="text" placeholder="Nome do construtor"></div>
-      <div class="fl" style="margin-top:9px"><label>Endereço do imóvel</label><input id="v-endereco" type="text" placeholder="Endereço completo"></div>
-      <div class="fl" style="margin-top:9px"><label>Status</label>
-        <select id="v-status" style="width:100%;padding:7px 9px;border:.5px solid var(--bd);border-radius:var(--rs);background:var(--sf2);color:var(--t);font-size:12px">
-          <option>Aguardando</option><option>Em andamento</option><option>Concluído</option><option>Reprovado</option>
-        </select>
+      <div class="sec">Imóvel</div>
+      <div class="fg">
+        <div class="fl"><label>Matrícula do imóvel</label><input id="v-matricula" type="text" placeholder="Número da matrícula"></div>
+        <div class="fl"><label>Construtor / Responsável</label><input id="v-construtor" type="text" placeholder="Nome do construtor"></div>
+        <div class="fl fg full"><label>Endereço do imóvel *</label><input id="v-endereco" type="text" placeholder="Endereço completo"></div>
+        <div class="fl"><label>Status</label>
+          <select id="v-status" style="width:100%;padding:7px 9px;border:.5px solid var(--bd);border-radius:var(--rs);background:var(--sf2);color:var(--t);font-size:12px">
+            <option>Aguardando</option><option>Em andamento</option><option>Concluído</option><option>Reprovado</option>
+          </select>
+        </div>
+        <div class="fl"><label>Operador responsável</label>
+          <select id="v-operador" style="width:100%;padding:7px 9px;border:.5px solid var(--bd);border-radius:var(--rs);background:var(--sf2);color:var(--t);font-size:12px">
+            <option value="">Selecione</option>
+          </select>
+        </div>
+        <div class="fl"><label>Próximo retorno</label><input id="v-proxretorno" type="date"></div>
+        <div class="fl"><label>Prazo alerta (dias)</label><input id="v-prazo" type="number" value="7" min="1" max="90"></div>
       </div>
-      <div class="fl" style="margin-top:9px"><label>Observações</label><textarea id="v-obs" placeholder="Informações relevantes..." style="height:80px"></textarea></div>
+      <div class="sec">Engenheiro responsável</div>
+      <div class="fg t3">
+        <div class="fl"><label>Nome do engenheiro</label><input id="v-eng-nome" type="text" placeholder="Nome completo"></div>
+        <div class="fl"><label>Telefone</label><input id="v-eng-tel" type="text" placeholder="(61) 9 9999-9999" oninput="mascaraTel(this)"></div>
+        <div class="fl"><label>CPF</label><input id="v-eng-cpf" type="text" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this)"></div>
+      </div>
+      <div class="sec">Observações</div>
+      <div class="fg full"><div class="fl"><textarea id="v-obs" placeholder="Informações relevantes..." style="height:70px"></textarea></div></div>
     </div>
     <div class="mf">
       <button class="btn" onclick="fecharVistoria()">Cancelar</button>
@@ -905,7 +924,11 @@ function renderKanban(){
   document.getElementById('kanban').innerHTML=STATUS_ORDER.map(s=>{
     const cards=ativos.filter(c=>c.status===s);
     const alertas=cards.filter(c=>c.em_alerta_r1).length;
-    return`<div class="kol">
+    return`<div class="kol"
+      ondragover="event.preventDefault();this.classList.add('drag-over')"
+      ondragleave="this.classList.remove('drag-over')"
+      ondrop="dropCard(event,'${s}');this.classList.remove('drag-over')"
+      data-status="${s}">
       <div class="kh">
         <span class="kht">${s}</span>
         <span style="display:flex;align-items:center;gap:4px">
@@ -913,10 +936,50 @@ function renderKanban(){
           <span class="khc">${cards.length}</span>
         </span>
       </div>
-      <div class="kb">${cards.length?cards.map(c=>renderCard(c)).join(''):'<div style="padding:10px;font-size:11px;color:var(--t3);text-align:center">Vazio</div>'}
+      <div class="kb">${cards.length?cards.map(c=>renderCard(c)).join(''):'<div class="kol-vazio" style="padding:16px;font-size:11px;color:var(--t3);text-align:center;border:1.5px dashed var(--bd);border-radius:var(--rs);margin:4px">Arraste um card aqui</div>'}
       </div>
     </div>`;
   }).join('');
+}
+
+// Drag and drop handlers
+function dragStart(event,id){
+  event.dataTransfer.setData('cardId',id);
+  event.dataTransfer.effectAllowed='move';
+  event.currentTarget.style.opacity='0.5';
+}
+function dragEnd(event){
+  event.currentTarget.style.opacity='1';
+}
+async function dropCard(event,novoStatus){
+  event.preventDefault();
+  const id=event.dataTransfer.getData('cardId');
+  if(!id)return;
+  const c=all.find(x=>x.id===id);
+  if(!c||c.status===novoStatus)return;
+  // Atualizar localmente primeiro para resposta imediata
+  c.status=novoStatus;
+  renderKanban();
+  // Persistir no banco
+  const{error}=await sb.from('clientes').update({
+    status:novoStatus,
+    ultima_alteracao_por:usuarioAtual?.nome||null,
+    dt_atualizacao:new Date().toISOString().split('T')[0]
+  }).eq('id',id);
+  if(error){
+    toast('Erro ao mover card: '+error.message,4000);
+    await loadAll(); // reverter se falhou
+    return;
+  }
+  // Registrar interação automática de mudança de status
+  await sb.from('historico').insert({
+    cliente_id:id,
+    tipo:'Status alterado',
+    descricao:`Status alterado para "${novoStatus}" via arraste no quadro`,
+    registrado_por:usuarioAtual?.nome||null
+  });
+  toast(`Card movido para ${novoStatus}`);
+  await loadAll();
 }
 
 function renderCard(c){
@@ -926,7 +989,11 @@ function renderCard(c){
   const etapa=etapasConfig.find(e=>e.nome_etapa===c.status);
   const diasEtapa=c.dt_entrada_etapa?Math.floor((Date.now()-new Date(c.dt_entrada_etapa))/(86400000)):0;
   const alertaR2=etapa&&diasEtapa>=etapa.prazo_r2_dias;
-  return`<div class="kc${c.em_alerta_r1?' alerta-r1':alertaR2?' alerta-r2':''}${c.legado?' legado-card':''}" onclick="openDetail('${c.id}','kanban')">
+  return`<div class="kc${c.em_alerta_r1?' alerta-r1':alertaR2?' alerta-r2':''}${c.legado?' legado-card':''}"
+    draggable="true"
+    ondragstart="dragStart(event,'${c.id}')"
+    ondragend="dragEnd(event)"
+    onclick="openDetail('${c.id}','kanban')">
     <div class="kcn">${c.nome}${c.legado?'<span class="tag-legado">L</span>':''}</div>
     <div class="kcm">
       <span class="badge ${PBADGE[c.produto]||'b-gray'}" style="font-size:10px">${c.produto||'—'}</span>
@@ -1320,6 +1387,14 @@ async function saveCliente(){
   const emailRaw=document.getElementById('f-email').value.trim().toLowerCase();
   if(emailRaw&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailRaw)){toast('E-mail inválido');return;}
 
+  // Verificar unicidade de CPF e telefone antes de salvar
+  if(cpfRaw){
+    const{data:dupCpf}=await sb.from('clientes').select('id,nome').eq('cpf',cpfRaw).neq('id',editId||'00000000-0000-0000-0000-000000000000').maybeSingle();
+    if(dupCpf){toast('CPF já cadastrado para: '+dupCpf.nome,4000);return;}
+  }
+  const{data:dupTel}=await sb.from('clientes').select('id,nome').eq('telefone',telefone).neq('id',editId||'00000000-0000-0000-0000-000000000000').maybeSingle();
+  if(dupTel){toast('Telefone já cadastrado para: '+dupTel.nome,4000);return;}
+
   // produto: string vazia vira null para não violar o enum
   const produtoVal=document.getElementById('f-prod').value||null;
 
@@ -1561,31 +1636,117 @@ async function doneTask(id){
 }
 
 // ── VISTORIAS ────────────────────────────────────────────────
-function abrirNovaVistoria(){document.getElementById('vist-title').textContent='Nova vistoria';['v-matricula','v-construtor','v-endereco','v-obs'].forEach(i=>document.getElementById(i).value='');document.getElementById('v-status').value='Aguardando';document.getElementById('modal-vistoria').classList.add('open');}
+let vistoriaDetalheId=null;
+
+function abrirNovaVistoria(){
+  vistoriaDetalheId=null;
+  document.getElementById('vist-title').textContent='Nova vistoria';
+  ['v-matricula','v-construtor','v-endereco','v-obs','v-eng-nome','v-eng-tel','v-eng-cpf','v-proxretorno'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  document.getElementById('v-status').value='Aguardando';
+  document.getElementById('v-prazo').value='7';
+  // Popular select de operadores
+  const sel=document.getElementById('v-operador');
+  if(sel)sel.innerHTML='<option value="">Selecione</option>'+operadoresList.map(o=>`<option>${o.nome}</option>`).join('');
+  if(usuarioAtual?.nome&&sel)sel.value=usuarioAtual.nome;
+  document.getElementById('modal-vistoria').classList.add('open');
+}
 function fecharVistoria(){document.getElementById('modal-vistoria').classList.remove('open');}
+
 async function salvarVistoria(){
   const end=document.getElementById('v-endereco').value.trim();
   if(!end){toast('Informe o endereço');return;}
-  const{error}=await sb.from('vistorias').insert({matricula:document.getElementById('v-matricula').value||null,construtor:document.getElementById('v-construtor').value||null,endereco:end,status:document.getElementById('v-status').value,observacoes:document.getElementById('v-obs').value||null,operador:usuarioAtual?.nome||null});
-  if(error){toast('Erro: '+error.message);return;}
-  toast('Vistoria cadastrada!');fecharVistoria();carregarVistorias();
+  const proxVal=document.getElementById('v-proxretorno').value;
+  const payload={
+    matricula:document.getElementById('v-matricula').value.trim()||null,
+    construtor:document.getElementById('v-construtor').value.trim()||null,
+    endereco:end,
+    status:document.getElementById('v-status').value,
+    operador:document.getElementById('v-operador').value||usuarioAtual?.nome||null,
+    observacoes:document.getElementById('v-obs').value.trim()||null,
+    engenheiro_nome:document.getElementById('v-eng-nome').value.trim()||null,
+    engenheiro_telefone:document.getElementById('v-eng-tel').value.trim()||null,
+    engenheiro_cpf:document.getElementById('v-eng-cpf').value.trim()||null,
+    prazo_retorno_dias:parseInt(document.getElementById('v-prazo').value)||7,
+    proxima_interacao:proxVal?new Date(proxVal).toISOString():null,
+    ultima_interacao:new Date().toISOString()
+  };
+  let res;
+  if(vistoriaDetalheId){
+    res=await sb.from('vistorias').update(payload).eq('id',vistoriaDetalheId);
+  }else{
+    res=await sb.from('vistorias').insert(payload);
+  }
+  if(res.error){toast('Erro: '+res.error.message,4000);return;}
+  toast(vistoriaDetalheId?'Vistoria atualizada!':'Vistoria cadastrada!');
+  fecharVistoria();carregarVistorias();
 }
+
 async function carregarVistorias(){
   const{data}=await sb.from('vistorias').select('*').order('created_at',{ascending:false});
   const el=document.getElementById('lista-vistorias');
   if(!data||!data.length){el.innerHTML='<div class="es">Nenhuma vistoria cadastrada.</div>';return;}
-  el.innerHTML=data.map(v=>`
-    <div class="vcard">
+  // Recalcular alertas de vistoria
+  const agora=new Date();
+  el.innerHTML=data.map(v=>{
+    const alerta=v.proxima_interacao&&new Date(v.proxima_interacao)<agora;
+    const prox=v.proxima_interacao?new Date(v.proxima_interacao).toLocaleDateString('pt-BR'):'—';
+    return`<div class="vcard${alerta?' alerta-r1':''}" style="${alerta?'border-left:3px solid var(--red)':''}">
       <div class="vcard-hdr">
-        <div>
+        <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:600">${v.endereco}</div>
-          <div class="vcard-end">Matrícula: ${v.matricula||'—'} · Construtor: ${v.construtor||'—'}</div>
+          <div class="vcard-end">Mat: ${v.matricula||'—'} · Const: ${v.construtor||'—'} · Op: ${v.operador||'—'}</div>
+          ${v.engenheiro_nome?`<div style="font-size:11px;color:var(--t2);margin-top:2px">🔧 Eng: ${v.engenheiro_nome}${v.engenheiro_telefone?' · '+v.engenheiro_telefone:''}</div>`:''}
+          <div style="font-size:11px;margin-top:3px;color:${alerta?'var(--red)':'var(--t3)'}">
+            📅 Retorno: ${prox}${alerta?' <b>· VENCIDO</b>':''}
+          </div>
         </div>
-        <span class="badge ${v.status==='Concluído'?'b-green':v.status==='Reprovado'?'b-red':'b-amber'}">${v.status}</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+          <span class="badge ${v.status==='Concluído'?'b-green':v.status==='Reprovado'?'b-red':'b-amber'}">${v.status}</span>
+          <button class="ab" style="font-size:10px" onclick="editarVistoria('${v.id}')"><i class="ti ti-edit"></i> Editar</button>
+          <button class="ab" style="font-size:10px" onclick="abrirInteracaoVistoria('${v.id}','${v.endereco.replace(/'/g,"\'")}')"><i class="ti ti-message"></i> Interagir</button>
+        </div>
       </div>
       ${v.observacoes?`<div style="font-size:12px;color:var(--t2);margin-top:6px">${v.observacoes}</div>`:''}
-      <div style="font-size:11px;color:var(--t3);margin-top:6px">Operador: ${v.operador||'—'} · ${new Date(v.created_at).toLocaleDateString('pt-BR')}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+}
+
+async function editarVistoria(id){
+  const{data:v}=await sb.from('vistorias').select('*').eq('id',id).single();
+  if(!v)return;
+  vistoriaDetalheId=id;
+  document.getElementById('vist-title').textContent='Editar vistoria';
+  document.getElementById('v-matricula').value=v.matricula||'';
+  document.getElementById('v-construtor').value=v.construtor||'';
+  document.getElementById('v-endereco').value=v.endereco||'';
+  document.getElementById('v-status').value=v.status||'Aguardando';
+  document.getElementById('v-obs').value=v.observacoes||'';
+  document.getElementById('v-eng-nome').value=v.engenheiro_nome||'';
+  document.getElementById('v-eng-tel').value=v.engenheiro_telefone||'';
+  document.getElementById('v-eng-cpf').value=v.engenheiro_cpf||'';
+  document.getElementById('v-prazo').value=v.prazo_retorno_dias||7;
+  if(v.proxima_interacao){
+    document.getElementById('v-proxretorno').value=new Date(v.proxima_interacao).toISOString().split('T')[0];
+  }
+  const sel=document.getElementById('v-operador');
+  if(sel){
+    sel.innerHTML='<option value="">Selecione</option>'+operadoresList.map(o=>`<option>${o.nome}</option>`).join('');
+    sel.value=v.operador||'';
+  }
+  document.getElementById('modal-vistoria').classList.add('open');
+}
+
+let vistoriaInteracaoId=null;
+function abrirInteracaoVistoria(id,endereco){
+  vistoriaInteracaoId=id;
+  document.getElementById('int-title').textContent='Interagir — '+endereco;
+  document.getElementById('int-tipo').value='Nota';
+  document.getElementById('int-desc').value='';
+  document.getElementById('int-prox').value='';
+  document.getElementById('int-status').style.display='none'; // não tem mudança de status
+  document.getElementById('modal-interacao').classList.add('open');
+  // Flag para saber que é vistoria
+  window._interacaoTipo='vistoria';
 }
 
 // ── POP-UP DE ALERTAS ────────────────────────────────────────

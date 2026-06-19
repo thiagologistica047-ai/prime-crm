@@ -733,13 +733,17 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
     <div class="mh"><h3 id="mu-title">Novo usuário</h3><button class="mc" onclick="fecharNovoUsuario()">×</button></div>
     <div class="mb">
       <div class="fl"><label>Nome completo *</label><input id="nu-nome" type="text" placeholder="Ex: Josiel Santos"></div>
-      <div class="fl" style="margin-top:8px"><label>Login *</label><input id="nu-login" type="text" placeholder="Ex: josiel (sem espaços)"></div>
-      <div class="fl" style="margin-top:8px"><label>Senha *</label><input id="nu-senha" type="text" placeholder="Mínimo 4 caracteres"></div>
+      <div class="fl" id="nu-email-wrap" style="margin-top:8px"><label>E-mail *</label><input id="nu-email" type="email" placeholder="josiel@prime.crm"></div>
+      <div class="fl" id="nu-senha-wrap" style="margin-top:8px"><label>Senha *</label><input id="nu-senha" type="text" placeholder="Mínimo 6 caracteres"></div>
       <div class="fl" style="margin-top:8px"><label>Perfil</label>
         <select id="nu-role" style="width:100%;padding:7px 9px;border:.5px solid var(--bd);border-radius:var(--rs);background:var(--sf2);color:var(--t);font-size:12px">
           <option value="usuario">Operador — acesso ao quadro e clientes</option>
           <option value="gestor">Gestor — acesso total</option>
         </select>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:var(--t2);background:var(--blue-l);padding:9px 12px;border-radius:var(--rs);line-height:1.6">
+        O usuário fará login com o e-mail e senha informados.<br>
+        Sugestão de e-mail: <b>nome@prime.crm</b>
       </div>
     </div>
     <div class="mf">
@@ -1594,20 +1598,32 @@ async function carregarEquipe(){
     </div>`).join('');
 }
 
-function openNovoUsuario(){editUsuarioId=null;document.getElementById('mu-title').textContent='Novo usuário';document.getElementById('nu-btn-txt').textContent='Criar usuário';['nu-nome','nu-login','nu-senha'].forEach(i=>document.getElementById(i).value='');document.getElementById('nu-role').value='usuario';document.getElementById('nu-senha').placeholder='Mínimo 4 caracteres';document.getElementById('modal-usuario').classList.add('open');}
+function openNovoUsuario(){
+  editUsuarioId=null;
+  document.getElementById('mu-title').textContent='Novo usuário';
+  document.getElementById('nu-btn-txt').textContent='Criar usuário';
+  ['nu-nome','nu-email','nu-senha'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  document.getElementById('nu-role').value='usuario';
+  // Mostrar campos de e-mail e senha (só na criação)
+  const ew=document.getElementById('nu-email-wrap');const sw=document.getElementById('nu-senha-wrap');
+  if(ew)ew.style.display='';if(sw)sw.style.display='';
+  document.getElementById('modal-usuario').classList.add('open');
+}
 function fecharNovoUsuario(){document.getElementById('modal-usuario').classList.remove('open');}
 
 function editarUsuario(id){
-  sb.from('operadores').select('*').eq('id',id).single().then(({data})=>{
+  sb.from('operadores').select('id,nome,login,email,role,ativo').eq('id',id).single().then(({data})=>{
     if(!data)return;
     editUsuarioId=id;
     document.getElementById('mu-title').textContent='Editar usuário';
     document.getElementById('nu-btn-txt').textContent='Salvar alterações';
     document.getElementById('nu-nome').value=data.nome||'';
-    document.getElementById('nu-login').value=data.login||'';
-    document.getElementById('nu-senha').value='';
-    document.getElementById('nu-senha').placeholder='Deixe em branco para não alterar';
     document.getElementById('nu-role').value=data.role||'usuario';
+    // Ocultar e-mail e senha na edição
+    const ew=document.getElementById('nu-email-wrap');
+    const sw=document.getElementById('nu-senha-wrap');
+    if(ew)ew.style.display='none';
+    if(sw)sw.style.display='none';
     document.getElementById('modal-usuario').classList.add('open');
   });
 }

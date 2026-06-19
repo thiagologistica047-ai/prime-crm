@@ -1698,20 +1698,23 @@ async function chamarEdgeFunction(action,body){
 
 async function salvarUsuario(){
   const nome=document.getElementById('nu-nome').value.trim();
-  const senha=document.getElementById('nu-senha').value.trim();
+  const senha=document.getElementById('nu-senha')?document.getElementById('nu-senha').value.trim():'';
   const role=document.getElementById('nu-role').value;
-  if(!nome||!login){toast('Preencha nome e login');return;}
+  if(!nome){toast('Preencha o nome');return;}
+
   if(editUsuarioId){
-    const upd={nome,login,role};
-    if(senha){if(senha.length<4){toast('Senha deve ter ao menos 4 caracteres');return;}upd.senha_hash=await hashSenha(senha);}
-    const{error}=await sb.from('operadores').update(upd).eq('id',editUsuarioId);
-    if(error){toast('Erro: '+error.message,4000);return;}
+    // Editar: apenas atualiza nome e role na tabela operadores
+    const{error}=await sb.from('operadores').update({nome,role}).eq('id',editUsuarioId);
+    if(error){toast('Erro ao atualizar: '+error.message,4000);return;}
     toast('Usuário atualizado!');
   }else{
-    // Criar usuário via Edge Function (cria no Auth + operadores)
-    const email=document.getElementById('nu-email').value.trim().toLowerCase();
-    if(!email||!senha){toast('Preencha e-mail e senha');return;}
+    // Criar: via Edge Function (cria no Auth + operadores simultaneamente)
+    const emailEl=document.getElementById('nu-email');
+    const email=emailEl?emailEl.value.trim().toLowerCase():'';
+    if(!email){toast('Preencha o e-mail');return;}
+    if(!senha){toast('Preencha a senha');return;}
     if(senha.length<6){toast('Senha deve ter ao menos 6 caracteres');return;}
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){toast('E-mail inválido. Use formato nome@prime.crm');return;}
     toast('Criando usuário...',5000);
     const res=await chamarEdgeFunction('criar',{email,senha,nome,role});
     if(!res)return;

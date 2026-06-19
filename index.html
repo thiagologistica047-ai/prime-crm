@@ -1628,9 +1628,21 @@ function editarUsuario(id){
   });
 }
 
+async function chamarEdgeFunction(action,body){
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session?.access_token){toast('Sessão expirada. Faça login novamente.',3000);return null;}
+  const resp=await fetch(`${SB_URL}/functions/v1/admin-usuarios`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,'apikey':SB_KEY},
+    body:JSON.stringify({action,...body})
+  });
+  const data=await resp.json();
+  if(!resp.ok){toast('Erro: '+(data.error||resp.statusText),4000);return null;}
+  return data;
+}
+
 async function salvarUsuario(){
   const nome=document.getElementById('nu-nome').value.trim();
-  const login=document.getElementById('nu-login').value.trim().toLowerCase();
   const senha=document.getElementById('nu-senha').value.trim();
   const role=document.getElementById('nu-role').value;
   if(!nome||!login){toast('Preencha nome e login');return;}
@@ -1641,27 +1653,29 @@ async function salvarUsuario(){
     if(error){toast('Erro: '+error.message,4000);return;}
     toast('Usuário atualizado!');
   }else{
-    if(!senha||senha.length<4){toast('Informe uma senha com ao menos 4 caracteres');return;}
-    const{data:existe}=await sb.from('operadores').select('id').eq('login',login).single();
-    if(existe){toast('Este login já está em uso.',3500);return;}
-    const hash=await hashSenha(senha);
-    const{error}=await sb.from('operadores').insert({nome,login,senha_hash:hash,role,ativo:true});
-    if(error){toast('Erro: '+error.message,4000);return;}
-    toast('Usuário criado com sucesso!');
+    // Criar usuário via Edge Function (cria no Auth + operadores)
+    const email=document.getElementById('nu-email').value.trim().toLowerCase();
+    if(!email||!senha){toast('Preencha e-mail e senha');return;}
+    if(senha.length<6){toast('Senha deve ter ao menos 6 caracteres');return;}
+    toast('Criando usuário...',5000);
+    const res=await chamarEdgeFunction('criar',{email,senha,nome,role});
+    if(!res)return;
+    toast('Usuário '+nome+' criado! Login: '+email);
   }
-  fecharNovoUsuario();carregarEquipe();
+  fecharNovoUsuario();await carregarEquipe();
 }
 
 async function toggleAtivo(id,ativo){
   if(!confirm(ativo?'Desativar este usuário?':'Reativar este usuário?'))return;
   await sb.from('operadores').update({ativo:!ativo}).eq('id',id);
-  toast(ativo?'Usuário desativado':'Usuário reativado');carregarEquipe();
+  toast(ativo?'Usuário desativado':'Usuário reativado');await carregarEquipe();
 }
 async function excluirUsuario(id,nome){
-  if(!confirm(`Excluir permanentemente ${nome}?`))return;
-  const{error}=await sb.from('operadores').delete().eq('id',id);
-  if(error){toast('Erro: '+error.message,4000);return;}
-  toast('Usuário excluído');carregarEquipe();
+  if(!confirm('Excluir permanentemente '+nome+'? Esta ação não pode ser desfeita.'))return;
+  toast('Removendo...',3000);
+  const res=await chamarEdgeFunction('deletar',{userId:id});
+  if(!res)return;
+  toast('Usuário excluído');await carregarEquipe();
 }
 
 // ── ALTERAR SENHA ────────────────────────────────────────────

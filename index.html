@@ -1311,23 +1311,37 @@ function verificarCPFdup(input){
 async function saveCliente(){
   const nome=document.getElementById('f-nome').value.trim();
   if(!nome){toast('Informe o nome do cliente');return;}
+  const telefone=document.getElementById('f-tel').value.trim();
+  if(!telefone){toast('Informe o telefone');return;}
   const cpfRaw=document.getElementById('f-cpf').value.trim();
   const emailRaw=document.getElementById('f-email').value.trim().toLowerCase();
   if(emailRaw&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailRaw)){toast('E-mail inválido');return;}
+
+  // produto: string vazia vira null para não violar o enum
+  const produtoVal=document.getElementById('f-prod').value||null;
+
+  // construtor_vendedor: remover o sufixo " (tipo)" que vem do select
+  const construtorRaw=document.getElementById('f-construtor').value||'';
+  const construtorVal=construtorRaw?construtorRaw.replace(/\s*\(.*?\)\s*$/,'').trim()||null:null;
+
   const produtosContratados=PC_IDS.map(pid=>document.getElementById(pid)).filter(el=>el&&el.checked).map(el=>el.value);
   const operadorVal=document.getElementById('f-operador').value;
-  const operadorFinal=operadorVal==='Outros'?document.getElementById('f-operador-outro').value.trim():operadorVal;
+  const operadorFinal=operadorVal==='Outros'?(document.getElementById('f-operador-outro').value.trim()||null):operadorVal||null;
   const proxVal=document.getElementById('f-proxcontato').value;
+
   const pay={
-    nome,cpf:cpfRaw||null,telefone:document.getElementById('f-tel').value||null,
-    email:emailRaw||null,produto:document.getElementById('f-prod').value||null,
+    nome,
+    cpf:cpfRaw||null,
+    telefone:telefone||null,
+    email:emailRaw||null,
+    produto:produtoVal,
     status:document.getElementById('f-status').value,
-    operador:operadorFinal||null,
-    indicado_por:document.getElementById('f-indicado').value||null,
+    operador:operadorFinal,
+    indicado_por:document.getElementById('f-indicado').value.trim()||null,
     corretor_externo:document.getElementById('f-corretor-ext').value||null,
-    construtor_vendedor:document.getElementById('f-construtor').value||null,
-    origem_arquivo:document.getElementById('f-origem').value||null,
-    observacoes:document.getElementById('f-obs').value||null,
+    construtor_vendedor:construtorVal,
+    origem_arquivo:document.getElementById('f-origem').value.trim()||null,
+    observacoes:document.getElementById('f-obs').value.trim()||null,
     ultima_alteracao_por:usuarioAtual?.nome||null,
     dt_atualizacao:new Date().toISOString().split('T')[0],
     renda_principal:parseFloat(document.getElementById('f-renda1').value)||null,
@@ -1336,21 +1350,37 @@ async function saveCliente(){
     valor_financiamento:parseFloat(document.getElementById('f-vfinanc').value)||null,
     valor_subsidio:parseFloat(document.getElementById('f-vsubsidio').value)||null,
     valor_prestacao:parseFloat(document.getElementById('f-vprestacao').value)||null,
-    numero_contrato:document.getElementById('f-contrato').value||null,
+    numero_contrato:document.getElementById('f-contrato').value.trim()||null,
     proxima_interacao:proxVal?new Date(proxVal).toISOString():null,
     produtos_contratados:produtosContratados.length?produtosContratados:null,
     tem_card:document.getElementById('f-status').value!=='Pós-venda',
     legado:false
   };
+
   if(usuarioAtual?.role==='gestor'){
     pay.comissao_valor=parseFloat(document.getElementById('f-comval').value)||null;
     pay.comissao_status=document.getElementById('f-comstatus').value||null;
-    pay.comissao_obs=document.getElementById('f-comobs').value||null;
+    pay.comissao_obs=document.getElementById('f-comobs').value.trim()||null;
   }
-  if(!editId)pay.dt_entrada=new Date().toISOString().split('T')[0];
-  const res=editId?await sb.from('clientes').update(pay).eq('id',editId):await sb.from('clientes').insert(pay);
-  if(res.error){toast('Erro: '+res.error.message,3000);return;}
-  toast(editId?'Cliente atualizado!':'Cliente cadastrado!');closeModal();await loadAll();
+
+  if(!editId) pay.dt_entrada=new Date().toISOString().split('T')[0];
+
+  try{
+    const res=editId
+      ?await sb.from('clientes').update(pay).eq('id',editId)
+      :await sb.from('clientes').insert(pay);
+    if(res.error){
+      console.error('Erro saveCliente:',res.error);
+      toast('Erro ao salvar: '+res.error.message,5000);
+      return;
+    }
+    toast(editId?'Cliente atualizado!':'Cliente cadastrado!');
+    closeModal();
+    await loadAll();
+  }catch(e){
+    console.error('Exceção saveCliente:',e);
+    toast('Erro inesperado: '+e.message,5000);
+  }
 }
 
 async function delC(id){

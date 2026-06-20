@@ -1572,23 +1572,42 @@ async function salvarDoc(){
   const urlInput=document.getElementById('doc-url').value.trim();
   const btn=document.getElementById('btn-salvar-doc');
 
-  // Caso 1: upload de arquivo direto
+  // Caso 1: upload de arquivo direto → Cloudflare R2
   if(arquivoSelecionado){
     const nome=nomeInput||arquivoSelecionado.name;
     btn.disabled=true;btn.textContent='Enviando...';
     try{
-      const ext=arquivoSelecionado.name.split('.').pop();
-      const path=`${detailId}/${Date.now()}_${nome.replace(/[^a-zA-Z0-9._-]/g,'_')}.${ext}`;
-      const{data:upData,error:upErr}=await sb.storage.from('documentos-clientes').upload(path,arquivoSelecionado,{upsert:false});
-      if(upErr){toast('Erro no upload: '+upErr.message,4000);btn.disabled=false;btn.innerHTML='<i class="ti ti-paperclip"></i> Adicionar';return;}
-      const{data:urlData}=sb.storage.from('documentos-clientes').getPublicUrl(path);
+      // Monta o formulário com o arquivo e o ID do cliente
+      const formData=new FormData();
+      formData.append('arquivo',arquivoSelecionado);
+      formData.append('cliente_id',detailId);
+
+      // Envia para o Worker do Cloudflare R2
+      // O Worker valida o token JWT, salva no R2 e devolve a URL pública
+      const WORKER_URL='https://prime-upload-worker.sistemaintegradocrmprime.workers.dev';
+      const resp=await fetch(WORKER_URL,{
+        method:'POST',
+        headers:{'Authorization':'Bearer '+window._authToken},
+        body:formData
+      });
+      const resultado=await resp.json();
+      if(!resp.ok||!resultado.sucesso){
+        toast('Erro no upload: '+(resultado.erro||'Tente novamente'),4000);
+        btn.disabled=false;btn.innerHTML='<i class="ti ti-paperclip"></i> Adicionar';
+        return;
+      }
+
+      // Salva o link gerado pelo R2 na tabela documentos_cliente
       const{error}=await sb.from('documentos_cliente').insert({
-        cliente_id:detailId,nome_arquivo:nome,tipo:'storage',
-        url:urlData.publicUrl,tamanho_kb:Math.round(arquivoSelecionado.size/1024),
+        cliente_id:detailId,
+        nome_arquivo:nome,
+        tipo:'r2',
+        url:resultado.url,
+        tamanho_kb:Math.round(arquivoSelecionado.size/1024),
         criado_por:usuarioAtual?.nome||null
       });
-      if(error){toast('Erro ao salvar: '+error.message,4000);return;}
-      toast('Documento enviado!');fecharDoc();await loadDocs(detailId);
+      if(error){toast('Erro ao registrar documento: '+error.message,4000);return;}
+      toast('Documento enviado com sucesso!');fecharDoc();await loadDocs(detailId);
     }catch(e){toast('Erro inesperado: '+e.message,4000);}
     btn.disabled=false;btn.innerHTML='<i class="ti ti-paperclip"></i> Adicionar';
     return;

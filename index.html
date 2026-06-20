@@ -441,7 +441,7 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
           <div class="card-t">Dados do cliente <span id="detail-legado-tag"></span></div>
           <div id="detail-info"></div>
         </div>
-        <div id="comissao-card-wrapper"></div>
+        <div class="card" id="comissao-card" style="display:none"><div class="card-t">Comissionamento</div><div id="detail-comissao"></div></div>
         <div class="card">
           <div class="card-t">
             Histórico de interações
@@ -558,7 +558,17 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
           <div class="fl"><label>Número do contrato</label><input id="f-contrato" type="text" placeholder="Ex: 1.4444.2529285-4"></div>
         </div>
       </div>
-      <div id="comissao-section-wrapper"></div>
+      <!-- Comissão (só gestor vê) -->
+      <div id="comissao-section" style="display:none">
+        <div class="sec">Comissionamento <span style="font-size:10px;color:var(--t3)">(só gestores)</span></div>
+        <div class="fg t3">
+          <div class="fl"><label>Valor da comissão (R$)</label><input id="f-comval" type="number" placeholder="0,00" min="0" step="0.01"></div>
+          <div class="fl"><label>Status</label>
+            <select id="f-comstatus"><option value="">—</option><option>Previsto</option><option>A receber</option><option>Pago</option></select>
+          </div>
+          <div class="fl"><label>Observação</label><input id="f-comobs" type="text" placeholder="Detalhes..."></div>
+        </div>
+      </div>
       <div class="sec">Produtos já contratados com a Caixa</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:10px 12px;background:var(--sf2);border-radius:var(--rs);border:.5px solid var(--bd)">
         <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="pc-hab" value="Habitacional MCMV"> Habitacional MCMV</label>
@@ -834,13 +844,6 @@ async function entrarNoApp(){
   document.getElementById('sf-av').textContent=ini;
   document.getElementById('sf-nm').textContent=usuarioAtual.nome;
   document.getElementById('nav-equipe').style.display=usuarioAtual.role==='gestor'?'flex':'none';
-  // Injetar HTML de comissao APENAS para gestores — operadores nao veem nem no DOM
-  if(usuarioAtual.role==='gestor'){
-    const wCard=document.getElementById('comissao-card-wrapper');
-    if(wCard)wCard.innerHTML='<div class="card" id="comissao-card"><div class="card-t">Comissionamento <span style="font-size:10px;color:var(--t3)">(s\u00f3 gestores)</span></div><div id="detail-comissao"></div></div>';
-    const wSec=document.getElementById('comissao-section-wrapper');
-    if(wSec)wSec.innerHTML='<div id="comissao-section"><div class="sec">Comissionamento <span style="font-size:10px;color:var(--t3)">(s\u00f3 gestores)</span></div><div class="fg t3"><div class="fl"><label>Valor da comiss\u00e3o (R$)</label><input id="f-comval" type="number" placeholder="0,00" min="0" step="0.01"></div><div class="fl"><label>Status</label><select id="f-comstatus"><option value="">\u2014</option><option>Previsto</option><option>A receber</option><option>Pago</option></select></div><div class="fl"><label>Observa\u00e7\u00e3o</label><input id="f-comobs" type="text" placeholder="Detalhes..."></div></div></div>';
-  }
   await loadAll();
   go('kanban');
   setTimeout(()=>mostrarPopupAlertas(),800);

@@ -7,30 +7,31 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-:root{--blue:#185FA5;--blue-l:#E6F1FB;--green:#3B6D11;--green-l:#EAF3DE;--amber:#854F0B;--amber-l:#FAEEDA;--red:#A32D2D;--red-l:#FCEBEB;--teal:#0F6E56;--teal-l:#E1F5EE;--gray:#5F5E5A;--gray-l:#F1EFE8;--purple:#534AB7;--purple-l:#EEEDFE;--coral:#993C1D;--coral-l:#FAECE7;--bd:rgba(0,0,0,0.1);--t:#1a1a1a;--t2:#5a5a5a;--t3:#9a9a9a;--bg:#f8f7f4;--sf:#fff;--sf2:#f4f3ef;--r:10px;--rs:6px}
-@media(prefers-color-scheme:dark){:root{--t:#f0ede8;--t2:#b0ada8;--t3:#706d68;--bg:#18181a;--sf:#222224;--sf2:#2a2a2c;--bd:rgba(255,255,255,0.1)}}
+:root{--navy:#1B3A6B;--navy-d:#15305A;--blue:#1B3A6B;--blue-l:#E6EBF5;--green:#0E9F6E;--green-l:#D1FAE5;--amber:#D97706;--amber-l:#FEF3C7;--red:#DC2626;--red-l:#FEE2E2;--teal:#0F766E;--teal-l:#D5F5F0;--gray:#64748B;--gray-l:#F1F5F9;--purple:#7C3AED;--purple-l:#EDE9FE;--coral:#EA580C;--coral-l:#FFEDD5;--bd:#E2E8F0;--t:#0F172A;--t2:#475569;--t3:#94A3B8;--bg:#F1F5F9;--sf:#FFFFFF;--sf2:#F8FAFC;--accent:#D97706;--r:14px;--rs:8px;--shadow:0 1px 3px rgba(15,23,42,.06),0 4px 12px rgba(15,23,42,.04)}
+
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--t);font-size:14px;height:100vh;overflow:hidden}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--t);font-size:14px;height:100vh;overflow:hidden}
 .app{display:flex;height:100vh}
-.sidebar{width:210px;background:var(--sf);border-right:.5px solid var(--bd);display:flex;flex-direction:column;flex-shrink:0}
+.sidebar{width:210px;background:var(--navy);border-right:none;display:flex;flex-direction:column;flex-shrink:0}
 .main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
-.logo{padding:18px 14px 14px;border-bottom:.5px solid var(--bd)}
-.logo-mark{width:30px;height:30px;background:var(--blue);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;margin-bottom:7px}
-.logo-name{font-size:14px;font-weight:600;color:var(--t)}
-.logo-sub{font-size:11px;color:var(--t2);margin-top:1px}
+.logo{padding:18px 14px 14px;border-bottom:1px solid rgba(255,255,255,.1)}
+.logo-mark{width:34px;height:34px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--navy);font-weight:900;font-size:17px;margin-bottom:7px}
+.logo-name{font-size:15px;font-weight:700;color:#fff;letter-spacing:-.2px}
+.logo-sub{font-size:10px;color:#93C5FD;margin-top:1px;letter-spacing:.5px;text-transform:uppercase}
 .nav{padding:10px 6px;flex:1;overflow-y:auto}
-.ni{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--rs);cursor:pointer;color:var(--t2);font-size:13px;margin-bottom:1px;user-select:none}
-.ni:hover{background:var(--sf2);color:var(--t)}
-.ni.active{background:var(--blue-l);color:var(--blue);font-weight:500}
+.ni{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--rs);cursor:pointer;color:#CBD5E1;font-size:13px;margin-bottom:1px;user-select:none}
+.ni:hover{background:rgba(255,255,255,.08);color:#fff}
+.ni.active{background:rgba(255,255,255,.14);color:#fff;font-weight:600}
 .ni i{font-size:16px;flex-shrink:0}
-.ns{font-size:10px;font-weight:600;color:var(--t3);letter-spacing:.08em;padding:10px 10px 5px;text-transform:uppercase}
-.hdr{background:var(--sf);border-bottom:.5px solid var(--bd);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.ns{font-size:10px;font-weight:600;color:#64748B;letter-spacing:.08em;padding:12px 10px 5px;text-transform:uppercase}
+.hdr{background:var(--sf);border-bottom:1px solid var(--bd);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .hdr-title{font-size:15px;font-weight:600}
 .hdr-acts{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
 .btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--rs);border:.5px solid var(--bd);background:var(--sf);color:var(--t);font-size:13px;cursor:pointer;white-space:nowrap}
 .btn:hover{background:var(--sf2)}
-.btn.p{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn.p{background:var(--navy);color:#fff;border-color:var(--navy)}
 .btn.p:hover{background:#0C447C}
 .btn.danger{background:var(--red);color:#fff;border-color:var(--red)}
 .btn i{font-size:14px}
@@ -41,12 +42,65 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .mv{font-size:24px;font-weight:700;color:var(--t);line-height:1}
 .ml{font-size:12px;color:var(--t2);margin-top:3px}
 .metric.alerta .mv{color:var(--red)}
+/* ── KPIs executivos ── */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.kpi-card{background:var(--sf);border-radius:var(--r);padding:18px 20px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:7px;position:relative;overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(15,23,42,.1)}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--kpi-accent,var(--navy))}
+.kpi-label{font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--t3)}
+.kpi-value{font-size:30px;font-weight:800;color:var(--t);line-height:1}
+.kpi-value span{font-size:15px;font-weight:500;color:var(--t3)}
+.kpi-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;width:fit-content}
+/* ── Seção título ── */
+.sec-title{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin:6px 0 14px;display:flex;align-items:center;gap:8px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--bd)}
+/* ── Grid de etapas com rings ── */
+.etapas-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:22px}
+.etapa-card{background:var(--sf);border-radius:var(--r);padding:18px 14px;box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;transition:transform .2s,box-shadow .2s;border:2px solid transparent}
+.etapa-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(15,23,42,.1)}
+.etapa-card.sel{border-color:var(--accent)}
+.ring-wrap{position:relative;width:92px;height:92px}
+.ring-wrap svg{transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:var(--bg);stroke-width:8}
+.ring-fill{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1s ease}
+.ring-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-pct{font-size:19px;font-weight:800;line-height:1}
+.ring-sub{font-size:9px;font-weight:500;color:var(--t3)}
+.etapa-nome{font-size:13px;font-weight:700;color:var(--t);text-align:center}
+.etapa-meta{font-size:11px;color:var(--t2);text-align:center;line-height:1.5}
+.etapa-tempo{font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--sf2)}
+/* ── Painéis ── */
+.panel{background:var(--sf);border-radius:var(--r);padding:20px;box-shadow:var(--shadow);margin-bottom:16px}
+.panel-title{font-size:14px;font-weight:700;color:var(--t);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+/* ── Barras horizontais (produtividade) ── */
+.bar-item{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.bar-dot{width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
+.bar-content{flex:1;min-width:0}
+.bar-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.bar-name{font-size:13px;font-weight:600;color:var(--t)}
+.bar-val{font-size:12px;font-weight:700}
+.bar-track{width:100%;height:7px;background:var(--bg);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .8s ease}
+/* ── Alerta clicável ── */
+.alert-card{display:flex;gap:12px;align-items:flex-start;padding:13px 15px;border-radius:var(--rs);cursor:pointer;transition:transform .12s;margin-bottom:9px}
+.alert-card:hover{transform:translateX(3px)}
+.alert-icon{font-size:17px;flex-shrink:0}
+.alert-title{font-size:13px;font-weight:600;color:var(--t)}
+.alert-desc{font-size:11px;color:var(--t2);margin-top:2px}
+.alert-chev{margin-left:auto;align-self:center;color:var(--t3);font-size:16px}
+/* ── Drill-down inline ── */
+.drill{background:var(--sf);border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden;display:none}
+.drill.open{display:block}
+.drill-head{padding:14px 18px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600}
+.drill-close{cursor:pointer;color:#CBD5E1;font-size:18px}
+.drill-close:hover{color:#fff}
+.dash-grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .metric.legado-badge{border:.5px solid var(--amber);background:var(--amber-l)}
 .cr{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
-.cc{background:var(--sf);border:.5px solid var(--bd);border-radius:var(--r);padding:14px}
+.cc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:16px;box-shadow:var(--shadow)}
 .ct{font-size:12px;font-weight:600;margin-bottom:12px;color:var(--t);display:flex;align-items:center;justify-content:space-between}
 .cw{height:190px;position:relative}
-.tc{background:var(--sf);border:.5px solid var(--bd);border-radius:var(--r);overflow:hidden}
+.tc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
 .th2{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:.5px solid var(--bd);flex-wrap:wrap;gap:8px}
 .tt{font-size:13px;font-weight:600}
 .sb{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
@@ -63,15 +117,15 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
 .pag button{padding:3px 9px;border:.5px solid var(--bd);border-radius:var(--rs);background:var(--sf);cursor:pointer;font-size:12px;color:var(--t)}
 .pag button:disabled{opacity:.4;cursor:default}
 .badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap}
-.b-blue{background:var(--blue-l);color:#0C447C}
-.b-green{background:var(--green-l);color:var(--green)}
-.b-amber{background:var(--amber-l);color:var(--amber)}
-.b-red{background:var(--red-l);color:var(--red)}
-.b-teal{background:var(--teal-l);color:var(--teal)}
-.b-gray{background:var(--gray-l);color:var(--gray)}
-.b-purple{background:var(--purple-l);color:var(--purple)}
-.b-coral{background:var(--coral-l);color:var(--coral)}
-.b-navy{background:#E6EBF5;color:#1A3A6B}
+.b-blue{background:var(--blue-l);color:#1B3A6B}
+.b-green{background:var(--green-l);color:#065F46}
+.b-amber{background:var(--amber-l);color:#92400E}
+.b-red{background:var(--red-l);color:#991B1B}
+.b-teal{background:var(--teal-l);color:#115E59}
+.b-gray{background:var(--gray-l);color:#475569}
+.b-purple{background:var(--purple-l);color:#5B21B6}
+.b-coral{background:var(--coral-l);color:#9A3412}
+.b-navy{background:#E6EBF5;color:#1B3A6B}
 .ab{padding:3px 9px;border:.5px solid var(--bd);border-radius:var(--rs);background:none;cursor:pointer;font-size:11px;color:var(--t2)}
 .ab:hover{background:var(--sf2);color:var(--t)}
 .fbtn{padding:3px 9px;border:.5px solid var(--bd);border-radius:20px;background:var(--sf);cursor:pointer;font-size:11px;color:var(--t2)}
@@ -184,9 +238,9 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
 .busca-resultado{background:var(--blue-l);border:.5px solid var(--blue);border-radius:var(--rs);padding:10px 13px;margin-bottom:10px;font-size:12px;color:#0C447C;display:none}
 .busca-resultado.warn{background:var(--amber-l);border-color:var(--amber);color:var(--amber)}
 /* ── Sidebar usuário ── */
-.sf-user{display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:.5px solid var(--bd);font-size:12px}
+.sf-user{padding:12px 14px;border-top:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:9px}
 .sf-av{width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
-.sf-nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--t2)}
+.sf-nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff}
 .sf-out{background:none;border:none;cursor:pointer;color:var(--t3);font-size:16px;padding:2px;flex-shrink:0}
 .sf-out:hover{color:var(--red)}
 /* ── Equipe ── */
@@ -263,8 +317,9 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
     <div class="ni active" onclick="go('kanban')"><i class="ti ti-columns"></i> Quadro</div>
     <div class="ni" onclick="go('posvenda')"><i class="ti ti-archive"></i> Pós-venda</div>
     <div class="ni" onclick="go('vistorias')"><i class="ti ti-home-search"></i> Vistorias</div>
-    <div class="ns">Gestão</div>
-    <div class="ni" onclick="go('dashboard')"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
+    <div class="ns" id="nav-sec-gestao">Gestão</div>
+    <div class="ni" id="nav-dashboard" style="display:none" onclick="go('dashboard')"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
+    <div class="ni" id="nav-operacional" style="display:none" onclick="go('operacional')"><i class="ti ti-target"></i> Operacional</div>
     <div class="ni" onclick="go('clientes')"><i class="ti ti-users"></i> Clientes</div>
     <div class="ni" onclick="go('tarefas')"><i class="ti ti-checkbox"></i> Tarefas</div>
     <div class="ns">Sistema</div>
@@ -359,26 +414,55 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
       <button class="btn" onclick="loadAll()"><i class="ti ti-refresh"></i> Atualizar</button>
     </div>
   </div>
+  <div class="cnt" id="dash-cnt">
+    <!-- KPIs topo -->
+    <div class="kpi-row" id="kpi-row"></div>
+    <!-- Drill-down inline (aparece ao clicar em algo) -->
+    <div class="drill" id="drill">
+      <div class="drill-head"><span id="drill-title">Detalhes</span><span class="drill-close" onclick="fecharDrill()">✕</span></div>
+      <div style="overflow-x:auto;max-height:340px"><table><thead><tr><th>Nome</th><th>Status</th><th>Operador</th><th>Origem</th><th>Info</th><th></th></tr></thead><tbody id="drill-body"></tbody></table></div>
+    </div>
+    <!-- Funil de etapas com rings -->
+    <div class="sec-title">Funil — clientes, percentual e tempo parado por etapa</div>
+    <div class="etapas-grid" id="etapas-grid"></div>
+    <!-- Produtividade + Origem -->
+    <div class="dash-grid2">
+      <div class="panel">
+        <div class="panel-title">Produtividade por operador</div>
+        <div id="prod-operador"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Origem dos leads</div>
+        <div id="origem-leads"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OPERACIONAL -->
+<div id="page-operacional" class="page" style="display:none;flex-direction:column">
+  <div class="hdr">
+    <div class="hdr-title">Operacional</div>
+    <div class="hdr-acts">
+      <span style="font-size:12px;color:var(--t2)">Foco do dia — quem precisa de ação</span>
+      <button class="btn" onclick="loadAll()"><i class="ti ti-refresh"></i> Atualizar</button>
+    </div>
+  </div>
   <div class="cnt">
-    <div class="metrics" id="metrics"><div class="metric"><div class="spin"></div></div></div>
-    <div style="background:var(--red-l);border:.5px solid var(--red);border-radius:var(--rs);padding:10px 14px;margin-bottom:16px;font-size:12px;display:none" id="dash-alertas-bloco">
-      <b style="color:var(--red)">⚠ Alertas ativos:</b> <span id="dash-alertas-txt"></span>
+    <div class="kpi-row" id="op-kpi-row"></div>
+    <div class="dash-grid2">
+      <div class="panel">
+        <div class="panel-title">🔴 Precisam de contato hoje <span style="font-size:12px;color:var(--t3);font-weight:500" id="op-r1-count"></span></div>
+        <div id="op-r1-list" style="max-height:360px;overflow-y:auto"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">⏳ Parados na etapa <span style="font-size:12px;color:var(--t3);font-weight:500" id="op-r2-count"></span></div>
+        <div id="op-r2-list" style="max-height:360px;overflow-y:auto"></div>
+      </div>
     </div>
-    <div class="cr">
-      <div class="cc"><div class="ct">Clientes por status <span id="ct-periodo" style="font-size:10px;color:var(--t3)"></span></div><div class="cw"><canvas id="cStatus"></canvas></div></div>
-      <div class="cc"><div class="ct">Carteira por operador</div><div class="cw"><canvas id="cCorretor"></canvas></div></div>
-    </div>
-    <div class="cr">
-      <div class="cc"><div class="ct">Produtos</div><div class="cw"><canvas id="cProd"></canvas></div></div>
-      <div class="cc"><div class="ct">Funil Habitacional MCMV</div><div class="cw"><canvas id="cFunil"></canvas></div></div>
-    </div>
-    <div class="tc" style="margin-bottom:16px">
-      <div class="th2"><div class="tt">Clientes com alerta R1 — precisam de contato</div></div>
-      <div style="overflow-x:auto"><table><thead><tr><th>Nome</th><th>Status</th><th>Operador</th><th>Dias atraso</th><th>Ação</th></tr></thead><tbody id="tbody-alerta-r1"></tbody></table></div>
-    </div>
-    <div class="tc" id="bloco-r2">
-      <div class="th2"><div class="tt">Clientes parados na etapa — alerta R2</div></div>
-      <div style="overflow-x:auto"><table><thead><tr><th>Nome</th><th>Status</th><th>Operador</th><th>Dias na etapa</th><th>Ação</th></tr></thead><tbody id="tbody-alerta-r2"></tbody></table></div>
+    <div class="panel">
+      <div class="panel-title">Carga de trabalho por operador</div>
+      <div id="op-carga"></div>
     </div>
   </div>
 </div>
@@ -884,7 +968,10 @@ async function entrarNoApp(){
   const ini=(usuarioAtual.nome||'?').charAt(0).toUpperCase();
   document.getElementById('sf-av').textContent=ini;
   document.getElementById('sf-nm').textContent=usuarioAtual.nome;
-  document.getElementById('nav-equipe').style.display=usuarioAtual.role==='gestor'?'flex':'none';
+  const ehGestor=usuarioAtual.role==='gestor';
+  document.getElementById('nav-equipe').style.display=ehGestor?'flex':'none';
+  document.getElementById('nav-dashboard').style.display=ehGestor?'flex':'none';
+  document.getElementById('nav-operacional').style.display=ehGestor?'flex':'none';
   await loadAll();
   go('kanban');
   setTimeout(()=>mostrarPopupAlertas(),800);
@@ -922,7 +1009,12 @@ async function loadAll(){
   all=cls||[];filtered=[...all];
   corretores=corr||[];construtores=const_||[];etapasConfig=etapas||[];operadoresList=ops||[];
   popularSelectCorretores();
-  renderKanban();renderPosvenda();renderTable();renderMetrics();renderCharts();renderDashboardAlertas();
+  renderKanban();renderPosvenda();renderTable();
+  // Re-renderizar dashboard/operacional se estiverem ativos (só gestor)
+  if(usuarioAtual?.role==='gestor'){
+    if(document.getElementById('page-dashboard')?.style.display!=='none')renderDashboard();
+    if(document.getElementById('page-operacional')?.style.display!=='none')renderOperacional();
+  }
   if(document.getElementById('page-tarefas').style.display!=='none')loadTasks();
 }
 
@@ -947,6 +1039,8 @@ function popularSelectCorretores(){
 
 // ── Navegação ────────────────────────────────────────────────
 function go(p){
+  // Bloqueio de acesso: operadores não acessam dashboard nem operacional
+  if((p==='dashboard'||p==='operacional')&&usuarioAtual?.role!=='gestor'){return;}
   document.querySelectorAll('.page').forEach(x=>{x.style.display='none';});
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
   const pg2=document.getElementById('page-'+p);
@@ -958,6 +1052,7 @@ function go(p){
   if(p==='tarefas')loadTasks();
   if(p==='equipe')carregarEquipe();
   if(p==='vistorias')carregarVistorias();
+  if(p==='operacional')renderOperacional();
   if(p==='dashboard')renderDashboard();
   if(p==='posvenda')renderPosvenda();
 }
@@ -1023,12 +1118,18 @@ async function dropCard(event,novoStatus){
   if(!id)return;
   const c=all.find(x=>x.id===id);
   if(!c||c.status===novoStatus)return;
+  const statusAnterior=c.status;
+  // Calcular dias na etapa de origem (antes de sobrescrever)
+  const diasOrigem=c.dt_entrada_etapa?Math.floor((Date.now()-new Date(c.dt_entrada_etapa))/86400000):null;
+  const agoraISO=new Date().toISOString();
   // Atualizar localmente primeiro para resposta imediata
   c.status=novoStatus;
+  c.dt_entrada_etapa=agoraISO;
   renderKanban();
-  // Persistir no banco
+  // Persistir no banco — atualiza status E reinicia o cronômetro da etapa
   const{error}=await sb.from('clientes').update({
     status:novoStatus,
+    dt_entrada_etapa:agoraISO,
     ultima_alteracao_por:usuarioAtual?.nome||null,
     dt_atualizacao:new Date().toISOString().split('T')[0]
   }).eq('id',id);
@@ -1037,12 +1138,20 @@ async function dropCard(event,novoStatus){
     await loadAll(); // reverter se falhou
     return;
   }
-  // Registrar interação automática de mudança de status
+  // Registrar interação no histórico de interações
   await sb.from('historico').insert({
     cliente_id:id,
     tipo:'Status alterado',
-    descricao:`Status alterado para "${novoStatus}" via arraste no quadro`,
+    descricao:`Status alterado de "${statusAnterior}" para "${novoStatus}" via arraste no quadro`,
     registrado_por:usuarioAtual?.nome||null
+  });
+  // Registrar no histórico de etapas (para análise de tempo no funil)
+  await sb.from('historico_etapas').insert({
+    cliente_id:id,
+    etapa_origem:statusAnterior,
+    etapa_destino:novoStatus,
+    dias_na_origem:diasOrigem,
+    movido_por:usuarioAtual?.nome||null
   });
   toast(`Card movido para ${novoStatus}`);
   await loadAll();
@@ -1110,68 +1219,227 @@ async function reativarPosvenda(id){
 
 // ── DASHBOARD ────────────────────────────────────────────────
 function renderDashboard(){
-  renderMetrics();renderCharts();renderDashboardAlertas();
+  renderKPIs();
+  renderFunilEtapas();
+  renderProdutividade();
+  renderOrigemLeads();
+  fecharDrill();
 }
 
-function renderMetrics(){
+// Filtro ativo do dashboard
+let dashFiltro='todos';
+function baseDash(){
   const filtro=document.getElementById('dash-legado')?.value||'todos';
   let base=all;
-  if(filtro==='ativos')base=all.filter(c=>!c.legado&&c.status!=='Pós-venda');
-  if(filtro==='legados')base=all.filter(c=>c.legado);
-  const t=base.length,con=base.filter(c=>c.status==='Concluído').length;
-  const and=base.filter(c=>['Andamento','Aprovado','Conformidade','Assinatura'].includes(c.status)).length;
-  const al=base.filter(c=>c.em_alerta_r1).length;
-  const al2=base.filter(c=>c.em_alerta_r2).length;
-  const hab=base.filter(c=>c.produto==='Habitacional MCMV').length;
-  document.getElementById('metrics').innerHTML=`
-    <div class="metric"><div class="mv">${t}</div><div class="ml">Total clientes</div></div>
-    <div class="metric"><div class="mv">${hab}</div><div class="ml">Habitacional MCMV</div></div>
-    <div class="metric"><div class="mv" style="color:var(--green)">${con}</div><div class="ml">Concluídos</div></div>
-    <div class="metric"><div class="mv" style="color:var(--blue)">${and}</div><div class="ml">Em andamento</div></div>
-    <div class="metric alerta" onclick="go('dashboard')"><div class="mv">${al}</div><div class="ml">Alerta R1 (contato)</div></div>
-    <div class="metric" style="border:.5px solid var(--amber)"><div class="mv" style="color:var(--amber)">${al2}</div><div class="ml">Alerta R2 (etapa)</div></div>`;
+  if(filtro==='ativos')base=all.filter(c=>!c.legado&&c.status!=='Pós-venda'&&c.tem_card);
+  else if(filtro==='legados')base=all.filter(c=>c.legado);
+  else base=all.filter(c=>c.status!=='Pós-venda');
+  return base;
 }
 
-function renderDashboardAlertas(){
-  // Tabela R1
-  const r1=all.filter(c=>c.em_alerta_r1).slice(0,20);
-  document.getElementById('tbody-alerta-r1').innerHTML=r1.length?r1.map(c=>{
-    const dias=c.proxima_interacao?Math.floor((Date.now()-new Date(c.proxima_interacao))/86400000):0;
-    return`<tr><td class="nm">${c.nome}</td><td><span class="badge ${SBADGE[c.status]||'b-gray'}">${c.status}</span></td><td style="font-size:11px">${c.operador||'—'}</td><td style="color:var(--red);font-weight:600">${dias}d</td><td><button class="ab" onclick="openDetail('${c.id}','dashboard')">Ver</button></td></tr>`;
-  }).join(''):'<tr><td colspan="5" style="text-align:center;padding:16px;color:var(--t3)">Nenhum alerta</td></tr>';
-  // Tabela R2 (só gestor)
-  const blocoR2=document.getElementById('bloco-r2');
-  if(usuarioAtual?.role==='gestor'){
-    blocoR2.style.display='';
-    const r2=all.filter(c=>c.em_alerta_r2).slice(0,20);
-    document.getElementById('tbody-alerta-r2').innerHTML=r2.length?r2.map(c=>{
-      const dias=c.dt_entrada_etapa?Math.floor((Date.now()-new Date(c.dt_entrada_etapa))/86400000):0;
-      return`<tr><td class="nm">${c.nome}</td><td><span class="badge ${SBADGE[c.status]||'b-gray'}">${c.status}</span></td><td style="font-size:11px">${c.operador||'—'}</td><td style="color:var(--amber);font-weight:600">${dias}d</td><td><button class="ab" onclick="openDetail('${c.id}','dashboard')">Ver</button></td></tr>`;
-    }).join(''):'<tr><td colspan="5" style="text-align:center;padding:16px;color:var(--t3)">Nenhum alerta</td></tr>';
-    const bloco=document.getElementById('dash-alertas-bloco');
-    const al2=all.filter(c=>c.em_alerta_r2).length;
-    if(al2>0){bloco.style.display='';document.getElementById('dash-alertas-txt').textContent=`${all.filter(c=>c.em_alerta_r1).length} clientes precisam de contato · ${al2} clientes parados na etapa`;}
-  }else{blocoR2.style.display='none';}
+function renderKPIs(){
+  const base=baseDash();
+  const t=base.length;
+  const con=base.filter(c=>c.status==='Concluído').length;
+  const and=base.filter(c=>!['Concluído','Reprovado','Lead'].includes(c.status)).length;
+  const leads=base.filter(c=>c.status==='Lead').length;
+  const r1=base.filter(c=>c.em_alerta_r1).length;
+  const conv=t>0?Math.round((con/t)*100):0;
+  document.getElementById('kpi-row').innerHTML=`
+    <div class="kpi-card" style="--kpi-accent:var(--navy)" onclick="drillStatus('Lead')">
+      <div class="kpi-label">Leads ativos</div>
+      <div class="kpi-value">${leads}</div>
+      <div class="kpi-badge" style="background:var(--blue-l);color:#1B3A6B">entrada do funil</div>
+    </div>
+    <div class="kpi-card" style="--kpi-accent:var(--amber)" onclick="drillEmAndamento()">
+      <div class="kpi-label">Em andamento</div>
+      <div class="kpi-value">${and}</div>
+      <div class="kpi-badge" style="background:var(--amber-l);color:#92400E">no processo</div>
+    </div>
+    <div class="kpi-card" style="--kpi-accent:var(--green)" onclick="drillStatus('Concluído')">
+      <div class="kpi-label">Concluídos</div>
+      <div class="kpi-value">${con}</div>
+      <div class="kpi-badge" style="background:var(--green-l);color:#065F46">▲ ${conv}% de conversão</div>
+    </div>
+    <div class="kpi-card" style="--kpi-accent:var(--red)" onclick="drillAlerta('r1')">
+      <div class="kpi-label">Precisam de contato</div>
+      <div class="kpi-value">${r1}</div>
+      <div class="kpi-badge" style="background:${r1>0?'var(--red-l)':'var(--green-l)'};color:${r1>0?'#991B1B':'#065F46'}">${r1>0?'⚠ ação necessária':'tudo em dia'}</div>
+    </div>`;
 }
 
-function renderCharts(){
-  const filtro=document.getElementById('dash-legado')?.value||'todos';
-  let base=all;
-  if(filtro==='ativos')base=all.filter(c=>!c.legado&&c.status!=='Pós-venda');
-  if(filtro==='legados')base=all.filter(c=>c.legado);
-  const destroy=id=>{if(charts[id])charts[id].destroy();};
-  const sg={};base.forEach(c=>{if(c.status)sg[c.status]=(sg[c.status]||0)+1;});
-  const sl=Object.keys(sg),sd=Object.values(sg);
-  destroy('s');const cs=document.getElementById('cStatus');if(cs)charts.s=new Chart(cs,{type:'doughnut',data:{labels:sl,datasets:[{data:sd,backgroundColor:COLS.slice(0,sl.length),borderWidth:0}]},options:{plugins:{legend:{position:'right',labels:{font:{size:10},padding:8}}},maintainAspectRatio:false}});
-  const cg={};base.forEach(c=>{if(c.operador)cg[c.operador]=(cg[c.operador]||0)+1;else if(c.corretor)cg[c.corretor]=(cg[c.corretor]||0)+1;});
-  const cl=Object.keys(cg).sort((a,b)=>cg[b]-cg[a]).slice(0,9),cd=cl.map(l=>cg[l]);
-  destroy('c');const cc=document.getElementById('cCorretor');if(cc)charts.c=new Chart(cc,{type:'bar',data:{labels:cl,datasets:[{data:cd,backgroundColor:'#185FA5',borderRadius:3}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}},maintainAspectRatio:false}});
-  const pg3={};base.forEach(c=>{if(c.produto)pg3[c.produto]=(pg3[c.produto]||0)+1;});
-  const pl=Object.keys(pg3),pd=Object.values(pg3);
-  destroy('p');const cp=document.getElementById('cProd');if(cp)charts.p=new Chart(cp,{type:'bar',data:{labels:pl,datasets:[{data:pd,backgroundColor:'#0F6E56',borderRadius:3}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}},maintainAspectRatio:false}});
-  const fo=['Andamento','Condicionado','Aprovado','Conformidade','Assinatura','Concluído'];
-  const fd=fo.map(s=>base.filter(c=>['Habitacional MCMV','Habitacional SBPE'].includes(c.produto)&&c.status===s).length);
-  destroy('f');const cf=document.getElementById('cFunil');if(cf)charts.f=new Chart(cf,{type:'bar',data:{labels:fo,datasets:[{data:fd,backgroundColor:['#378ADD','#EF9F27','#639922','#534AB7','#534AB7','#3B6D11'],borderRadius:3}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}},maintainAspectRatio:false}});
+// Cores por etapa (consistentes com a paleta)
+const ETAPA_COR={'Lead':'#1B3A6B','Andamento':'#3B82F6','Condicionado':'#D97706','Reprovado':'#DC2626','Aprovado':'#0E9F6E','Conformidade':'#7C3AED','Assinatura':'#7C3AED','Cartório/Prefeitura':'#EA580C','Concluído':'#0E9F6E'};
+
+function tempoMedioEtapa(status,base){
+  // Tempo médio dos clientes que estão AGORA nesta etapa (dt_entrada_etapa)
+  const naEtapa=base.filter(c=>c.status===status&&c.dt_entrada_etapa);
+  if(!naEtapa.length)return null;
+  const soma=naEtapa.reduce((acc,c)=>acc+Math.floor((Date.now()-new Date(c.dt_entrada_etapa))/86400000),0);
+  return Math.round(soma/naEtapa.length);
+}
+
+function renderFunilEtapas(){
+  const base=baseDash();
+  const total=base.length||1;
+  const R=42,circ=2*Math.PI*R;
+  const grid=document.getElementById('etapas-grid');
+  grid.innerHTML=STATUS_ORDER.map(s=>{
+    const qtd=base.filter(c=>c.status===s).length;
+    const pct=Math.round((qtd/total)*100);
+    const cor=ETAPA_COR[s]||'#64748B';
+    const tm=tempoMedioEtapa(s,base);
+    const dash=circ*(1-pct/100);
+    const tempoTxt=tm===null?'sem dados':tm===0?'< 1 dia':tm===1?'1 dia parado':`${tm} dias parado`;
+    const tempoCor=tm===null?'var(--t3)':tm>=15?'#991B1B':tm>=7?'#92400E':'#065F46';
+    return`<div class="etapa-card" onclick="drillStatus('${s}')">
+      <div class="ring-wrap">
+        <svg viewBox="0 0 100 100" width="92" height="92">
+          <circle class="ring-bg" cx="50" cy="50" r="${R}"/>
+          <circle class="ring-fill" cx="50" cy="50" r="${R}" stroke="${cor}" stroke-dasharray="${circ}" stroke-dashoffset="${circ}" data-offset="${dash}"/>
+        </svg>
+        <div class="ring-label"><div class="ring-pct" style="color:${cor}">${pct}%</div><div class="ring-sub">do total</div></div>
+      </div>
+      <div class="etapa-nome">${s}</div>
+      <div class="etapa-meta"><b style="font-size:15px;color:var(--t)">${qtd}</b> cliente${qtd!==1?'s':''}</div>
+      <div class="etapa-tempo" style="color:${tempoCor}">⏱ ${tempoTxt}</div>
+    </div>`;
+  }).join('');
+  // Animar rings
+  setTimeout(()=>{document.querySelectorAll('#etapas-grid .ring-fill').forEach(el=>{el.style.strokeDashoffset=el.dataset.offset;});},100);
+}
+
+function renderProdutividade(){
+  const base=baseDash();
+  const cg={};
+  base.forEach(c=>{const op=c.operador||c.corretor;if(op)cg[op]=cg[op]||{total:0,con:0};if(op){cg[op].total++;if(c.status==='Concluído')cg[op].con++;}});
+  const ops=Object.keys(cg).sort((a,b)=>cg[b].total-cg[a].total);
+  const max=Math.max(...ops.map(o=>cg[o].total),1);
+  const cores=['#1B3A6B','#3B82F6','#0E9F6E','#7C3AED','#D97706','#EA580C','#DC2626'];
+  const el=document.getElementById('prod-operador');
+  el.innerHTML=ops.length?ops.map((o,i)=>{
+    const d=cg[o],pct=Math.round((d.total/max)*100),cor=cores[i%cores.length];
+    const taxaConv=d.total>0?Math.round((d.con/d.total)*100):0;
+    return`<div class="bar-item" style="cursor:pointer" onclick="drillOperador('${o.replace(/'/g,"\\'")}')">
+      <div class="bar-dot" style="background:${cor}">${o[0]||'?'}</div>
+      <div class="bar-content">
+        <div class="bar-head"><span class="bar-name">${o}</span><span class="bar-val" style="color:${cor}">${d.total} · ${taxaConv}% conv.</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:0%;background:${cor}" data-w="${pct}%"></div></div>
+      </div>
+    </div>`;
+  }).join(''):'<div style="text-align:center;color:var(--t3);padding:20px;font-size:12px">Nenhum operador com clientes</div>';
+  setTimeout(()=>{document.querySelectorAll('#prod-operador .bar-fill').forEach(el=>{el.style.width=el.dataset.w;});},100);
+}
+
+function renderOrigemLeads(){
+  const base=baseDash();
+  const og={};
+  base.forEach(c=>{const o=c.origem_lead||'Não informado';og[o]=(og[o]||0)+1;});
+  const origens=Object.keys(og).sort((a,b)=>og[b]-og[a]);
+  const total=base.length||1;
+  const coresO={'WhatsApp':'#0E9F6E','Indicação':'#7C3AED','Manual':'#64748B','Facebook/Instagram':'#3B82F6','Outros':'#D97706','Não informado':'#CBD5E1'};
+  const el=document.getElementById('origem-leads');
+  el.innerHTML=origens.length?origens.map(o=>{
+    const qtd=og[o],pct=Math.round((qtd/total)*100),cor=coresO[o]||'#64748B';
+    return`<div class="bar-item" style="cursor:${o!=='Não informado'?'pointer':'default'}" ${o!=='Não informado'?`onclick="drillOrigem('${o.replace(/'/g,"\\'")}')"`:''}>
+      <div class="bar-dot" style="background:${cor};font-size:13px">${o==='WhatsApp'?'📱':o==='Indicação'?'🤝':o==='Manual'?'✍️':o==='Facebook/Instagram'?'📲':o==='Outros'?'•':'?'}</div>
+      <div class="bar-content">
+        <div class="bar-head"><span class="bar-name">${o}</span><span class="bar-val" style="color:${cor}">${qtd} · ${pct}%</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:0%;background:${cor}" data-w="${pct}%"></div></div>
+      </div>
+    </div>`;
+  }).join(''):'<div style="text-align:center;color:var(--t3);padding:20px;font-size:12px">Nenhum dado de origem</div>';
+  setTimeout(()=>{document.querySelectorAll('#origem-leads .bar-fill').forEach(el=>{el.style.width=el.dataset.w;});},100);
+}
+
+// ── DRILL-DOWN INTERATIVO ────────────────────────────────────
+function abrirDrill(titulo,lista){
+  document.getElementById('drill-title').textContent=titulo+` (${lista.length})`;
+  const body=document.getElementById('drill-body');
+  body.innerHTML=lista.length?lista.map(c=>{
+    const info=c.em_alerta_r1?`<span style="color:var(--red);font-weight:600">R1</span>`:c.dt_entrada_etapa?`${Math.floor((Date.now()-new Date(c.dt_entrada_etapa))/86400000)}d na etapa`:'—';
+    return`<tr>
+      <td class="nm">${c.nome}${c.legado?'<span class="tag-legado">L</span>':''}</td>
+      <td><span class="badge ${SBADGE[c.status]||'b-gray'}">${c.status||'—'}</span></td>
+      <td style="font-size:11px">${c.operador||c.corretor||'—'}</td>
+      <td style="font-size:11px">${c.origem_lead||'—'}</td>
+      <td style="font-size:11px">${info}</td>
+      <td><button class="ab" onclick="openDetail('${c.id}','dashboard')">Ver</button></td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--t3)">Nenhum cliente</td></tr>';
+  const drill=document.getElementById('drill');
+  drill.classList.add('open');
+  drill.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function fecharDrill(){document.getElementById('drill').classList.remove('open');}
+function drillStatus(s){abrirDrill('Etapa: '+s,baseDash().filter(c=>c.status===s));}
+function drillEmAndamento(){abrirDrill('Em andamento',baseDash().filter(c=>!['Concluído','Reprovado','Lead'].includes(c.status)));}
+function drillAlerta(tipo){
+  if(tipo==='r1')abrirDrill('Precisam de contato (R1)',baseDash().filter(c=>c.em_alerta_r1));
+  else abrirDrill('Parados na etapa (R2)',baseDash().filter(c=>c.em_alerta_r2));
+}
+function drillOperador(op){abrirDrill('Operador: '+op,baseDash().filter(c=>c.operador===op||c.corretor===op));}
+function drillOrigem(o){abrirDrill('Origem: '+o,baseDash().filter(c=>c.origem_lead===o));}
+
+// ── ABA OPERACIONAL ──────────────────────────────────────────
+function renderOperacional(){
+  const base=all.filter(c=>c.tem_card&&c.status!=='Pós-venda');
+  const r1=base.filter(c=>c.em_alerta_r1);
+  const r2=base.filter(c=>c.em_alerta_r2);
+  const quentes=base.filter(c=>c.situacao_lead==='Quente');
+  // KPIs operacionais
+  document.getElementById('op-kpi-row').innerHTML=`
+    <div class="kpi-card" style="--kpi-accent:var(--red)">
+      <div class="kpi-label">Contato hoje</div><div class="kpi-value">${r1.length}</div>
+      <div class="kpi-badge" style="background:var(--red-l);color:#991B1B">R1 vencido</div>
+    </div>
+    <div class="kpi-card" style="--kpi-accent:var(--amber)">
+      <div class="kpi-label">Parados na etapa</div><div class="kpi-value">${r2.length}</div>
+      <div class="kpi-badge" style="background:var(--amber-l);color:#92400E">R2</div>
+    </div>
+    <div class="kpi-card" style="--kpi-accent:var(--red)">
+      <div class="kpi-label">Leads quentes</div><div class="kpi-value">${quentes.length}</div>
+      <div class="kpi-badge" style="background:var(--red-l);color:#991B1B">🔥 prioridade</div>
+    </div>
+    <div class="kpi-card" style="--kpi-accent:var(--navy)">
+      <div class="kpi-label">Total no quadro</div><div class="kpi-value">${base.length}</div>
+      <div class="kpi-badge" style="background:var(--blue-l);color:#1B3A6B">ativos</div>
+    </div>`;
+  // R1 ordenado por dias de atraso
+  const r1ord=r1.map(c=>({...c,diasAtraso:c.proxima_interacao?Math.floor((Date.now()-new Date(c.proxima_interacao))/86400000):0})).sort((a,b)=>b.diasAtraso-a.diasAtraso);
+  document.getElementById('op-r1-count').textContent=`(${r1.length})`;
+  document.getElementById('op-r1-list').innerHTML=r1ord.length?r1ord.map(c=>`
+    <div class="alert-card" style="background:var(--red-l)" onclick="openDetail('${c.id}','operacional')">
+      <div class="alert-icon">🔴</div>
+      <div><div class="alert-title">${c.nome}</div><div class="alert-desc">${c.status} · ${c.operador||'sem operador'} · ${c.diasAtraso}d de atraso</div></div>
+      <div class="alert-chev">›</div>
+    </div>`).join(''):'<div style="text-align:center;color:var(--green);padding:24px;font-size:13px">✓ Ninguém precisa de contato urgente</div>';
+  // R2 ordenado por dias na etapa
+  const r2ord=r2.map(c=>({...c,diasEtapa:c.dt_entrada_etapa?Math.floor((Date.now()-new Date(c.dt_entrada_etapa))/86400000):0})).sort((a,b)=>b.diasEtapa-a.diasEtapa);
+  document.getElementById('op-r2-count').textContent=`(${r2.length})`;
+  document.getElementById('op-r2-list').innerHTML=r2ord.length?r2ord.map(c=>`
+    <div class="alert-card" style="background:var(--amber-l)" onclick="openDetail('${c.id}','operacional')">
+      <div class="alert-icon">⏳</div>
+      <div><div class="alert-title">${c.nome}</div><div class="alert-desc">Parado em ${c.status} há ${c.diasEtapa} dias · ${c.operador||'sem operador'}</div></div>
+      <div class="alert-chev">›</div>
+    </div>`).join(''):'<div style="text-align:center;color:var(--green);padding:24px;font-size:13px">✓ Ninguém parado além do prazo</div>';
+  // Carga por operador
+  const cg={};
+  base.forEach(c=>{const op=c.operador||c.corretor||'Sem operador';cg[op]=cg[op]||{total:0,r1:0};cg[op].total++;if(c.em_alerta_r1)cg[op].r1++;});
+  const ops=Object.keys(cg).sort((a,b)=>cg[b].total-cg[a].total);
+  const max=Math.max(...ops.map(o=>cg[o].total),1);
+  const cores=['#1B3A6B','#3B82F6','#0E9F6E','#7C3AED','#D97706','#EA580C','#DC2626'];
+  document.getElementById('op-carga').innerHTML=ops.map((o,i)=>{
+    const d=cg[o],pct=Math.round((d.total/max)*100),cor=cores[i%cores.length];
+    return`<div class="bar-item">
+      <div class="bar-dot" style="background:${cor}">${o[0]||'?'}</div>
+      <div class="bar-content">
+        <div class="bar-head"><span class="bar-name">${o}</span><span class="bar-val" style="color:${cor}">${d.total} card${d.total!==1?'s':''}${d.r1>0?` · <span style="color:var(--red)">${d.r1} urgente${d.r1!==1?'s':''}</span>`:''}</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:0%;background:${cor}" data-w="${pct}%"></div></div>
+      </div>
+    </div>`;
+  }).join('');
+  setTimeout(()=>{document.querySelectorAll('#op-carga .bar-fill').forEach(el=>{el.style.width=el.dataset.w;});},100);
 }
 
 // ── TABELA CLIENTES ──────────────────────────────────────────
@@ -1587,10 +1855,31 @@ async function salvarInteracao(){
   const{error}=await sb.from('historico').insert(payload);
   if(error){toast('Erro: '+error.message);return;}
   if(novoStatus){
-    await sb.from('clientes').update({
-      status:novoStatus,
-      tem_card:novoStatus!=='Pós-venda'
-    }).eq('id',interacaoClienteId);
+    const cli=all.find(x=>x.id===interacaoClienteId);
+    const statusAnterior=cli?.status;
+    // Só registra movimentação se o status realmente mudou
+    if(statusAnterior&&statusAnterior!==novoStatus){
+      const diasOrigem=cli?.dt_entrada_etapa?Math.floor((Date.now()-new Date(cli.dt_entrada_etapa))/86400000):null;
+      const agoraISO=new Date().toISOString();
+      await sb.from('clientes').update({
+        status:novoStatus,
+        tem_card:novoStatus!=='Pós-venda',
+        dt_entrada_etapa:agoraISO
+      }).eq('id',interacaoClienteId);
+      // Histórico de etapas
+      await sb.from('historico_etapas').insert({
+        cliente_id:interacaoClienteId,
+        etapa_origem:statusAnterior,
+        etapa_destino:novoStatus,
+        dias_na_origem:diasOrigem,
+        movido_por:usuarioAtual?.nome||null
+      });
+    }else{
+      await sb.from('clientes').update({
+        status:novoStatus,
+        tem_card:novoStatus!=='Pós-venda'
+      }).eq('id',interacaoClienteId);
+    }
   }
   toast('Interação registrada!');fecharInteracao();await loadAll();
 }

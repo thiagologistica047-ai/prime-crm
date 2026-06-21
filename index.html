@@ -316,7 +316,7 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
     <div class="hdr-title">Vistorias e Laudos</div>
     <div class="hdr-acts"><button class="btn p" onclick="abrirNovaVistoria()"><i class="ti ti-plus"></i> Nova vistoria</button></div>
   </div>
-  <div class="cnt"><div id="lista-vistorias"><div class="es"><div class="spin"></div></div></div></div>
+  <div class="cnt" style="padding:14px 20px;overflow:hidden;display:flex;flex-direction:column"><div class="kanban" id="lista-vistorias" style="align-items:flex-start"><div class="es"><div class="spin"></div></div></div></div>
 </div>
 
 <!-- DASHBOARD -->
@@ -1715,28 +1715,52 @@ async function carregarVistorias(){
   const{data}=await sb.from('vistorias').select('*').order('created_at',{ascending:false});
   const el=document.getElementById('lista-vistorias');
   if(!data||!data.length){el.innerHTML='<div class="es">Nenhuma vistoria cadastrada.</div>';return;}
-  // Recalcular alertas de vistoria
   const agora=new Date();
-  el.innerHTML=data.map(v=>{
-    const alerta=v.proxima_interacao&&new Date(v.proxima_interacao)<agora;
-    const prox=v.proxima_interacao?new Date(v.proxima_interacao).toLocaleDateString('pt-BR'):'—';
-    return`<div class="vcard${alerta?' alerta-r1':''}" style="${alerta?'border-left:3px solid var(--red)':''}">
-      <div class="vcard-hdr">
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:600">${v.endereco}</div>
-          <div class="vcard-end">Mat: ${v.matricula||'—'} · Const: ${v.construtor||'—'} · Op: ${v.operador||'—'}</div>
-          ${v.engenheiro_nome?`<div style="font-size:11px;color:var(--t2);margin-top:2px">🔧 Eng: ${v.engenheiro_nome}${v.engenheiro_telefone?' · '+v.engenheiro_telefone:''}</div>`:''}
-          <div style="font-size:11px;margin-top:3px;color:${alerta?'var(--red)':'var(--t3)'}">
-            📅 Retorno: ${prox}${alerta?' <b>· VENCIDO</b>':''}
-          </div>
+  // Colunas de status das vistorias
+  const VIST_STATUS=['Aguardando','Em andamento','Concluído','Reprovado'];
+  const VIST_COR={'Aguardando':'b-amber','Em andamento':'b-blue','Concluído':'b-green','Reprovado':'b-red'};
+  el.innerHTML=VIST_STATUS.map(s=>{
+    const cards=data.filter(v=>v.status===s);
+    const alertas=cards.filter(v=>v.proxima_interacao&&new Date(v.proxima_interacao)<agora).length;
+    const cardsHtml=cards.length?cards.map(v=>{
+      const alerta=v.proxima_interacao&&new Date(v.proxima_interacao)<agora;
+      const prox=v.proxima_interacao?new Date(v.proxima_interacao).toLocaleDateString('pt-BR'):'—';
+      const diasRetorno=v.proxima_interacao?Math.floor((new Date(v.proxima_interacao)-agora)/86400000):null;
+      let diasCls='ok',diasTxt='—';
+      if(diasRetorno!==null){
+        if(diasRetorno<0){diasCls='late';diasTxt=Math.abs(diasRetorno)+'d vencido';}
+        else if(diasRetorno===0){diasCls='warn';diasTxt='Hoje';}
+        else if(diasRetorno<=3){diasCls='warn';diasTxt='em '+diasRetorno+'d';}
+        else{diasCls='ok';diasTxt='em '+diasRetorno+'d';}
+      }
+      return`<div class="kc${alerta?' alerta-r1':''}" onclick="editarVistoria('${v.id}')">
+        <div class="kcn">${v.endereco}</div>
+        <div class="kcm">
+          ${v.matricula?`<span style="font-size:10px">Mat: ${v.matricula}</span>`:''}
+          ${v.operador?`<span style="font-size:10px">${v.operador}</span>`:''}
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
-          <span class="badge ${v.status==='Concluído'?'b-green':v.status==='Reprovado'?'b-red':'b-amber'}">${v.status}</span>
-          <button class="ab" style="font-size:10px" onclick="editarVistoria('${v.id}')"><i class="ti ti-edit"></i> Editar</button>
-          <button class="ab" style="font-size:10px" onclick="abrirInteracaoVistoria('${v.id}','${v.endereco.replace(/'/g,"\'")}')"><i class="ti ti-message"></i> Interagir</button>
+        ${v.construtor?`<div style="font-size:10px;color:var(--t2);margin-top:2px"><i class="ti ti-building" style="font-size:10px"></i> ${v.construtor}</div>`:''}
+        ${v.engenheiro_nome?`<div style="font-size:10px;color:var(--t2);margin-top:2px"><i class="ti ti-tool" style="font-size:10px"></i> ${v.engenheiro_nome}</div>`:''}
+        <div class="kc-dias ${diasCls}" style="margin-top:4px">
+          <i class="ti ti-calendar" style="font-size:11px"></i>
+          <span>${prox} ${diasRetorno!==null?'('+diasTxt+')':''}</span>
+          ${alerta?'<i class="ti ti-alert-circle" style="font-size:11px"></i>':''}
         </div>
+        ${v.observacoes?`<div style="font-size:10px;color:var(--t3);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.observacoes}</div>`:''}
+        <div style="display:flex;gap:4px;margin-top:6px">
+          <button class="ab" style="font-size:10px;padding:2px 7px" onclick="event.stopPropagation();abrirInteracaoVistoria('${v.id}','${v.endereco.replace(/'/g,"\'")}')"><i class="ti ti-message"></i> Interagir</button>
+        </div>
+      </div>`;
+    }).join(''):`<div style="padding:16px;font-size:11px;color:var(--t3);text-align:center;border:1.5px dashed var(--bd);border-radius:var(--rs);margin:4px">Nenhuma vistoria</div>`;
+    return`<div class="kol">
+      <div class="kh">
+        <span class="kht">${s}</span>
+        <span style="display:flex;align-items:center;gap:4px">
+          ${alertas>0?`<span style="background:var(--red-l);color:var(--red);border-radius:20px;padding:1px 5px;font-size:10px;font-weight:700">⚠${alertas}</span>`:''}
+          <span class="khc">${cards.length}</span>
+        </span>
       </div>
-      ${v.observacoes?`<div style="font-size:12px;color:var(--t2);margin-top:6px">${v.observacoes}</div>`:''}
+      <div class="kb">${cardsHtml}</div>
     </div>`;
   }).join('');
 }
@@ -1981,3 +2005,4 @@ function toast(msg,ms=2500){const el=document.getElementById('toast');el.textCon
 </script>
 </body>
 </html>
+  

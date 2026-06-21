@@ -74,6 +74,9 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
 .b-navy{background:#E6EBF5;color:#1A3A6B}
 .ab{padding:3px 9px;border:.5px solid var(--bd);border-radius:var(--rs);background:none;cursor:pointer;font-size:11px;color:var(--t2)}
 .ab:hover{background:var(--sf2);color:var(--t)}
+.fbtn{padding:3px 9px;border:.5px solid var(--bd);border-radius:20px;background:var(--sf);cursor:pointer;font-size:11px;color:var(--t2)}
+.fbtn:hover{background:var(--sf2);color:var(--t)}
+.fbtn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;padding:16px}
 .overlay.open{display:flex}
 .modal{background:var(--sf);border-radius:var(--r);border:.5px solid var(--bd);width:min(640px,100%);max-height:92vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.18)}
@@ -290,7 +293,27 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
       <button class="btn p" onclick="abrirNovoCard()"><i class="ti ti-plus"></i> Novo card</button>
     </div>
   </div>
-  <div class="cnt" style="padding:14px 20px;overflow:hidden;display:flex;flex-direction:column">
+  <div class="cnt" style="padding:10px 20px 14px;overflow:hidden;display:flex;flex-direction:column">
+    <div id="kanban-filtros" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px;align-items:center;font-size:11px">
+      <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
+        <span style="color:var(--t2);font-weight:600">Origem:</span>
+        <button class="fbtn active" data-tipo="origem" data-val="" onclick="filtroLead(this)">Todas</button>
+        <button class="fbtn" data-tipo="origem" data-val="WhatsApp" onclick="filtroLead(this)">WhatsApp</button>
+        <button class="fbtn" data-tipo="origem" data-val="Indicação" onclick="filtroLead(this)">Indicação</button>
+        <button class="fbtn" data-tipo="origem" data-val="Manual" onclick="filtroLead(this)">Manual</button>
+        <button class="fbtn" data-tipo="origem" data-val="Facebook/Instagram" onclick="filtroLead(this)">Face/Insta</button>
+        <button class="fbtn" data-tipo="origem" data-val="Outros" onclick="filtroLead(this)">Outros</button>
+      </div>
+      <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
+        <span style="color:var(--t2);font-weight:600">Situação:</span>
+        <button class="fbtn active" data-tipo="situacao" data-val="" onclick="filtroLead(this)">Todas</button>
+        <button class="fbtn" data-tipo="situacao" data-val="Novo" onclick="filtroLead(this)">🆕 Novo</button>
+        <button class="fbtn" data-tipo="situacao" data-val="Em contato" onclick="filtroLead(this)">💬 Em contato</button>
+        <button class="fbtn" data-tipo="situacao" data-val="Sem resposta" onclick="filtroLead(this)">⏳ Sem resposta</button>
+        <button class="fbtn" data-tipo="situacao" data-val="Quente" onclick="filtroLead(this)">🔥 Quente</button>
+        <button class="fbtn" data-tipo="situacao" data-val="Frio" onclick="filtroLead(this)">❄️ Frio</button>
+      </div>
+    </div>
     <div class="kanban" id="kanban"></div>
   </div>
 </div>
@@ -544,6 +567,12 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
         </div>
         <div class="fl"><label>Data de entrada</label><input id="f-dtentrada" type="date"></div>
         <div class="fl"><label>Agência</label><input id="f-agencia" type="text" placeholder="Ex: AG 1041, AG 1088..."></div>
+        <div class="fl"><label>Origem do lead</label>
+          <select id="f-origem-lead"><option value="">Selecione</option><option>WhatsApp</option><option>Indicação</option><option>Manual</option><option>Facebook/Instagram</option><option>Outros</option></select>
+        </div>
+        <div class="fl"><label>Situação do lead</label>
+          <select id="f-situacao-lead"><option value="">Selecione</option><option>Novo</option><option>Em contato</option><option>Sem resposta</option><option>Quente</option><option>Frio</option></select>
+        </div>
         <div class="fl"><label>Próximo contato</label><input id="f-proxcontato" type="date"></div>
         <div class="fl fg full"><label>Origem / Lista de origem</label><input id="f-origem" type="text" placeholder="Ex: Lista Quente / Indicação / WhatsApp..."></div>
       </div>
@@ -785,11 +814,17 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 let sb, all=[], filtered=[], pg=0, PER=25, detailId=null, editId=null, charts={};
 let usuarioAtual=null, editUsuarioId=null, voltarPara='kanban', interacaoClienteId=null;
 let corretores=[], construtores=[], etapasConfig=[], operadoresList=[];
+let filtroOrigemLead='', filtroSituacaoLead='';
 
 const STATUS_ORDER=['Lead','Andamento','Condicionado','Reprovado','Aprovado','Conformidade','Assinatura','Cartório/Prefeitura','Concluído'];
 const SBADGE={'Lead':'b-teal','Andamento':'b-blue','Condicionado':'b-amber','Reprovado':'b-red','Aprovado':'b-green','Conformidade':'b-purple','Assinatura':'b-purple','Cartório/Prefeitura':'b-coral','Concluído':'b-green','Pós-venda':'b-gray'};
 const PBADGE={'Habitacional MCMV':'b-teal','Habitacional SBPE':'b-teal','Conta Corrente':'b-blue','Poupança':'b-blue','Cartão de Crédito':'b-purple','Consórcio':'b-amber','Consignado':'b-amber','Seguro de Vida':'b-green','Rapidex/Amparo':'b-gray','Múltiplo':'b-purple'};
 const COLS=['#185FA5','#3B6D11','#854F0B','#A32D2D','#0F6E56','#534AB7','#993C1D','#888780','#D4537E','#378ADD'];
+const ORIGEM_BADGE={'WhatsApp':'b-green','Indicação':'b-purple','Manual':'b-gray','Facebook/Instagram':'b-blue','Outros':'b-amber'};
+const SIT_BADGE={'Novo':'b-teal','Em contato':'b-blue','Sem resposta':'b-amber','Quente':'b-red','Frio':'b-gray'};
+const SIT_ICON={'Novo':'🆕','Em contato':'💬','Sem resposta':'⏳','Quente':'🔥','Frio':'❄️'};
+const ORIGEM_OPCOES=['WhatsApp','Indicação','Manual','Facebook/Instagram','Outros'];
+const SIT_OPCOES=['Novo','Em contato','Sem resposta','Quente','Frio'];
 const PC_IDS=['pc-hab','pc-sbpe','pc-cc','pc-poup','pc-cart','pc-cons','pc-csig','pc-seg','pc-rpx'];
 
 // ── Hash senha ───────────────────────────────────────────────
@@ -876,8 +911,8 @@ async function loadAll(){
   // Carregar dados em paralelo
   const[{data:cls},{data:corr},{data:const_},{data:etapas},{data:ops}]=await Promise.all([
     sb.from('clientes').select(usuarioAtual?.role==='gestor'
-      ?'id,nome,cpf,telefone,email,produto,status,operador,corretor,indicado_por,corretor_externo,construtor_vendedor,observacoes,origem_arquivo,dt_entrada,dt_atualizacao,legado,tem_card,em_alerta_r1,em_alerta_r2,proxima_interacao,ultima_interacao,dt_entrada_etapa,renda_principal,renda_secundaria,renda_total,valor_imovel,valor_financiamento,valor_subsidio,valor_prestacao,numero_contrato,comissao_valor,comissao_status,comissao_obs,produtos_contratados,agencia'
-      :'id,nome,cpf,telefone,email,produto,status,operador,corretor,indicado_por,corretor_externo,construtor_vendedor,observacoes,origem_arquivo,dt_entrada,dt_atualizacao,legado,tem_card,em_alerta_r1,em_alerta_r2,proxima_interacao,ultima_interacao,dt_entrada_etapa,renda_principal,renda_secundaria,renda_total,valor_imovel,valor_financiamento,valor_subsidio,valor_prestacao,numero_contrato,produtos_contratados,agencia'
+      ?'id,nome,cpf,telefone,email,produto,status,operador,corretor,indicado_por,corretor_externo,construtor_vendedor,observacoes,origem_arquivo,dt_entrada,dt_atualizacao,legado,tem_card,em_alerta_r1,em_alerta_r2,proxima_interacao,ultima_interacao,dt_entrada_etapa,renda_principal,renda_secundaria,renda_total,valor_imovel,valor_financiamento,valor_subsidio,valor_prestacao,numero_contrato,comissao_valor,comissao_status,comissao_obs,produtos_contratados,agencia,origem_lead,situacao_lead'
+      :'id,nome,cpf,telefone,email,produto,status,operador,corretor,indicado_por,corretor_externo,construtor_vendedor,observacoes,origem_arquivo,dt_entrada,dt_atualizacao,legado,tem_card,em_alerta_r1,em_alerta_r2,proxima_interacao,ultima_interacao,dt_entrada_etapa,renda_principal,renda_secundaria,renda_total,valor_imovel,valor_financiamento,valor_subsidio,valor_prestacao,numero_contrato,produtos_contratados,agencia,origem_lead,situacao_lead'
     ).order('nome'),
     sb.from('corretores').select('nome').eq('ativo',true).order('nome'),
     sb.from('construtores').select('nome,tipo').eq('ativo',true).order('nome'),
@@ -928,6 +963,16 @@ function go(p){
 }
 
 // ── KANBAN ───────────────────────────────────────────────────
+function filtroLead(btn){
+  const tipo=btn.dataset.tipo, val=btn.dataset.val;
+  // Atualiza estado visual dos botões do mesmo tipo
+  document.querySelectorAll(`.fbtn[data-tipo="${tipo}"]`).forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(tipo==='origem')filtroOrigemLead=val;
+  else if(tipo==='situacao')filtroSituacaoLead=val;
+  renderKanban();
+}
+
 function renderKanban(){
   const q=(document.getElementById('kanban-q')?.value||'').toLowerCase().trim();
   const op=document.getElementById('kanban-op')?.value||'';
@@ -939,7 +984,9 @@ function renderKanban(){
     (c.operador||'').toLowerCase().includes(q)
   );}
   if(op){ativos=ativos.filter(c=>c.operador===op);}
-  const temFiltro=q||op;
+  if(filtroOrigemLead){ativos=ativos.filter(c=>c.origem_lead===filtroOrigemLead);}
+  if(filtroSituacaoLead){ativos=ativos.filter(c=>c.situacao_lead===filtroSituacaoLead);}
+  const temFiltro=q||op||filtroOrigemLead||filtroSituacaoLead;
   document.getElementById('kanban').innerHTML=STATUS_ORDER.map(s=>{
     const cards=ativos.filter(c=>c.status===s);
     const alertas=cards.filter(c=>c.em_alerta_r1).length;
@@ -1019,6 +1066,10 @@ function renderCard(c){
       ${c.agencia?`<span class="badge b-navy" style="font-size:10px">${c.agencia}</span>`:''}
       ${c.operador?`<span style="font-size:10px">${c.operador}</span>`:''}
     </div>
+    ${(c.origem_lead||c.situacao_lead)?`<div class="kcm" style="margin-top:2px">
+      ${c.origem_lead?`<span class="badge ${ORIGEM_BADGE[c.origem_lead]||'b-gray'}" style="font-size:10px">${c.origem_lead}</span>`:''}
+      ${c.situacao_lead?`<span class="badge ${SIT_BADGE[c.situacao_lead]||'b-gray'}" style="font-size:10px">${SIT_ICON[c.situacao_lead]||''} ${c.situacao_lead}</span>`:''}
+    </div>`:''}
     <div class="kc-dias ${diasCls}">
       <i class="ti ti-clock" style="font-size:11px"></i>
       <span>${diasTxt} sem contato</span>
@@ -1181,6 +1232,8 @@ async function openDetail(id,from){
     ['Operador',c.operador||c.corretor||'—'],['Indicado por',c.indicado_por||'—'],
     ['Corretor externo',c.corretor_externo||'—'],['Construtor/Vendedor',c.construtor_vendedor||'—'],
     ['Agência',c.agencia||'—'],
+    ['Origem do lead',c.origem_lead||'—'],
+    ['Situação do lead',c.situacao_lead?(SIT_ICON[c.situacao_lead]||'')+' '+c.situacao_lead:'—'],
     ['Renda total',c.renda_total?'R$ '+Number(c.renda_total).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'],
   ];
   if(['Habitacional MCMV','Habitacional SBPE'].includes(c.produto)){
@@ -1311,6 +1364,8 @@ function openEdit(id){
   document.getElementById('f-construtor').value=c.construtor_vendedor||'';
   document.getElementById('f-dtentrada').value=c.dt_entrada||'';
   document.getElementById('f-agencia').value=c.agencia||'';
+  document.getElementById('f-origem-lead').value=c.origem_lead||'';
+  document.getElementById('f-situacao-lead').value=c.situacao_lead||'';
   document.getElementById('f-origem').value=c.origem_arquivo||'';
   document.getElementById('f-obs').value=c.observacoes||'';
   document.getElementById('f-renda1').value=c.renda_principal||'';
@@ -1350,6 +1405,8 @@ function clearForm(){
   document.getElementById('f-prod').value='';
   document.getElementById('f-corretor-ext').value='';
   document.getElementById('f-construtor').value='';
+  document.getElementById('f-origem-lead').value='';
+  document.getElementById('f-situacao-lead').value='';
   document.getElementById('f-comstatus').value='';
   PC_IDS.forEach(pid=>{const el=document.getElementById(pid);if(el)el.checked=false;});
   document.getElementById('hab-section').style.display='none';
@@ -1458,6 +1515,8 @@ async function saveCliente(){
     numero_contrato:document.getElementById('f-contrato').value.trim()||null,
     proxima_interacao:proxVal?new Date(proxVal).toISOString():null,
     agencia:document.getElementById('f-agencia').value.trim()||null,
+    origem_lead:document.getElementById('f-origem-lead').value||null,
+    situacao_lead:document.getElementById('f-situacao-lead').value||null,
     produtos_contratados:produtosContratados.length?produtosContratados:null,
     tem_card:document.getElementById('f-status').value!=='Pós-venda',
     legado:false

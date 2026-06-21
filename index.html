@@ -282,6 +282,10 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
   <div class="hdr">
     <div class="hdr-title">Quadro operacional</div>
     <div class="hdr-acts">
+      <input type="text" id="kanban-q" placeholder="Buscar nome, CPF, tel..." oninput="renderKanban()" style="padding:5px 9px;border:.5px solid var(--bd);border-radius:var(--rs);background:var(--sf2);color:var(--t);font-size:12px;width:200px">
+      <select id="kanban-op" onchange="renderKanban()" style="padding:5px 9px;border:.5px solid var(--bd);border-radius:var(--rs);background:var(--sf2);color:var(--t);font-size:12px">
+        <option value="">Todos os operadores</option>
+      </select>
       <button class="btn" onclick="loadAll()"><i class="ti ti-refresh"></i> Atualizar</button>
       <button class="btn p" onclick="abrirNovoCard()"><i class="ti ti-plus"></i> Novo card</button>
     </div>
@@ -895,6 +899,9 @@ function popularSelectCorretores(){
   // Filtro de operador na tela de clientes
   const fCorr=document.getElementById('fCorretor');
   if(fCorr)fCorr.innerHTML='<option value="">Todos os operadores</option>'+operadoresList.map(o=>`<option>${o.nome}</option>`).join('');
+  // Filtro de operador no kanban
+  const kOp=document.getElementById('kanban-op');
+  if(kOp)kOp.innerHTML='<option value="">Todos os operadores</option>'+operadoresList.map(o=>`<option>${o.nome}</option>`).join('');
   // Corretor externo (tabela corretores — lista separada)
   const cExt=document.getElementById('f-corretor-ext');
   if(cExt)cExt.innerHTML='<option value="">Nenhum</option>'+corretores.map(c=>`<option>${c.nome}</option>`).join('');
@@ -922,7 +929,17 @@ function go(p){
 
 // ── KANBAN ───────────────────────────────────────────────────
 function renderKanban(){
-  const ativos=all.filter(c=>c.status!=='Pós-venda'&&c.tem_card);
+  const q=(document.getElementById('kanban-q')?.value||'').toLowerCase().trim();
+  const op=document.getElementById('kanban-op')?.value||'';
+  let ativos=all.filter(c=>c.status!=='Pós-venda'&&c.tem_card);
+  if(q){ativos=ativos.filter(c=>
+    (c.nome||'').toLowerCase().includes(q)||
+    (c.cpf||'').includes(q)||
+    (c.telefone||'').includes(q)||
+    (c.operador||'').toLowerCase().includes(q)
+  );}
+  if(op){ativos=ativos.filter(c=>c.operador===op);}
+  const temFiltro=q||op;
   document.getElementById('kanban').innerHTML=STATUS_ORDER.map(s=>{
     const cards=ativos.filter(c=>c.status===s);
     const alertas=cards.filter(c=>c.em_alerta_r1).length;
@@ -938,7 +955,7 @@ function renderKanban(){
           <span class="khc">${cards.length}</span>
         </span>
       </div>
-      <div class="kb">${cards.length?cards.map(c=>renderCard(c)).join(''):'<div class="kol-vazio" style="padding:16px;font-size:11px;color:var(--t3);text-align:center;border:1.5px dashed var(--bd);border-radius:var(--rs);margin:4px">Arraste um card aqui</div>'}
+      <div class="kb">${cards.length?cards.map(c=>renderCard(c)).join(''):`<div style="padding:16px;font-size:11px;color:var(--t3);text-align:center;border:1.5px dashed var(--bd);border-radius:var(--rs);margin:4px">${temFiltro?'Nenhum resultado':'Arraste um card aqui'}</div>`}
       </div>
     </div>`;
   }).join('');
@@ -2005,4 +2022,3 @@ function toast(msg,ms=2500){const el=document.getElementById('toast');el.textCon
 </script>
 </body>
 </html>
-  

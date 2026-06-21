@@ -71,6 +71,7 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
 .b-gray{background:var(--gray-l);color:var(--gray)}
 .b-purple{background:var(--purple-l);color:var(--purple)}
 .b-coral{background:var(--coral-l);color:var(--coral)}
+.b-navy{background:#E6EBF5;color:#1A3A6B}
 .ab{padding:3px 9px;border:.5px solid var(--bd);border-radius:var(--rs);background:none;cursor:pointer;font-size:11px;color:var(--t2)}
 .ab:hover{background:var(--sf2);color:var(--t)}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;padding:16px}
@@ -538,6 +539,7 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
           <select id="f-construtor"><option value="">Nenhum</option></select>
         </div>
         <div class="fl"><label>Data de entrada</label><input id="f-dtentrada" type="date"></div>
+        <div class="fl"><label>Agência</label><input id="f-agencia" type="text" placeholder="Ex: AG 1041, AG 1088..."></div>
         <div class="fl"><label>Próximo contato</label><input id="f-proxcontato" type="date"></div>
         <div class="fl fg full"><label>Origem / Lista de origem</label><input id="f-origem" type="text" placeholder="Ex: Lista Quente / Indicação / WhatsApp..."></div>
       </div>
@@ -870,8 +872,8 @@ async function loadAll(){
   // Carregar dados em paralelo
   const[{data:cls},{data:corr},{data:const_},{data:etapas},{data:ops}]=await Promise.all([
     sb.from('clientes').select(usuarioAtual?.role==='gestor'
-      ?'id,nome,cpf,telefone,email,produto,status,operador,corretor,indicado_por,corretor_externo,construtor_vendedor,observacoes,origem_arquivo,dt_entrada,dt_atualizacao,legado,tem_card,em_alerta_r1,em_alerta_r2,proxima_interacao,ultima_interacao,dt_entrada_etapa,renda_principal,renda_secundaria,renda_total,valor_imovel,valor_financiamento,valor_subsidio,valor_prestacao,numero_contrato,comissao_valor,comissao_status,comissao_obs,produtos_contratados'
-      :'id,nome,cpf,telefone,email,produto,status,operador,corretor,indicado_por,corretor_externo,construtor_vendedor,observacoes,origem_arquivo,dt_entrada,dt_atualizacao,legado,tem_card,em_alerta_r1,em_alerta_r2,proxima_interacao,ultima_interacao,dt_entrada_etapa,renda_principal,renda_secundaria,renda_total,valor_imovel,valor_financiamento,valor_subsidio,valor_prestacao,numero_contrato,produtos_contratados'
+      ?'id,nome,cpf,telefone,email,produto,status,operador,corretor,indicado_por,corretor_externo,construtor_vendedor,observacoes,origem_arquivo,dt_entrada,dt_atualizacao,legado,tem_card,em_alerta_r1,em_alerta_r2,proxima_interacao,ultima_interacao,dt_entrada_etapa,renda_principal,renda_secundaria,renda_total,valor_imovel,valor_financiamento,valor_subsidio,valor_prestacao,numero_contrato,comissao_valor,comissao_status,comissao_obs,produtos_contratados,agencia'
+      :'id,nome,cpf,telefone,email,produto,status,operador,corretor,indicado_por,corretor_externo,construtor_vendedor,observacoes,origem_arquivo,dt_entrada,dt_atualizacao,legado,tem_card,em_alerta_r1,em_alerta_r2,proxima_interacao,ultima_interacao,dt_entrada_etapa,renda_principal,renda_secundaria,renda_total,valor_imovel,valor_financiamento,valor_subsidio,valor_prestacao,numero_contrato,produtos_contratados,agencia'
     ).order('nome'),
     sb.from('corretores').select('nome').eq('ativo',true).order('nome'),
     sb.from('construtores').select('nome,tipo').eq('ativo',true).order('nome'),
@@ -997,6 +999,7 @@ function renderCard(c){
     <div class="kcn">${c.nome}${c.legado?'<span class="tag-legado">L</span>':''}</div>
     <div class="kcm">
       <span class="badge ${PBADGE[c.produto]||'b-gray'}" style="font-size:10px">${c.produto||'—'}</span>
+      ${c.agencia?`<span class="badge b-navy" style="font-size:10px">${c.agencia}</span>`:''}
       ${c.operador?`<span style="font-size:10px">${c.operador}</span>`:''}
     </div>
     <div class="kc-dias ${diasCls}">
@@ -1160,6 +1163,7 @@ async function openDetail(id,from){
     ['Status',c.status?`<span class="badge ${SBADGE[c.status]||'b-gray'}">${c.status}</span>`:'—'],
     ['Operador',c.operador||c.corretor||'—'],['Indicado por',c.indicado_por||'—'],
     ['Corretor externo',c.corretor_externo||'—'],['Construtor/Vendedor',c.construtor_vendedor||'—'],
+    ['Agência',c.agencia||'—'],
     ['Renda total',c.renda_total?'R$ '+Number(c.renda_total).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'],
   ];
   if(['Habitacional MCMV','Habitacional SBPE'].includes(c.produto)){
@@ -1289,6 +1293,7 @@ function openEdit(id){
   document.getElementById('f-corretor-ext').value=c.corretor_externo||'';
   document.getElementById('f-construtor').value=c.construtor_vendedor||'';
   document.getElementById('f-dtentrada').value=c.dt_entrada||'';
+  document.getElementById('f-agencia').value=c.agencia||'';
   document.getElementById('f-origem').value=c.origem_arquivo||'';
   document.getElementById('f-obs').value=c.observacoes||'';
   document.getElementById('f-renda1').value=c.renda_principal||'';
@@ -1322,7 +1327,7 @@ function editCurrent(){if(detailId)openEdit(detailId);}
 function clearForm(){
   ['f-nome','f-cpf','f-tel','f-email','f-indicado','f-origem','f-obs','f-dtentrada','f-proxcontato',
    'f-renda1','f-renda2','f-renda-total','f-vimovel','f-vfinanc','f-vsubsidio','f-vprestacao','f-contrato',
-   'f-comval','f-comobs'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+   'f-comval','f-comobs','f-agencia'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
   document.getElementById('f-operador').value='';
   document.getElementById('f-status').value='Lead';
   document.getElementById('f-prod').value='';
@@ -1435,6 +1440,7 @@ async function saveCliente(){
     valor_prestacao:parseFloat(document.getElementById('f-vprestacao').value)||null,
     numero_contrato:document.getElementById('f-contrato').value.trim()||null,
     proxima_interacao:proxVal?new Date(proxVal).toISOString():null,
+    agencia:document.getElementById('f-agencia').value.trim()||null,
     produtos_contratados:produtosContratados.length?produtosContratados:null,
     tem_card:document.getElementById('f-status').value!=='Pós-venda',
     legado:false

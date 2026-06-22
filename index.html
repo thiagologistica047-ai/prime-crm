@@ -95,6 +95,31 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .drill-close{cursor:pointer;color:#CBD5E1;font-size:18px}
 .drill-close:hover{color:#fff}
 .dash-grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.tl-row{display:flex;gap:14px;padding-bottom:16px;position:relative}
+.tl-row:not(:last-child)::before{content:'';position:absolute;left:13px;top:28px;bottom:0;width:2px;background:var(--bd)}
+.tl-mark{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;background:var(--green-l);position:relative;z-index:1}
+.tl-body{flex:1;min-width:0}
+.tl-nome{font-size:13px;font-weight:600;color:var(--t)}
+.tl-info{font-size:11px;color:var(--t2);margin-top:2px}
+/* ── Operacional ── */
+.op-foco{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.op-foco-card{border-radius:var(--r);padding:18px 20px;color:#fff;position:relative;overflow:hidden}
+.op-foco-num{font-size:34px;font-weight:800;line-height:1;margin-bottom:4px}
+.op-foco-lbl{font-size:12px;font-weight:600;opacity:.95}
+.op-foco-sub{font-size:11px;opacity:.8;margin-top:6px}
+.op-carga-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:22px}
+.op-op-card{background:var(--sf);border-radius:var(--r);padding:14px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px}
+.op-op-av{width:38px;height:38px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff}
+.op-op-info{min-width:0}
+.op-op-nome{font-size:13px;font-weight:700;color:var(--t)}
+.op-op-meta{font-size:11px;color:var(--t2);margin-top:1px}
+.op-tabs{display:flex;border-bottom:1px solid var(--bd)}
+.op-tab{flex:1;padding:13px;border:none;background:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--t2);font-family:'Inter',sans-serif;border-bottom:2px solid transparent;display:flex;align-items:center;justify-content:center;gap:7px}
+.op-tab:hover{background:var(--sf2)}
+.op-tab.active{color:var(--navy);border-bottom-color:var(--accent);background:var(--sf2)}
+.op-tab-n{background:var(--bg);color:var(--t2);border-radius:20px;padding:1px 8px;font-size:11px;font-weight:700}
+.op-tab.active .op-tab-n{background:var(--accent);color:#fff}
+.urg-pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px}
 .metric.legado-badge{border:.5px solid var(--amber);background:var(--amber-l)}
 .cr{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
 .cc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:16px;box-shadow:var(--shadow)}
@@ -436,6 +461,26 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
         <div id="origem-leads"></div>
       </div>
     </div>
+    <!-- ── GRÁFICOS ADICIONAIS ── -->
+    <div class="sec-title">Análise visual</div>
+    <div class="dash-grid2">
+      <div class="panel">
+        <div class="panel-title">Distribuição por etapa</div>
+        <div style="height:240px;position:relative"><canvas id="cRosca"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Distribuição por produto</div>
+        <div style="height:240px;position:relative"><canvas id="cProduto"></canvas></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Evolução mês a mês — entradas e conclusões <span style="font-size:11px;color:var(--t3);font-weight:500">(últimos 6 meses)</span></div>
+      <div style="height:260px;position:relative"><canvas id="cMensal"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Conclusões recentes <span style="font-size:11px;color:var(--t3);font-weight:500">(linha do tempo)</span></div>
+      <div id="timeline-conclusoes"></div>
+    </div>
   </div>
 </div>
 
@@ -444,25 +489,24 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
   <div class="hdr">
     <div class="hdr-title">Operacional</div>
     <div class="hdr-acts">
-      <span style="font-size:12px;color:var(--t2)">Foco do dia — quem precisa de ação</span>
+      <span style="font-size:12px;color:var(--t2)" id="op-data"></span>
       <button class="btn" onclick="loadAll()"><i class="ti ti-refresh"></i> Atualizar</button>
     </div>
   </div>
   <div class="cnt">
-    <div class="kpi-row" id="op-kpi-row"></div>
-    <div class="dash-grid2">
-      <div class="panel">
-        <div class="panel-title">🔴 Precisam de contato hoje <span style="font-size:12px;color:var(--t3);font-weight:500" id="op-r1-count"></span></div>
-        <div id="op-r1-list" style="max-height:360px;overflow-y:auto"></div>
+    <!-- Faixa de foco do dia -->
+    <div id="op-foco" class="op-foco"></div>
+    <!-- Carga por operador em mini-cards -->
+    <div class="sec-title">Carga por operador</div>
+    <div class="op-carga-grid" id="op-carga"></div>
+    <!-- Fila de ação única, com abas -->
+    <div class="panel" style="padding:0;overflow:hidden">
+      <div class="op-tabs">
+        <button class="op-tab active" data-fila="r1" onclick="opFila(this)">🔴 Contato hoje <span class="op-tab-n" id="op-n-r1">0</span></button>
+        <button class="op-tab" data-fila="r2" onclick="opFila(this)">⏳ Parados <span class="op-tab-n" id="op-n-r2">0</span></button>
+        <button class="op-tab" data-fila="quente" onclick="opFila(this)">🔥 Quentes <span class="op-tab-n" id="op-n-quente">0</span></button>
       </div>
-      <div class="panel">
-        <div class="panel-title">⏳ Parados na etapa <span style="font-size:12px;color:var(--t3);font-weight:500" id="op-r2-count"></span></div>
-        <div id="op-r2-list" style="max-height:360px;overflow-y:auto"></div>
-      </div>
-    </div>
-    <div class="panel">
-      <div class="panel-title">Carga de trabalho por operador</div>
-      <div id="op-carga"></div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Cliente</th><th>Etapa</th><th>Operador</th><th>Urgência</th><th></th></tr></thead><tbody id="op-fila-body"></tbody></table></div>
     </div>
   </div>
 </div>
@@ -1223,6 +1267,8 @@ function renderDashboard(){
   renderFunilEtapas();
   renderProdutividade();
   renderOrigemLeads();
+  renderGraficosExtras();
+  renderTimelineConclusoes();
   fecharDrill();
 }
 
@@ -1352,6 +1398,60 @@ function renderOrigemLeads(){
   setTimeout(()=>{document.querySelectorAll('#origem-leads .bar-fill').forEach(el=>{el.style.width=el.dataset.w;});},100);
 }
 
+// ── GRÁFICOS EXTRAS (Chart.js) ───────────────────────────────
+function renderGraficosExtras(){
+  const base=baseDash();
+  const destroy=id=>{if(charts[id]){charts[id].destroy();delete charts[id];}};
+  // Cores da paleta
+  const PALETA=['#1B3A6B','#3B82F6','#D97706','#DC2626','#0E9F6E','#7C3AED','#EA580C','#0F766E','#64748B'];
+
+  // 1. Rosca por etapa
+  const sg={};
+  STATUS_ORDER.forEach(s=>{const q=base.filter(c=>c.status===s).length;if(q>0)sg[s]=q;});
+  const sl=Object.keys(sg),sd=Object.values(sg);
+  destroy('rosca');
+  const cR=document.getElementById('cRosca');
+  if(cR&&sl.length)charts.rosca=new Chart(cR,{type:'doughnut',data:{labels:sl,datasets:[{data:sd,backgroundColor:sl.map(s=>ETAPA_COR[s]||'#64748B'),borderWidth:2,borderColor:'#fff'}]},options:{cutout:'62%',plugins:{legend:{position:'right',labels:{font:{size:11,family:'Inter'},padding:10,usePointStyle:true,pointStyle:'circle'}}},maintainAspectRatio:false,onClick:(e,el)=>{if(el.length){drillStatus(sl[el[0].index]);}}}});
+
+  // 2. Rosca por produto
+  const pg={};
+  base.forEach(c=>{const p=c.produto||'Não informado';pg[p]=(pg[p]||0)+1;});
+  const pl=Object.keys(pg).sort((a,b)=>pg[b]-pg[a]),pd=pl.map(l=>pg[l]);
+  destroy('produto');
+  const cP=document.getElementById('cProduto');
+  if(cP&&pl.length)charts.produto=new Chart(cP,{type:'doughnut',data:{labels:pl,datasets:[{data:pd,backgroundColor:PALETA,borderWidth:2,borderColor:'#fff'}]},options:{cutout:'62%',plugins:{legend:{position:'right',labels:{font:{size:11,family:'Inter'},padding:10,usePointStyle:true,pointStyle:'circle'}}},maintainAspectRatio:false}});
+
+  // 3. Evolução mês a mês (entradas vs conclusões)
+  const meses=[];const hoje=new Date();
+  for(let i=5;i>=0;i--){const d=new Date(hoje.getFullYear(),hoje.getMonth()-i,1);meses.push({ano:d.getFullYear(),mes:d.getMonth(),label:d.toLocaleDateString('pt-BR',{month:'short'}).replace('.','')});}
+  const entradas=meses.map(m=>all.filter(c=>{if(!c.dt_entrada)return false;const d=new Date(c.dt_entrada);return d.getFullYear()===m.ano&&d.getMonth()===m.mes;}).length);
+  const conclusoes=meses.map(m=>all.filter(c=>{if(c.status!=='Concluído'||!c.dt_atualizacao)return false;const d=new Date(c.dt_atualizacao);return d.getFullYear()===m.ano&&d.getMonth()===m.mes;}).length);
+  destroy('mensal');
+  const cM=document.getElementById('cMensal');
+  if(cM)charts.mensal=new Chart(cM,{type:'bar',data:{labels:meses.map(m=>m.label),datasets:[{label:'Entradas',data:entradas,backgroundColor:'#3B82F6',borderRadius:5},{label:'Conclusões',data:conclusoes,backgroundColor:'#0E9F6E',borderRadius:5}]},options:{plugins:{legend:{position:'top',labels:{font:{size:11,family:'Inter'},usePointStyle:true,pointStyle:'circle',padding:14}}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,font:{family:'Inter'}},grid:{color:'#F1F5F9'}},x:{ticks:{font:{family:'Inter'}},grid:{display:false}}},maintainAspectRatio:false}});
+}
+
+// ── TIMELINE DE CONCLUSÕES ───────────────────────────────────
+function renderTimelineConclusoes(){
+  const concluidos=all.filter(c=>c.status==='Concluído'&&c.dt_atualizacao)
+    .sort((a,b)=>new Date(b.dt_atualizacao)-new Date(a.dt_atualizacao))
+    .slice(0,8);
+  const el=document.getElementById('timeline-conclusoes');
+  if(!el)return;
+  el.innerHTML=concluidos.length?concluidos.map(c=>{
+    const d=new Date(c.dt_atualizacao);
+    const dataTxt=d.toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});
+    const valor=c.valor_financiamento?'R$ '+Number(c.valor_financiamento).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0}):null;
+    return`<div class="tl-row" style="cursor:pointer" onclick="openDetail('${c.id}','dashboard')">
+      <div class="tl-mark">✓</div>
+      <div class="tl-body">
+        <div class="tl-nome">${c.nome}</div>
+        <div class="tl-info">${dataTxt} · ${c.operador||'sem operador'}${valor?' · '+valor:''}</div>
+      </div>
+    </div>`;
+  }).join(''):'<div style="text-align:center;color:var(--t3);padding:20px;font-size:12px">Nenhuma conclusão registrada ainda</div>';
+}
+
 // ── DRILL-DOWN INTERATIVO ────────────────────────────────────
 function abrirDrill(titulo,lista){
   document.getElementById('drill-title').textContent=titulo+` (${lista.length})`;
@@ -1382,64 +1482,97 @@ function drillOperador(op){abrirDrill('Operador: '+op,baseDash().filter(c=>c.ope
 function drillOrigem(o){abrirDrill('Origem: '+o,baseDash().filter(c=>c.origem_lead===o));}
 
 // ── ABA OPERACIONAL ──────────────────────────────────────────
+let opFilaAtual='r1';
 function renderOperacional(){
+  document.getElementById('op-data').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
   const base=all.filter(c=>c.tem_card&&c.status!=='Pós-venda');
   const r1=base.filter(c=>c.em_alerta_r1);
   const r2=base.filter(c=>c.em_alerta_r2);
   const quentes=base.filter(c=>c.situacao_lead==='Quente');
-  // KPIs operacionais
-  document.getElementById('op-kpi-row').innerHTML=`
-    <div class="kpi-card" style="--kpi-accent:var(--red)">
-      <div class="kpi-label">Contato hoje</div><div class="kpi-value">${r1.length}</div>
-      <div class="kpi-badge" style="background:var(--red-l);color:#991B1B">R1 vencido</div>
+  const semContato=base.filter(c=>!c.ultima_interacao).length;
+
+  // Faixa de foco do dia — cards coloridos com gradiente sutil
+  document.getElementById('op-foco').innerHTML=`
+    <div class="op-foco-card" style="background:linear-gradient(135deg,#DC2626,#B91C1C)">
+      <div class="op-foco-num">${r1.length}</div>
+      <div class="op-foco-lbl">Precisam de contato</div>
+      <div class="op-foco-sub">Prazo de retorno vencido</div>
     </div>
-    <div class="kpi-card" style="--kpi-accent:var(--amber)">
-      <div class="kpi-label">Parados na etapa</div><div class="kpi-value">${r2.length}</div>
-      <div class="kpi-badge" style="background:var(--amber-l);color:#92400E">R2</div>
+    <div class="op-foco-card" style="background:linear-gradient(135deg,#D97706,#B45309)">
+      <div class="op-foco-num">${r2.length}</div>
+      <div class="op-foco-lbl">Parados na etapa</div>
+      <div class="op-foco-sub">Tempo no funil acima do limite</div>
     </div>
-    <div class="kpi-card" style="--kpi-accent:var(--red)">
-      <div class="kpi-label">Leads quentes</div><div class="kpi-value">${quentes.length}</div>
-      <div class="kpi-badge" style="background:var(--red-l);color:#991B1B">🔥 prioridade</div>
+    <div class="op-foco-card" style="background:linear-gradient(135deg,#DC2626,#EA580C)">
+      <div class="op-foco-num">${quentes.length}</div>
+      <div class="op-foco-lbl">Leads quentes 🔥</div>
+      <div class="op-foco-sub">Interesse real — não deixar esfriar</div>
     </div>
-    <div class="kpi-card" style="--kpi-accent:var(--navy)">
-      <div class="kpi-label">Total no quadro</div><div class="kpi-value">${base.length}</div>
-      <div class="kpi-badge" style="background:var(--blue-l);color:#1B3A6B">ativos</div>
+    <div class="op-foco-card" style="background:linear-gradient(135deg,#1B3A6B,#15305A)">
+      <div class="op-foco-num">${base.length}</div>
+      <div class="op-foco-lbl">Total no quadro</div>
+      <div class="op-foco-sub">${semContato} ainda sem 1º contato</div>
     </div>`;
-  // R1 ordenado por dias de atraso
-  const r1ord=r1.map(c=>({...c,diasAtraso:c.proxima_interacao?Math.floor((Date.now()-new Date(c.proxima_interacao))/86400000):0})).sort((a,b)=>b.diasAtraso-a.diasAtraso);
-  document.getElementById('op-r1-count').textContent=`(${r1.length})`;
-  document.getElementById('op-r1-list').innerHTML=r1ord.length?r1ord.map(c=>`
-    <div class="alert-card" style="background:var(--red-l)" onclick="openDetail('${c.id}','operacional')">
-      <div class="alert-icon">🔴</div>
-      <div><div class="alert-title">${c.nome}</div><div class="alert-desc">${c.status} · ${c.operador||'sem operador'} · ${c.diasAtraso}d de atraso</div></div>
-      <div class="alert-chev">›</div>
-    </div>`).join(''):'<div style="text-align:center;color:var(--green);padding:24px;font-size:13px">✓ Ninguém precisa de contato urgente</div>';
-  // R2 ordenado por dias na etapa
-  const r2ord=r2.map(c=>({...c,diasEtapa:c.dt_entrada_etapa?Math.floor((Date.now()-new Date(c.dt_entrada_etapa))/86400000):0})).sort((a,b)=>b.diasEtapa-a.diasEtapa);
-  document.getElementById('op-r2-count').textContent=`(${r2.length})`;
-  document.getElementById('op-r2-list').innerHTML=r2ord.length?r2ord.map(c=>`
-    <div class="alert-card" style="background:var(--amber-l)" onclick="openDetail('${c.id}','operacional')">
-      <div class="alert-icon">⏳</div>
-      <div><div class="alert-title">${c.nome}</div><div class="alert-desc">Parado em ${c.status} há ${c.diasEtapa} dias · ${c.operador||'sem operador'}</div></div>
-      <div class="alert-chev">›</div>
-    </div>`).join(''):'<div style="text-align:center;color:var(--green);padding:24px;font-size:13px">✓ Ninguém parado além do prazo</div>';
-  // Carga por operador
+
+  // Carga por operador — mini-cards
   const cg={};
   base.forEach(c=>{const op=c.operador||c.corretor||'Sem operador';cg[op]=cg[op]||{total:0,r1:0};cg[op].total++;if(c.em_alerta_r1)cg[op].r1++;});
   const ops=Object.keys(cg).sort((a,b)=>cg[b].total-cg[a].total);
-  const max=Math.max(...ops.map(o=>cg[o].total),1);
   const cores=['#1B3A6B','#3B82F6','#0E9F6E','#7C3AED','#D97706','#EA580C','#DC2626'];
   document.getElementById('op-carga').innerHTML=ops.map((o,i)=>{
-    const d=cg[o],pct=Math.round((d.total/max)*100),cor=cores[i%cores.length];
-    return`<div class="bar-item">
-      <div class="bar-dot" style="background:${cor}">${o[0]||'?'}</div>
-      <div class="bar-content">
-        <div class="bar-head"><span class="bar-name">${o}</span><span class="bar-val" style="color:${cor}">${d.total} card${d.total!==1?'s':''}${d.r1>0?` · <span style="color:var(--red)">${d.r1} urgente${d.r1!==1?'s':''}</span>`:''}</span></div>
-        <div class="bar-track"><div class="bar-fill" style="width:0%;background:${cor}" data-w="${pct}%"></div></div>
+    const d=cg[o],cor=cores[i%cores.length];
+    return`<div class="op-op-card">
+      <div class="op-op-av" style="background:${cor}">${o[0]||'?'}</div>
+      <div class="op-op-info">
+        <div class="op-op-nome">${o}</div>
+        <div class="op-op-meta">${d.total} card${d.total!==1?'s':''}${d.r1>0?` · <span style="color:var(--red);font-weight:600">${d.r1} urgente${d.r1!==1?'s':''}</span>`:''}</div>
       </div>
     </div>`;
-  }).join('');
-  setTimeout(()=>{document.querySelectorAll('#op-carga .bar-fill').forEach(el=>{el.style.width=el.dataset.w;});},100);
+  }).join('')||'<div style="color:var(--t3);font-size:12px;padding:10px">Nenhum card ativo</div>';
+
+  // Contadores das abas
+  document.getElementById('op-n-r1').textContent=r1.length;
+  document.getElementById('op-n-r2').textContent=r2.length;
+  document.getElementById('op-n-quente').textContent=quentes.length;
+
+  // Renderizar fila ativa
+  renderOpFila();
+}
+
+function opFila(btn){
+  document.querySelectorAll('.op-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  opFilaAtual=btn.dataset.fila;
+  renderOpFila();
+}
+
+function renderOpFila(){
+  const base=all.filter(c=>c.tem_card&&c.status!=='Pós-venda');
+  let lista,tipo=opFilaAtual;
+  if(tipo==='r1'){
+    lista=base.filter(c=>c.em_alerta_r1).map(c=>({...c,_urg:c.proxima_interacao?Math.floor((Date.now()-new Date(c.proxima_interacao))/86400000):0})).sort((a,b)=>b._urg-a._urg);
+  }else if(tipo==='r2'){
+    lista=base.filter(c=>c.em_alerta_r2).map(c=>({...c,_urg:c.dt_entrada_etapa?Math.floor((Date.now()-new Date(c.dt_entrada_etapa))/86400000):0})).sort((a,b)=>b._urg-a._urg);
+  }else{
+    lista=base.filter(c=>c.situacao_lead==='Quente').map(c=>({...c,_urg:c.ultima_interacao?Math.floor((Date.now()-new Date(c.ultima_interacao))/86400000):999})).sort((a,b)=>b._urg-a._urg);
+  }
+  const body=document.getElementById('op-fila-body');
+  body.innerHTML=lista.length?lista.map(c=>{
+    let urgHtml;
+    if(tipo==='r1')urgHtml=`<span class="urg-pill" style="background:var(--red-l);color:#991B1B">${c._urg}d de atraso</span>`;
+    else if(tipo==='r2')urgHtml=`<span class="urg-pill" style="background:var(--amber-l);color:#92400E">${c._urg}d parado</span>`;
+    else urgHtml=`<span class="urg-pill" style="background:var(--red-l);color:#991B1B">🔥 ${c._urg===999?'sem contato':c._urg+'d s/ contato'}</span>`;
+    return`<tr>
+      <td class="nm">${c.nome}${c.legado?'<span class="tag-legado">L</span>':''}</td>
+      <td><span class="badge ${SBADGE[c.status]||'b-gray'}">${c.status}</span></td>
+      <td style="font-size:11px">${c.operador||c.corretor||'—'}</td>
+      <td>${urgHtml}</td>
+      <td style="white-space:nowrap">
+        <button class="ab" onclick="openDetail('${c.id}','operacional')">Ver</button>
+        <button class="ab" style="margin-left:3px" onclick="abrirInteracao('${c.id}','${c.nome.replace(/'/g,"\\'")}','${c.status}')">Interagir</button>
+      </td>
+    </tr>`;
+  }).join(''):`<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--green);font-size:13px">✓ Nada pendente nesta fila</td></tr>`;
 }
 
 // ── TABELA CLIENTES ──────────────────────────────────────────

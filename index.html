@@ -899,7 +899,7 @@ textarea.form-control{resize:vertical;min-height:80px}
 <script>
 // ── SUPABASE ──────────────────────────────────────────────
 const SB_URL = 'https://dvkniqxjudcxzpbmptbb.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2a25pcXhqdWRjeHpwYm1wdGJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgzNjI3NjgsImV4cCI6MjA2MzkzODc2OH0.oRNMiakybHyXEbW5DbWxTCXo6MRjpQCBGfDGHPVGGJw';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2a25pcXhqdWRjeHpwYm1wdGJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0NTI5NzgsImV4cCI6MjA5NjAyODk3OH0.dq2hOHXZmazJqsiW9tGiCCiyjZlaF_C7w80mN__I4eo';
 const sb = supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: false } });
 
 // ── ESTADO GLOBAL ──────────────────────────────────────────
@@ -1196,16 +1196,17 @@ async function mostrarPopupAlertas() {
       '<div class="agenda-empty">Sem alertas</div>';
   }
 
+  // fn_alertas_login retorna: cliente_id, nome, status, operador, tipo_alerta, dias_atraso
   renderAlertas(document.getElementById('popup-tab-r1'), r1, 'alert-r1-entry', a =>
-    `<div class="alert-entry alert-r1-entry mb-8" onclick="abrirFicha('${a.id}');fecharPopupAlertas()">
+    `<div class="alert-entry alert-r1-entry mb-8" onclick="abrirFicha('${a.cliente_id}');fecharPopupAlertas()">
       <div><div class="alert-entry-title">⚠ ${a.nome}</div>
-      <div class="alert-entry-sub">${a.status} • ${a.operador} • Sem contato há ${a.dias} dias</div></div>
+      <div class="alert-entry-sub">${a.status} • ${a.operador} • Sem contato há ${a.dias_atraso} dias</div></div>
     </div>`);
 
   renderAlertas(document.getElementById('popup-tab-r2'), r2, 'alert-r2-entry', a =>
-    `<div class="alert-entry alert-r2-entry mb-8" onclick="abrirFicha('${a.id}');fecharPopupAlertas()">
+    `<div class="alert-entry alert-r2-entry mb-8" onclick="abrirFicha('${a.cliente_id}');fecharPopupAlertas()">
       <div><div class="alert-entry-title">🔴 ${a.nome}</div>
-      <div class="alert-entry-sub">${a.status} • ${a.operador} • ${a.dias} dias na etapa</div></div>
+      <div class="alert-entry-sub">${a.status} • ${a.operador} • ${a.dias_atraso} dias na etapa</div></div>
     </div>`);
 
   renderAlertas(document.getElementById('popup-tab-ag-hoje'), agHoje, 'alert-agenda-hoje', a =>

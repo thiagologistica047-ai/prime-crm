@@ -2687,7 +2687,7 @@ async function mostrarPopupAlertas(){
   html2+=`<div id="popup-tab-ag-hoje" style="display:${agHoje.length&&abas[0]?.id==='ag-hoje'?'block':'none'}">${entradas(agHoje,a=>`<div class="alert-card" style="background:var(--blue-l);border:.5px solid var(--blue)" onclick="go('agenda');fecharPopup()"><div class="alert-icon">📅</div><div><div class="alert-title">${a.cliente_nome}</div><div class="alert-desc">${new Date(a.data_hora).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · ${a.tipo} · ${a.operador}</div></div><i class="ti ti-chevron-right alert-chev"></i></div>`)}</div>`;
   html2+=`<div id="popup-tab-ag-amanha" style="display:${agAmanha.length&&abas[0]?.id==='ag-amanha'?'block':'none'}">${entradas(agAmanha,a=>`<div class="alert-card" style="background:var(--green-l);border:.5px solid var(--green)" onclick="go('agenda');fecharPopup()"><div class="alert-icon">🗓</div><div><div class="alert-title">${a.cliente_nome}</div><div class="alert-desc">${new Date(a.data_hora).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · ${a.tipo} · ${a.operador}</div></div><i class="ti ti-chevron-right alert-chev"></i></div>`)}</div>`;
   document.getElementById('popup-lista').innerHTML=html2;
-  document.getElementById('popup-alertas').style.display='flex';
+  document.getElementById('popup-alertas').classList.add('open');
 }
 
 function popupAba(id){
@@ -2702,7 +2702,24 @@ function popupAba(id){
     if(el)el.style.display=t===id?'block':'none';
   });
 }
-function fecharPopup(){document.getElementById('popup-alertas').classList.remove('open');}
+function fecharPopup(){
+  const p=document.getElementById('popup-alertas');
+  p.classList.remove('open');
+  p.style.display='none';
+}
+
+// Fechar popup ao clicar no fundo escuro (fora da caixa)
+document.addEventListener('click',function(e){
+  const p=document.getElementById('popup-alertas');
+  if(p&&e.target===p){p.classList.remove('open');p.style.display='none';}
+});
+// Fechar popup com tecla ESC
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    const p=document.getElementById('popup-alertas');
+    if(p){p.classList.remove('open');p.style.display='none';}
+  }
+});
 
 // ── GESTÃO DE EQUIPE ─────────────────────────────────────────
 async function carregarEquipe(){

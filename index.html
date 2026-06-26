@@ -371,10 +371,10 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
     <div class="ni active" data-page="kanban" onclick="go('kanban')"><i class="ti ti-columns"></i> Quadro</div>
     <div class="ni" data-page="posvenda" onclick="go('posvenda')"><i class="ti ti-archive"></i> Pós-venda</div>
     <div class="ni" data-page="vistorias" onclick="go('vistorias')"><i class="ti ti-home-search"></i> Vistorias</div>
+    <div class="ni" id="nav-agenda" data-page="agenda" onclick="go('agenda')"><i class="ti ti-calendar-event"></i> Agenda</div>
     <div class="ns" id="nav-sec-gestao">Gestão</div>
     <div class="ni" id="nav-dashboard" data-page="dashboard" style="display:none" onclick="go('dashboard')"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
     <div class="ni" id="nav-operacional" data-page="operacional" style="display:none" onclick="go('operacional')"><i class="ti ti-target"></i> Operacional</div>
-    <div class="ni" id="nav-agenda" data-page="agenda" style="display:none" onclick="go('agenda')"><i class="ti ti-calendar-event"></i> Agenda</div>
     <div class="ni" data-page="clientes" onclick="go('clientes')"><i class="ti ti-users"></i> Clientes</div>
     <div class="ni" data-page="tarefas" onclick="go('tarefas')"><i class="ti ti-checkbox"></i> Tarefas</div>
     <div class="ns">Sistema</div>
@@ -668,6 +668,7 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
       <button class="btn" onclick="voltarDeDetalhe()"><i class="ti ti-arrow-left"></i> Voltar</button>
       <button class="btn" id="btn-criar-card" onclick="criarCardDoLegado()" style="display:none"><i class="ti ti-layout-kanban"></i> Criar card</button>
       <button class="btn p" onclick="editCurrent()"><i class="ti ti-edit"></i> Editar</button>
+      <button class="btn" style="color:var(--navy);border-color:var(--navy)" onclick="abrirAgendamentoDoCliente()"><i class="ti ti-calendar-plus"></i> Agendar</button>
     </div>
   </div>
   <div class="cnt">
@@ -700,6 +701,13 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
             <button class="btn" id="btn-task-detail" style="font-size:11px;padding:3px 9px"><i class="ti ti-plus"></i> Criar</button>
           </div>
           <div id="detail-tasks"><div class="es">Nenhuma tarefa pendente</div></div>
+        </div>
+        <div class="card">
+          <div class="card-t">
+            <i class="ti ti-calendar-event" style="font-size:14px;color:var(--navy)"></i> Agendamentos
+            <button class="btn" style="font-size:11px;padding:3px 9px" onclick="abrirAgendamentoDoCliente()"><i class="ti ti-plus"></i> Agendar</button>
+          </div>
+          <div id="detail-agendamentos"><div class="es">Nenhum agendamento</div></div>
         </div>
       </div>
     </div>
@@ -761,7 +769,7 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
         <div class="fl"><label>Produto</label>
           <select id="f-prod" onchange="toggleHabFields()">
             <option value="">Selecione</option>
-  <option>Habitacional MCMV</option><option>Habitacional SBPE</option><option>Reforma Brasil</option><option>Reforma Brasil</option><option>Conta Corrente</option>
+  <option>Habitacional MCMV</option><option>Habitacional SBPE</option><option>Reforma Brasil</option><option>Conta Corrente</option>
             <option>Poupança</option><option>Cartão de Crédito</option><option>Consórcio</option>
             <option>Consignado</option><option>Seguro de Vida</option><option>Rapidex/Amparo</option><option>Múltiplo</option>
           </select>
@@ -841,7 +849,13 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
     <div class="mb">
       <input type="hidden" id="ag-id">
       <div class="fg">
-        <div class="fl" style="grid-column:1/-1"><label>Cliente *</label><select id="ag-cliente" style="width:100%;padding:7px 9px;border:.5px solid var(--bd);border-radius:var(--rs);background:var(--sf2);color:var(--t);font-size:12px"></select></div>
+        <div class="fl" style="grid-column:1/-1;position:relative"><label>Cliente *</label>
+          <input id="ag-cliente-busca" type="text" placeholder="Digite o nome ou CPF para buscar..." autocomplete="off"
+            style="width:100%;padding:7px 9px;border:.5px solid var(--bd);border-radius:var(--rs);background:var(--sf2);color:var(--t);font-size:12px"
+            oninput="buscarClienteAgendamento(this.value)">
+          <input type="hidden" id="ag-cliente-id">
+          <div id="ag-cliente-resultados" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--sf);border:.5px solid var(--bd);border-radius:0 0 var(--rs) var(--rs);box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:100;max-height:200px;overflow-y:auto"></div>
+        </div>
         <div class="fl"><label>Data *</label><input id="ag-data" type="date" style="width:100%;padding:7px 9px;border:.5px solid var(--bd);border-radius:var(--rs);background:var(--sf2);color:var(--t);font-size:12px"></div>
         <div class="fl"><label>Horário *</label><input id="ag-hora" type="time" style="width:100%;padding:7px 9px;border:.5px solid var(--bd);border-radius:var(--rs);background:var(--sf2);color:var(--t);font-size:12px"></div>
         <div class="fl"><label>Tipo de visita *</label>
@@ -1128,7 +1142,7 @@ async function entrarNoApp(){
   document.getElementById('nav-equipe').style.display=ehGestor?'flex':'none';
   document.getElementById('nav-dashboard').style.display=ehGestor?'flex':'none';
   document.getElementById('nav-operacional').style.display=ehGestor?'flex':'none';
-  document.getElementById('nav-agenda').style.display=ehGestor?'flex':'none';
+  document.getElementById('nav-agenda').style.display='flex';// agenda visível a todos
   await loadAll();
   go('kanban');
   setTimeout(()=>mostrarPopupAlertas(),800);
@@ -1197,7 +1211,7 @@ function popularSelectCorretores(){
 // ── Navegação ────────────────────────────────────────────────
 function go(p){
   // Bloqueio de acesso: operadores não acessam dashboard, operacional, agenda
-  if((p==='dashboard'||p==='operacional'||p==='agenda')&&usuarioAtual?.role!=='gestor'){return;}
+  if((p==='dashboard'||p==='operacional')&&usuarioAtual?.role!=='gestor'){return;}
   document.querySelectorAll('.page').forEach(x=>{x.style.display='none';});
   // Highlight sidebar: usa data-page para não depender de índice posicional
   document.querySelectorAll('.ni').forEach(n=>{
@@ -1383,8 +1397,9 @@ function renderCard(c){
       ${c.em_alerta_r1?'<i class="ti ti-alert-circle" style="font-size:11px"></i>':''}
     </div>
     ${c.proxima_interacao?`<div style="font-size:10px;color:var(--t3);margin-top:2px">📅 Próx: ${new Date(c.proxima_interacao).toLocaleDateString('pt-BR')}</div>`:''}
-    <div style="display:flex;gap:4px;margin-top:6px">
+    <div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap">
       <button class="ab" style="font-size:10px;padding:2px 7px" onclick="event.stopPropagation();abrirInteracao('${c.id}','${c.nome.replace(/'/g,"\\'")}','${c.status}')"><i class="ti ti-message"></i> Interagir</button>
+      <button class="ab" style="font-size:10px;padding:2px 7px;color:var(--navy);border-color:var(--navy)" onclick="event.stopPropagation();abrirAgendamentoRapido('${c.id}','${c.nome.replace(/'/g,"\\'")}')" title="Agendar visita"><i class="ti ti-calendar-plus"></i> Agendar</button>
     </div>
   </div>`;
 }
@@ -1949,7 +1964,7 @@ async function openDetail(id,from){
     ].map(([l,v])=>`<div class="ir"><span class="il">${l}</span><span class="iv">${v}</span></div>`).join('');
   }else{comCard.style.display='none';}
   document.getElementById('btn-task-detail').onclick=()=>openTaskModal(id);
-  await Promise.all([loadHist(id),loadDetailTasks(id),loadDocs(id)]);
+  await Promise.all([loadHist(id),loadDetailTasks(id),loadDocs(id),loadDetailAgendamentos(id)]);
   go('detail');
 }
 
@@ -2960,7 +2975,7 @@ function renderDiaSel(d){
     content.innerHTML='<div style="font-size:12px;color:var(--t3);text-align:center;padding:20px">Sem agendamentos neste dia</div>';
     return;
   }
-  const HORAS=Array.from({length:14},(_, i)=>i+7);
+  const HORAS=Array.from({length:20},(_,i)=>i+4);
   content.innerHTML='<div style="overflow-y:auto;max-height:420px">'+HORAS.map(h=>{
     const ags=agsDia.filter(a=>new Date(a.data_hora).getHours()===h);
     return`<div class="cal-hour-row">
@@ -2975,7 +2990,7 @@ function renderDiaSel(d){
 }
 
 // Modal de agendamento
-async function abrirModalAgendamento(clienteIdPresel){
+async function abrirModalAgendamento(clienteIdPresel,clienteNomePresel){
   document.getElementById('ag-id').value='';
   document.getElementById('ag-desc').value='';
   document.getElementById('ag-hora').value='';
@@ -2985,23 +3000,74 @@ async function abrirModalAgendamento(clienteIdPresel){
   const selOp=document.getElementById('ag-operador');
   selOp.innerHTML='<option value="">Selecione</option>'+operadoresList.map(o=>`<option value="${o.nome}">${o.nome}</option>`).join('');
   if(usuarioAtual?.nome)selOp.value=usuarioAtual.nome;
-  // Popular clientes
-  const{data:cls}=await sb.from('clientes').select('id,nome').not('status','in','("Concluído","Reprovado")').order('nome').limit(500);
-  const selCli=document.getElementById('ag-cliente');
-  selCli.innerHTML='<option value="">Selecione o cliente...</option>'+(cls||[]).map(c=>`<option value="${c.id}"${c.id===clienteIdPresel?' selected':''}>${c.nome}</option>`).join('');
+  // Cliente: campo de busca textual (não lista)
+  const busca=document.getElementById('ag-cliente-busca');
+  const hid=document.getElementById('ag-cliente-id');
+  const res=document.getElementById('ag-cliente-resultados');
+  if(res){res.style.display='none';res.innerHTML='';}
+  if(clienteIdPresel){
+    // Pré-selecionar cliente (vindo do card ou ficha)
+    hid.value=clienteIdPresel;
+    let nome=clienteNomePresel;
+    if(!nome){const c=all.find(x=>x.id===clienteIdPresel);nome=c?.nome||'';}
+    busca.value=nome;
+    busca.setAttribute('readonly','readonly');
+    busca.style.background='var(--gray-l)';
+  }else{
+    hid.value='';
+    busca.value='';
+    busca.removeAttribute('readonly');
+    busca.style.background='var(--sf2)';
+  }
   document.getElementById('ag-modal-title').textContent='Novo Agendamento';
   document.getElementById('modal-agendamento').classList.add('open');
 }
 
-function fecharModalAgendamento(){document.getElementById('modal-agendamento').classList.remove('open');}
+// Busca textual de cliente no modal de agendamento (autocomplete)
+let _agBuscaTimer=null;
+function buscarClienteAgendamento(termo){
+  clearTimeout(_agBuscaTimer);
+  const res=document.getElementById('ag-cliente-resultados');
+  document.getElementById('ag-cliente-id').value='';// limpa seleção ao digitar
+  const t=(termo||'').toLowerCase().trim();
+  if(t.length<2){res.style.display='none';res.innerHTML='';return;}
+  _agBuscaTimer=setTimeout(()=>{
+    const matches=all.filter(c=>
+      (c.nome||'').toLowerCase().includes(t)||
+      (c.cpf||'').replace(/\D/g,'').includes(t.replace(/\D/g,''))
+    ).slice(0,15);
+    if(!matches.length){
+      res.innerHTML='<div style="padding:8px 10px;font-size:12px;color:var(--t3)">Nenhum cliente encontrado</div>';
+      res.style.display='block';return;
+    }
+    res.innerHTML=matches.map(c=>`<div onclick="selecionarClienteAgendamento('${c.id}','${(c.nome||'').replace(/'/g,"\\'")}')" style="padding:8px 10px;font-size:12px;cursor:pointer;border-bottom:.5px solid var(--bd)" onmouseover="this.style.background='var(--sf2)'" onmouseout="this.style.background='var(--sf)'">
+      <div style="font-weight:600">${c.nome}</div>
+      <div style="font-size:10px;color:var(--t3)">${c.cpf||'sem CPF'} · ${c.operador||'—'} · ${c.status}</div>
+    </div>`).join('');
+    res.style.display='block';
+  },250);
+}
+
+function selecionarClienteAgendamento(id,nome){
+  document.getElementById('ag-cliente-id').value=id;
+  document.getElementById('ag-cliente-busca').value=nome;
+  document.getElementById('ag-cliente-resultados').style.display='none';
+}
+
+function fecharModalAgendamento(){
+  document.getElementById('modal-agendamento').classList.remove('open');
+  const res=document.getElementById('ag-cliente-resultados');
+  if(res)res.style.display='none';
+}
 
 async function salvarAgendamento(){
-  const clienteId=document.getElementById('ag-cliente').value;
+  const clienteId=document.getElementById('ag-cliente-id').value;
   const data=document.getElementById('ag-data').value;
   const hora=document.getElementById('ag-hora').value;
   const tipo=document.getElementById('ag-tipo').value;
   const operador=document.getElementById('ag-operador').value;
-  if(!clienteId||!data||!hora||!operador){toast('Preencha cliente, data, horário e operador');return;}
+  if(!clienteId){toast('Selecione um cliente da lista de busca');return;}
+  if(!data||!hora||!operador){toast('Preencha data, horário e operador');return;}
   const dataHora=new Date(data+'T'+hora+':00').toISOString();
   const{error}=await sb.from('agendamentos').insert({
     cliente_id:clienteId,data_hora:dataHora,tipo,operador,
@@ -3010,6 +3076,55 @@ async function salvarAgendamento(){
   });
   if(error){toast('Erro: '+error.message);return;}
   fecharModalAgendamento();toast('Agendamento salvo!');
+  if(document.getElementById('page-agenda').style.display!=='none')await carregarAgendaMes();
+  if(detailId&&clienteId===detailId)await loadDetailAgendamentos(detailId);
+}
+
+// Atalhos: agendar direto pelo card do kanban ou pela ficha
+function abrirAgendamentoRapido(id,nome){abrirModalAgendamento(id,nome);}
+function abrirAgendamentoDoCliente(){
+  if(!detailId){toast('Abra um cliente primeiro');return;}
+  const c=all.find(x=>x.id===detailId);
+  abrirModalAgendamento(detailId,c?.nome||'');
+}
+
+// Carregar agendamentos do cliente na ficha (coluna direita)
+async function loadDetailAgendamentos(cid){
+  const el=document.getElementById('detail-agendamentos');
+  if(!el)return;
+  const{data}=await sb.from('agendamentos')
+    .select('id,data_hora,tipo,descricao,operador,status')
+    .eq('cliente_id',cid).eq('status','ativo')
+    .order('data_hora');
+  if(!data||!data.length){el.innerHTML='<div class="es">Nenhum agendamento</div>';return;}
+  const agora=new Date();
+  el.innerHTML=data.map(a=>{
+    const dt=new Date(a.data_hora);
+    const passou=dt<agora;
+    return`<div style="display:flex;gap:8px;padding:8px 0;border-bottom:.5px solid var(--bd);align-items:flex-start">
+      <div style="text-align:center;min-width:42px">
+        <div style="font-size:13px;font-weight:700;color:var(--navy)">${dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
+        <div style="font-size:10px;color:var(--t3)">${dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</div>
+      </div>
+      <div style="flex:1">
+        <span class="badge ${tipoAgCls(a.tipo)}" style="font-size:10px">${a.tipo}</span>
+        <span style="font-size:10px;color:var(--t3);margin-left:4px">${a.operador||''}</span>
+        ${a.descricao?`<div style="font-size:11px;color:var(--t2);margin-top:2px">${a.descricao}</div>`:''}
+        ${passou?'<div style="font-size:9px;color:var(--t3);margin-top:1px">(realizado/passado)</div>':''}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <button class="ab" style="font-size:10px;padding:2px 6px" onclick="exportarICS(${JSON.stringify({data_hora:a.data_hora,tipo:a.tipo,descricao:a.descricao||''}).replace(/"/g,'&quot;')},'${(all.find(x=>x.id===cid)?.nome||'').replace(/'/g,"\\'")}')" title="Exportar .ics">📅</button>
+        <button class="ab" style="font-size:10px;padding:2px 6px;color:var(--red)" onclick="cancelarAgendamento('${a.id}','${cid}')" title="Cancelar">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function cancelarAgendamento(id,cid){
+  if(!confirm('Cancelar este agendamento?'))return;
+  await sb.from('agendamentos').update({status:'cancelado'}).eq('id',id);
+  toast('Agendamento cancelado');
+  if(cid)await loadDetailAgendamentos(cid);
   if(document.getElementById('page-agenda').style.display!=='none')await carregarAgendaMes();
 }
 

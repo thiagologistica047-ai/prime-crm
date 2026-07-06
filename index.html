@@ -484,6 +484,7 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
   <div class="cnt" id="dash-cnt">
     <!-- KPIs topo -->
     <div class="kpi-row" id="kpi-row"></div>
+    <div class="kpi-row" id="comissao-row" style="display:none;grid-template-columns:repeat(3,1fr)"></div>
     <!-- Drill-down inline (aparece ao clicar em algo) -->
     <div class="drill" id="drill">
       <div class="drill-head"><span id="drill-title">Detalhes</span><span class="drill-close" onclick="fecharDrill()">✕</span></div>
@@ -1433,6 +1434,7 @@ async function reativarPosvenda(id){
 // ── DASHBOARD ────────────────────────────────────────────────
 function renderDashboard(){
   renderKPIs();
+  renderComissao();
   renderFunilEtapas();
   renderProdutividade();
   renderOrigemLeads();
@@ -1494,6 +1496,44 @@ function renderKPIs(){
     </div>`;
 }
 
+function renderComissao(){
+  const row=document.getElementById('comissao-row');
+  if(!row)return;
+  if(usuarioAtual?.role!=='gestor'){row.style.display='none';return;}
+  const base=baseDash();
+  const defs=[['Previsto','#D97706','var(--amber-l)','#92400E'],['A receber','#3B82F6','var(--blue-l)','#1B3A6B'],['Pago','#0E9F6E','var(--green-l)','#065F46']];
+  row.innerHTML=defs.map(function(d){
+    const st=d[0];
+    const lista=base.filter(function(c){return c.comissao_status===st;});
+    const total=lista.reduce(function(s,c){return s+(Number(c.comissao_valor)||0);},0);
+    const totalTxt='R$ '+total.toLocaleString('pt-BR',{minimumFractionDigits:2});
+    return '<div class="kpi-card" style="--kpi-accent:'+d[1]+'" onclick="drillComissao(\''+st+'\')">'
+      +'<div class="kpi-label">Comiss\u00e3o '+st.toLowerCase()+'</div>'
+      +'<div class="kpi-value" style="font-size:20px">'+totalTxt+'</div>'
+      +'<div class="kpi-badge" style="background:'+d[2]+';color:'+d[3]+'">'+lista.length+' cliente'+(lista.length===1?'':'s')+'</div>'
+      +'</div>';
+  }).join('');
+  row.style.display='grid';
+}
+function drillComissao(st){
+  abrirDrillComissao('Comiss\u00e3o '+st.toLowerCase(),baseDash().filter(function(c){return c.comissao_status===st;}));
+}
+function abrirDrillComissao(titulo,lista){
+  document.getElementById('drill-title').textContent=titulo+' ('+lista.length+')';
+  const body=document.getElementById('drill-body');
+  body.innerHTML=lista.length?lista.map(function(c){
+    const val=c.comissao_valor?('R$ '+Number(c.comissao_valor).toLocaleString('pt-BR',{minimumFractionDigits:2})):'\u2014';
+    return '<tr><td class="nm">'+c.nome+(c.legado?'<span class="tag-legado">L</span>':'')+'</td>'
+      +'<td><span class="badge '+(SBADGE[c.status]||'b-gray')+'">'+(c.status||'\u2014')+'</span></td>'
+      +'<td style="font-size:11px">'+(c.operador||c.corretor||'\u2014')+'</td>'
+      +'<td style="font-size:11px">'+(c.origem_lead||'\u2014')+'</td>'
+      +'<td style="font-size:11px;font-weight:600;color:var(--navy)">'+val+'</td>'
+      +'<td><button class="ab" onclick="openDetail(\''+c.id+'\',\'dashboard\')">Ver</button></td></tr>';
+  }).join(''):'<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--t3)">Nenhum cliente</td></tr>';
+  const drill=document.getElementById('drill');
+  drill.classList.add('open');
+  drill.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
 // Cores por etapa (consistentes com a paleta)
 const ETAPA_COR={'Lead':'#1B3A6B','Andamento':'#3B82F6','Condicionado':'#D97706','Reprovado':'#DC2626','Aprovado':'#0E9F6E','Conformidade':'#7C3AED','Assinatura':'#7C3AED','Cartório/Prefeitura':'#EA580C','Concluído':'#0E9F6E'};
 

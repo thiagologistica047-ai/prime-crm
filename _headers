@@ -1,0 +1,17 @@
+# ── CRM Prime — arquivo _headers (Cloudflare Pages) ──
+# Vai na RAIZ do repositório, ao lado do index.html. Nome exato: _headers (sem extensão).
+
+# Todas as páginas: cabeçalhos de segurança / LGPD
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https://pub-0b305b9d5e5d4583ae8671220e88f319.r2.dev https://drive.google.com https://dvkniqxjudcxzpbmptbb.supabase.co; connect-src 'self' https://dvkniqxjudcxzpbmptbb.supabase.co wss://dvkniqxjudcxzpbmptbb.supabase.co https://prime-upload-worker.sistemaintegradocrmprime.workers.dev https://pub-0b305b9d5e5d4583ae8671220e88f319.r2.dev; frame-src https://drive.google.com; object-src 'none'; base-uri 'self'; form-action 'self'
+
+# index e raiz: nunca cachear → todos recebem a atualização na hora + sem dado pessoal em cache pós-logout
+/
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+
+/index.html
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0

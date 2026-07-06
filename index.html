@@ -1033,6 +1033,24 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
   </div>
 </div>
 
+<!-- MODAL RECONECTAR (sessao expirada) -->
+<div class="overlay" id="modal-reconectar" style="z-index:9999">
+  <div class="modal sm">
+    <div class="mh"><h3>Sessão expirada</h3></div>
+    <div class="mb">
+      <div style="font-size:12px;color:var(--t2);background:var(--amber-l);padding:10px 12px;border-radius:var(--rs);line-height:1.6;margin-bottom:10px">
+        Sua sessão expirou por inatividade. Reconecte para continuar — <b>o que você digitou não será perdido</b>.
+      </div>
+      <div class="fl"><label>E-mail</label><input id="rec-email" type="email" readonly style="opacity:.7"></div>
+      <div class="fl" style="margin-top:8px"><label>Senha</label><input id="rec-senha" type="password" placeholder="Sua senha" onkeydown="if(event.key==='Enter')reconectar()"></div>
+      <div id="rec-erro" style="display:none;color:var(--red);font-size:11px;margin-top:6px"></div>
+    </div>
+    <div class="mf">
+      <button class="btn p" onclick="reconectar()" style="width:100%"><i class="ti ti-refresh"></i> <span id="rec-btn-txt">Reconectar</span></button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL NOVO USUÁRIO -->
 <div class="overlay" id="modal-usuario">
   <div class="modal sm">
@@ -1090,7 +1108,50 @@ async function hashSenha(txt){
 
 // ── Init ─────────────────────────────────────────────────────
 window.addEventListener('load',()=>{
-  sb=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+  sb=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false,autoRefreshToken:true,detectSessionInUrl:false}});
+  // ── Sessao viva + reconexao sem perder dados ──
+  sb.auth.onAuthStateChange(function(_e,session){ if(session&&session.access_token) window._authToken=session.access_token; });
+  async function checarSessao(){
+    if(!usuarioAtual) return;
+    try{
+      const{data}=await sb.auth.getSession();
+      const s=data&&data.session;
+      if(!s){ mostrarReconectar(); return; }
+      const exp=s.expires_at?s.expires_at*1000:0;
+      if(exp && (exp-Date.now())<5*60*1000){
+        const{data:r,error}=await sb.auth.refreshSession();
+        if(error||!(r&&r.session)){ mostrarReconectar(); }
+        else{ window._authToken=r.session.access_token; }
+      }
+    }catch(e){}
+  }
+  function mostrarReconectar(){
+    const ov=document.getElementById('modal-reconectar');
+    if(!ov||ov.classList.contains('open')) return;
+    const em=document.getElementById('rec-email'); if(em) em.value=(usuarioAtual&&usuarioAtual.email)||'';
+    document.getElementById('rec-erro').style.display='none';
+    document.getElementById('rec-senha').value='';
+    ov.classList.add('open');
+    setTimeout(function(){ const p=document.getElementById('rec-senha'); if(p)p.focus(); },100);
+  }
+  async function reconectar(){
+    const email=(usuarioAtual&&usuarioAtual.email)||document.getElementById('rec-email').value;
+    const senha=document.getElementById('rec-senha').value;
+    const erro=document.getElementById('rec-erro');
+    const btn=document.getElementById('rec-btn-txt');
+    if(!senha){ erro.textContent='Informe a senha.'; erro.style.display='block'; return; }
+    btn.textContent='Reconectando...';
+    const{data,error}=await sb.auth.signInWithPassword({email,password:senha});
+    btn.textContent='Reconectar';
+    if(error||!(data&&data.session)){ erro.textContent='Senha incorreta. Tente novamente.'; erro.style.display='block'; return; }
+    window._authToken=data.session.access_token;
+    document.getElementById('modal-reconectar').classList.remove('open');
+    toast('Reconectado! Pode salvar novamente.');
+  }
+  window.reconectar=reconectar;
+  setInterval(checarSessao, 4*60*1000);
+  window.addEventListener('focus', checarSessao);
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) checarSessao(); });
   document.getElementById('page-login').style.display='flex';
   document.getElementById('main-app').style.display='none';
 });
@@ -1555,6 +1616,8 @@ function renderFunilEtapas(){
     const pct=Math.round((qtd/total)*100);
     const cor=ETAPA_COR[s]||'#64748B';
     const tm=tempoMedioEtapa(s,base);
+    const r1c=base.filter(c=>c.status===s&&c.em_alerta_r1).length;
+    const r2c=base.filter(c=>c.status===s&&c.em_alerta_r2).length;
     const dash=circ*(1-pct/100);
     const tempoTxt=tm===null?'sem dados':tm===0?'< 1 dia':tm===1?'1 dia parado':`${tm} dias parado`;
     const tempoCor=tm===null?'var(--t3)':tm>=15?'#991B1B':tm>=7?'#92400E':'#065F46';
@@ -1572,6 +1635,7 @@ function renderFunilEtapas(){
         <span style="font-size:11px;color:var(--t3)">cliente${qtd!==1?'s':''}</span>
       </div>
       <div class="etapa-tempo" style="color:${tempoCor}">⏱ ${tempoTxt}</div>
+      ${(r1c||r2c)?`<div style="font-size:10px;margin-top:5px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${r1c?`<span style="color:#991B1B;font-weight:800">⚠ ${r1c} sem contato</span>`:''}${r2c?`<span style="color:#92400E;font-weight:800">🔴 ${r2c} parado${r2c!==1?'s':''}</span>`:''}</div>`:''}
     </div>`;
   }).join('');
   // Animar rings
@@ -1701,7 +1765,7 @@ function renderTempoDetalhe(base){
         <div style="font-size:24px;font-weight:900;color:${media>=15?'var(--red)':media>=7?'var(--accent)':'var(--green)'};line-height:1.2">${media}d</div>
       </div>
       <div style="background:var(--bg);border-radius:var(--rs);padding:10px 16px;flex:1;min-width:100px">
-        <div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.6px">Em alerta R2</div>
+        <div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.6px">Parados na etapa</div>
         <div style="font-size:24px;font-weight:900;color:${comAlerta>0?'var(--red)':'var(--green)'};line-height:1.2">${comAlerta}</div>
       </div>
       <div style="background:var(--bg);border-radius:var(--rs);padding:10px 16px;flex:1;min-width:100px">
@@ -1783,7 +1847,7 @@ function abrirDrill(titulo,lista){
   document.getElementById('drill-title').textContent=titulo+` (${lista.length})`;
   const body=document.getElementById('drill-body');
   body.innerHTML=lista.length?lista.map(c=>{
-    const info=c.em_alerta_r1?`<span style="color:var(--red);font-weight:600">R1</span>`:c.dt_entrada_etapa?`${Math.floor((Date.now()-new Date(c.dt_entrada_etapa))/86400000)}d na etapa`:'—';
+    const info=c.em_alerta_r1?`<span style="color:var(--red);font-weight:600">Sem contato</span>`:c.dt_entrada_etapa?`${Math.floor((Date.now()-new Date(c.dt_entrada_etapa))/86400000)}d na etapa`:'—';
     return`<tr>
       <td class="nm">${c.nome}${c.legado?'<span class="tag-legado">L</span>':''}</td>
       <td><span class="badge ${SBADGE[c.status]||'b-gray'}">${c.status||'—'}</span></td>
@@ -1814,8 +1878,8 @@ function drillTodos(){
 
 function drillEmAndamento(){abrirDrill('Em andamento',baseDash().filter(c=>!['Concluído','Reprovado','Lead'].includes(c.status)));}
 function drillAlerta(tipo){
-  if(tipo==='r1')abrirDrill('Precisam de contato (R1)',baseDash().filter(c=>c.em_alerta_r1));
-  else abrirDrill('Parados na etapa (R2)',baseDash().filter(c=>c.em_alerta_r2));
+  if(tipo==='r1')abrirDrill('Sem contato',baseDash().filter(c=>c.em_alerta_r1));
+  else abrirDrill('Parados na etapa',baseDash().filter(c=>c.em_alerta_r2));
 }
 function drillOperador(op){abrirDrill('Operador: '+op,baseDash().filter(c=>c.operador===op||c.corretor===op));}
 function drillOrigem(o){abrirDrill('Origem: '+o,baseDash().filter(c=>c.origem_lead===o));}
@@ -2715,15 +2779,25 @@ async function mostrarPopupAlertas(){
   if(!total)return;
   let html2='<div style="display:flex;border-bottom:.5px solid var(--bd);margin-bottom:12px" id="popup-tab-bar">';
   const abas=[];
-  if(r1.length)abas.push({id:'r1',label:`⚠ R1 (${r1.length})`});
-  if(r2.length)abas.push({id:'r2',label:`🔴 R2 (${r2.length})`});
+  if(r1.length)abas.push({id:'r1',label:`⚠ Sem contato (${r1.length})`});
+  if(r2.length)abas.push({id:'r2',label:`🔴 Parado na etapa (${r2.length})`});
   if(agHoje.length)abas.push({id:'ag-hoje',label:`📅 Hoje (${agHoje.length})`});
   if(agAmanha.length)abas.push({id:'ag-amanha',label:`🗓 Amanhã (${agAmanha.length})`});
   html2+=abas.map((a,i)=>`<button onclick="popupAba('${a.id}')" id="popup-tab-${a.id}" style="flex:1;padding:8px;border:none;background:${i===0?'var(--sf2)':'none'};cursor:pointer;font-size:11px;font-weight:600;color:${i===0?'var(--navy)':'var(--t2)'};border-bottom:${i===0?'2px solid var(--navy)':'2px solid transparent'}">${a.label}</button>`).join('');
   html2+='</div>';
   function entradas(lista,fn){return lista.length?lista.map(fn).join(''):'<div style="padding:16px;text-align:center;font-size:12px;color:var(--t3)">Sem alertas</div>';}
-  html2+=`<div id="popup-tab-r1" style="display:${r1.length&&abas[0]?.id==='r1'?'block':'none'}">${entradas(r1,a=>`<div class="alert-card" style="background:var(--amber-l);border:.5px solid var(--amber)" onclick="openDetail('${a.cliente_id}','clientes');fecharPopup()"><div class="alert-icon">⚠</div><div><div class="alert-title">${a.nome}</div><div class="alert-desc">${a.status} · ${a.operador} · ${a.dias_atraso} dias sem contato</div></div><i class="ti ti-chevron-right alert-chev"></i></div>`)}</div>`;
-  html2+=`<div id="popup-tab-r2" style="display:${r2.length&&abas[0]?.id==='r2'?'block':'none'}">${entradas(r2,a=>`<div class="alert-card" style="background:var(--red-l);border:.5px solid var(--red)" onclick="openDetail('${a.cliente_id}','clientes');fecharPopup()"><div class="alert-icon">🔴</div><div><div class="alert-title">${a.nome}</div><div class="alert-desc">${a.status} · ${a.operador} · ${a.dias_atraso} dias na etapa</div></div><i class="ti ti-chevron-right alert-chev"></i></div>`)}</div>`;
+  function entradasGrupo(lista,cor,borda,icon,sufixo){
+    if(!lista.length)return '<div style="padding:16px;text-align:center;font-size:12px;color:var(--t3)">Sem alertas</div>';
+    const g={};lista.forEach(a=>{(g[a.status]=g[a.status]||[]).push(a);});
+    const ord=Object.keys(g).sort((x,y)=>g[y].length-g[x].length);
+    return ord.map(function(et){
+      return '<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:800;color:var(--navy);padding:6px 4px;border-bottom:.5px solid var(--bd);margin-bottom:4px;display:flex;justify-content:space-between"><span>\ud83d\udccd '+et+'</span><span style="color:var(--red)">'+g[et].length+'</span></div>'
+        +g[et].map(function(a){return '<div class="alert-card" style="background:'+cor+';border:.5px solid '+borda+'" onclick="openDetail(\''+a.cliente_id+'\',\'clientes\');fecharPopup()"><div class="alert-icon">'+icon+'</div><div><div class="alert-title">'+a.nome+'</div><div class="alert-desc">'+(a.operador||'\u2014')+' \u00b7 '+a.dias_atraso+' '+sufixo+'</div></div><i class="ti ti-chevron-right alert-chev"></i></div>';}).join('')
+        +'</div>';
+    }).join('');
+  }
+  html2+=`<div id="popup-tab-r1" style="display:${r1.length&&abas[0]?.id==='r1'?'block':'none'}">${entradasGrupo(r1,'var(--amber-l)','var(--amber)','⚠','dias sem contato')}</div>`;
+  html2+=`<div id="popup-tab-r2" style="display:${r2.length&&abas[0]?.id==='r2'?'block':'none'}">${entradasGrupo(r2,'var(--red-l)','var(--red)','🔴','dias na etapa')}</div>`;
   html2+=`<div id="popup-tab-ag-hoje" style="display:${agHoje.length&&abas[0]?.id==='ag-hoje'?'block':'none'}">${entradas(agHoje,a=>`<div class="alert-card" style="background:var(--blue-l);border:.5px solid var(--blue)" onclick="go('agenda');fecharPopup()"><div class="alert-icon">📅</div><div><div class="alert-title">${a.cliente_nome}</div><div class="alert-desc">${new Date(a.data_hora).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · ${a.tipo} · ${a.operador}</div></div><i class="ti ti-chevron-right alert-chev"></i></div>`)}</div>`;
   html2+=`<div id="popup-tab-ag-amanha" style="display:${agAmanha.length&&abas[0]?.id==='ag-amanha'?'block':'none'}">${entradas(agAmanha,a=>`<div class="alert-card" style="background:var(--green-l);border:.5px solid var(--green)" onclick="go('agenda');fecharPopup()"><div class="alert-icon">🗓</div><div><div class="alert-title">${a.cliente_nome}</div><div class="alert-desc">${new Date(a.data_hora).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · ${a.tipo} · ${a.operador}</div></div><i class="ti ti-chevron-right alert-chev"></i></div>`)}</div>`;
   document.getElementById('popup-lista').innerHTML=html2;

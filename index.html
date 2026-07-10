@@ -416,7 +416,7 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
         <button class="fbtn active" data-tipo="origem" data-val="" onclick="filtroLead(this)">Todas</button>
         <button class="fbtn" data-tipo="origem" data-val="WhatsApp" onclick="filtroLead(this)">WhatsApp</button>
         <button class="fbtn" data-tipo="origem" data-val="Indicação" onclick="filtroLead(this)">Indicação</button>
-        <button class="fbtn" data-tipo="origem" data-val="Manual" onclick="filtroLead(this)">Manual</button>
+        <button class="fbtn" data-tipo="origem" data-val="Corretor" onclick="filtroLead(this)">Corretor</button>
         <button class="fbtn" data-tipo="origem" data-val="Facebook/Instagram" onclick="filtroLead(this)">Face/Insta</button>
         <button class="fbtn" data-tipo="origem" data-val="Outros" onclick="filtroLead(this)">Outros</button>
       </div>
@@ -500,7 +500,7 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
         <div id="prod-operador"></div>
       </div>
       <div class="panel">
-        <div class="panel-title">Origem dos leads</div>
+        <div class="panel-title">Origem dos Clientes</div>
         <div id="origem-leads"></div>
       </div>
     </div>
@@ -581,7 +581,7 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
           </select>
           <select id="fStatus" onchange="filterTable()">
             <option value="">Todos os status</option>
-            <option>Lead</option><option>Andamento</option><option>Condicionado</option>
+            <option>Triagem</option><option>Andamento</option><option>Condicionado</option>
             <option>Reprovado</option><option>Aprovado</option><option>Conformidade</option>
             <option>Assinatura</option><option>Cartório/Prefeitura</option><option>Concluído</option><option>Pós-venda</option>
           </select>
@@ -762,7 +762,7 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
         <div class="fl" id="f-operador-outro-wrap" style="display:none"><label>Nome do operador</label><input id="f-operador-outro" type="text" placeholder="Digite o nome"></div>
         <div class="fl"><label>Status *</label>
           <select id="f-status">
-            <option>Lead</option><option>Andamento</option><option>Condicionado</option>
+            <option>Triagem</option><option>Andamento</option><option>Condicionado</option>
             <option>Reprovado</option><option>Aprovado</option><option>Conformidade</option>
             <option>Assinatura</option><option>Cartório/Prefeitura</option><option>Concluído</option><option>Pós-venda</option>
           </select>
@@ -777,15 +777,15 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
         </div>
         <div class="fl"><label>Indicado por / Parceiro</label><input id="f-indicado" type="text" placeholder="Nome do indicador..."></div>
         <div class="fl"><label>Corretor externo</label>
-          <select id="f-corretor-ext"><option value="">Nenhum</option></select>
+          <input id="f-corretor-ext" type="text" placeholder="Nome do corretor externo...">
         </div>
         <div class="fl"><label>Construtor / Vendedor</label>
-          <select id="f-construtor"><option value="">Nenhum</option></select>
+          <input id="f-construtor" type="text" placeholder="Nome do construtor ou vendedor...">
         </div>
         <div class="fl"><label>Data de entrada</label><input id="f-dtentrada" type="date"></div>
         <div class="fl"><label>Agência</label><input id="f-agencia" type="text" placeholder="Ex: AG 1041, AG 1088..."></div>
-        <div class="fl"><label>Origem do lead</label>
-          <select id="f-origem-lead"><option value="">Selecione</option><option>WhatsApp</option><option>Indicação</option><option>Manual</option><option>Facebook/Instagram</option><option>Outros</option></select>
+        <div class="fl"><label>Origem do Cliente</label>
+          <select id="f-origem-lead"><option value="">Selecione</option><option>WhatsApp</option><option>Indicação</option><option>Corretor</option><option>Facebook/Instagram</option><option>Outros</option></select>
         </div>
         <div class="fl"><label>Situação do lead</label>
           <select id="f-situacao-lead"><option value="">Selecione</option><option>Novo</option><option>Em contato</option><option>Sem resposta</option><option>Quente</option><option>Frio</option></select>
@@ -893,7 +893,7 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
         <div class="fl"><label>Mover para status</label>
           <select id="int-status">
             <option value="">Manter status atual</option>
-            <option>Lead</option><option>Andamento</option><option>Condicionado</option>
+            <option>Triagem</option><option>Andamento</option><option>Condicionado</option>
             <option>Reprovado</option><option>Aprovado</option><option>Conformidade</option>
             <option>Assinatura</option><option>Cartório/Prefeitura</option><option>Concluído</option><option>Pós-venda</option>
           </select>
@@ -1086,17 +1086,17 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 
 let sb, all=[], filtered=[], pg=0, PER=25, detailId=null, editId=null, charts={};
 let usuarioAtual=null, editUsuarioId=null, voltarPara='kanban', interacaoClienteId=null;
-let corretores=[], construtores=[], etapasConfig=[], operadoresList=[];
+let etapasConfig=[], operadoresList=[];
 let filtroOrigemLead='', filtroSituacaoLead='';
 
-const STATUS_ORDER=['Lead','Andamento','Condicionado','Reprovado','Aprovado','Conformidade','Assinatura','Cartório/Prefeitura','Concluído'];
-const SBADGE={'Lead':'b-teal','Andamento':'b-blue','Condicionado':'b-amber','Reprovado':'b-red','Aprovado':'b-green','Conformidade':'b-purple','Assinatura':'b-purple','Cartório/Prefeitura':'b-coral','Concluído':'b-green','Pós-venda':'b-gray'};
+const STATUS_ORDER=['Triagem','Andamento','Condicionado','Reprovado','Aprovado','Conformidade','Assinatura','Cartório/Prefeitura','Concluído'];
+const SBADGE={'Triagem':'b-teal','Andamento':'b-blue','Condicionado':'b-amber','Reprovado':'b-red','Aprovado':'b-green','Conformidade':'b-purple','Assinatura':'b-purple','Cartório/Prefeitura':'b-coral','Concluído':'b-green','Pós-venda':'b-gray'};
 const PBADGE={'Habitacional MCMV':'b-teal','Habitacional SBPE':'b-teal','Reforma Brasil':'b-green','Conta Corrente':'b-blue','Poupança':'b-blue','Cartão de Crédito':'b-purple','Consórcio':'b-amber','Consignado':'b-amber','Seguro de Vida':'b-green','Rapidex/Amparo':'b-gray','Múltiplo':'b-purple'};
 const COLS=['#185FA5','#3B6D11','#854F0B','#A32D2D','#0F6E56','#534AB7','#993C1D','#888780','#D4537E','#378ADD'];
-const ORIGEM_BADGE={'WhatsApp':'b-green','Indicação':'b-purple','Manual':'b-gray','Facebook/Instagram':'b-blue','Outros':'b-amber'};
+const ORIGEM_BADGE={'WhatsApp':'b-green','Indicação':'b-purple','Corretor':'b-gray','Facebook/Instagram':'b-blue','Outros':'b-amber'};
 const SIT_BADGE={'Novo':'b-teal','Em contato':'b-blue','Sem resposta':'b-amber','Quente':'b-red','Frio':'b-gray'};
 const SIT_ICON={'Novo':'🆕','Em contato':'💬','Sem resposta':'⏳','Quente':'🔥','Frio':'❄️'};
-const ORIGEM_OPCOES=['WhatsApp','Indicação','Manual','Facebook/Instagram','Outros'];
+const ORIGEM_OPCOES=['WhatsApp','Indicação','Corretor','Facebook/Instagram','Outros'];
 const SIT_OPCOES=['Novo','Em contato','Sem resposta','Quente','Frio'];
 const PC_IDS=['pc-hab','pc-sbpe','pc-cc','pc-poup','pc-cart','pc-cons','pc-csig','pc-seg','pc-rpx'];
 
@@ -1229,18 +1229,16 @@ async function loadAll(){
   // Recalcular alertas via RPC
   await sb.rpc('fn_recalcular_alertas');
   // Carregar dados em paralelo
-  const[{data:cls},{data:corr},{data:const_},{data:etapas},{data:ops}]=await Promise.all([
+  const[{data:cls},{data:etapas},{data:ops}]=await Promise.all([
     sb.from('clientes').select(usuarioAtual?.role==='gestor'
       ?'id,nome,cpf,telefone,email,produto,status,operador,corretor,indicado_por,corretor_externo,construtor_vendedor,observacoes,origem_arquivo,dt_entrada,dt_atualizacao,legado,tem_card,em_alerta_r1,em_alerta_r2,proxima_interacao,ultima_interacao,dt_entrada_etapa,renda_principal,renda_secundaria,renda_total,valor_imovel,valor_financiamento,valor_subsidio,valor_prestacao,numero_contrato,comissao_valor,comissao_status,comissao_obs,produtos_contratados,agencia,origem_lead,situacao_lead'
       :'id,nome,cpf,telefone,email,produto,status,operador,corretor,indicado_por,corretor_externo,construtor_vendedor,observacoes,origem_arquivo,dt_entrada,dt_atualizacao,legado,tem_card,em_alerta_r1,em_alerta_r2,proxima_interacao,ultima_interacao,dt_entrada_etapa,renda_principal,renda_secundaria,renda_total,valor_imovel,valor_financiamento,valor_subsidio,valor_prestacao,numero_contrato,produtos_contratados,agencia,origem_lead,situacao_lead'
     ).order('nome'),
-    sb.from('corretores').select('nome').eq('ativo',true).order('nome'),
-    sb.from('construtores').select('nome,tipo').eq('ativo',true).order('nome'),
     sb.from('etapas_config').select('nome_etapa,prazo_r1_dias,prazo_r2_dias'),
     sb.from('operadores').select('nome,role').eq('ativo',true).order('nome')
   ]);
   all=cls||[];filtered=[...all];
-  corretores=corr||[];construtores=const_||[];etapasConfig=etapas||[];operadoresList=ops||[];
+  etapasConfig=etapas||[];operadoresList=ops||[];
   popularSelectCorretores();
   renderKanban();renderPosvenda();renderTable();
   // Re-renderizar dashboard/operacional se estiverem ativos (só gestor)
@@ -1262,12 +1260,6 @@ function popularSelectCorretores(){
   // Filtro de operador no kanban
   const kOp=document.getElementById('kanban-op');
   if(kOp)kOp.innerHTML='<option value="">Todos os operadores</option>'+operadoresList.map(o=>`<option>${o.nome}</option>`).join('');
-  // Corretor externo (tabela corretores — lista separada)
-  const cExt=document.getElementById('f-corretor-ext');
-  if(cExt)cExt.innerHTML='<option value="">Nenhum</option>'+corretores.map(c=>`<option>${c.nome}</option>`).join('');
-  // Construtores/vendedores
-  const cCons=document.getElementById('f-construtor');
-  if(cCons)cCons.innerHTML='<option value="">Nenhum</option>'+construtores.map(c=>`<option>${c.nome} (${c.tipo})</option>`).join('');
 }
 
 // ── Navegação ────────────────────────────────────────────────
@@ -1525,8 +1517,8 @@ function renderKPIs(){
   const base=baseDash();
   const t=base.length;
   const con=base.filter(c=>c.status==='Concluído').length;
-  const and=base.filter(c=>!['Concluído','Reprovado','Lead'].includes(c.status)).length;
-  const leads=base.filter(c=>c.status==='Lead').length;
+  const and=base.filter(c=>!['Concluído','Reprovado','Triagem'].includes(c.status)).length;
+  const leads=base.filter(c=>c.status==='Triagem').length;
   const r1=base.filter(c=>c.em_alerta_r1).length;
   const conv=t>0?Math.round((con/t)*100):0;
   document.getElementById('kpi-row').innerHTML=`
@@ -1535,8 +1527,8 @@ function renderKPIs(){
       <div class="kpi-value">${t}</div>
       <div class="kpi-badge" style="background:var(--green-l);color:#065F46">na base</div>
     </div>
-    <div class="kpi-card" style="--kpi-accent:var(--navy)" onclick="drillStatus('Lead')">
-      <div class="kpi-label">Leads ativos</div>
+    <div class="kpi-card" style="--kpi-accent:var(--navy)" onclick="drillStatus('Triagem')">
+      <div class="kpi-label">Em triagem</div>
       <div class="kpi-value">${leads}</div>
       <div class="kpi-badge" style="background:var(--blue-l);color:#1B3A6B">entrada do funil</div>
     </div>
@@ -1596,7 +1588,7 @@ function abrirDrillComissao(titulo,lista){
   drill.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 // Cores por etapa (consistentes com a paleta)
-const ETAPA_COR={'Lead':'#1B3A6B','Andamento':'#3B82F6','Condicionado':'#D97706','Reprovado':'#DC2626','Aprovado':'#0E9F6E','Conformidade':'#7C3AED','Assinatura':'#7C3AED','Cartório/Prefeitura':'#EA580C','Concluído':'#0E9F6E'};
+const ETAPA_COR={'Triagem':'#1B3A6B','Andamento':'#3B82F6','Condicionado':'#D97706','Reprovado':'#DC2626','Aprovado':'#0E9F6E','Conformidade':'#7C3AED','Assinatura':'#7C3AED','Cartório/Prefeitura':'#EA580C','Concluído':'#0E9F6E'};
 
 function tempoMedioEtapa(status,base){
   // Tempo médio dos clientes que estão AGORA nesta etapa (dt_entrada_etapa)
@@ -1670,12 +1662,12 @@ function renderOrigemLeads(){
   base.forEach(c=>{const o=c.origem_lead||'Não informado';og[o]=(og[o]||0)+1;});
   const origens=Object.keys(og).sort((a,b)=>og[b]-og[a]);
   const total=base.length||1;
-  const coresO={'WhatsApp':'#0E9F6E','Indicação':'#7C3AED','Manual':'#64748B','Facebook/Instagram':'#3B82F6','Outros':'#D97706','Não informado':'#CBD5E1'};
+  const coresO={'WhatsApp':'#0E9F6E','Indicação':'#7C3AED','Corretor':'#64748B','Facebook/Instagram':'#3B82F6','Outros':'#D97706','Não informado':'#CBD5E1'};
   const el=document.getElementById('origem-leads');
   el.innerHTML=origens.length?origens.map(o=>{
     const qtd=og[o],pct=Math.round((qtd/total)*100),cor=coresO[o]||'#64748B';
     return`<div class="bar-item" style="cursor:${o!=='Não informado'?'pointer':'default'}" ${o!=='Não informado'?`onclick="drillOrigem('${o.replace(/'/g,"\\'")}')"`:''}>
-      <div class="bar-dot" style="background:${cor};font-size:13px">${o==='WhatsApp'?'📱':o==='Indicação'?'🤝':o==='Manual'?'✍️':o==='Facebook/Instagram'?'📲':o==='Outros'?'•':'?'}</div>
+      <div class="bar-dot" style="background:${cor};font-size:13px">${o==='WhatsApp'?'📱':o==='Indicação'?'🤝':o==='Corretor'?'🧑‍💼':o==='Facebook/Instagram'?'📲':o==='Outros'?'•':'?'}</div>
       <div class="bar-content">
         <div class="bar-head"><span class="bar-name">${o}</span><span class="bar-val" style="color:${cor}">${qtd} · ${pct}%</span></div>
         <div class="bar-track"><div class="bar-fill" style="width:0%;background:${cor}" data-w="${pct}%"></div></div>
@@ -1876,7 +1868,7 @@ function drillTodos(){
   document.getElementById('drill').classList.add('open');
 }
 
-function drillEmAndamento(){abrirDrill('Em andamento',baseDash().filter(c=>!['Concluído','Reprovado','Lead'].includes(c.status)));}
+function drillEmAndamento(){abrirDrill('Em andamento',baseDash().filter(c=>!['Concluído','Reprovado','Triagem'].includes(c.status)));}
 function drillAlerta(tipo){
   if(tipo==='r1')abrirDrill('Sem contato',baseDash().filter(c=>c.em_alerta_r1));
   else abrirDrill('Parados na etapa',baseDash().filter(c=>c.em_alerta_r2));
@@ -2036,7 +2028,7 @@ async function openDetail(id,from){
     ['Operador',c.operador||c.corretor||'—'],['Indicado por',c.indicado_por||'—'],
     ['Corretor externo',c.corretor_externo||'—'],['Construtor/Vendedor',c.construtor_vendedor||'—'],
     ['Agência',c.agencia||'—'],
-    ['Origem do lead',c.origem_lead||'—'],
+    ['Origem do Cliente',c.origem_lead||'—'],
     ['Situação do lead',c.situacao_lead?(SIT_ICON[c.situacao_lead]||'')+' '+c.situacao_lead:'—'],
     ['Renda total',c.renda_total?'R$ '+Number(c.renda_total).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'],
   ];
@@ -2161,7 +2153,7 @@ function openEdit(id){
   document.getElementById('f-nome').value=c.nome||'';document.getElementById('f-cpf').value=c.cpf||'';
   document.getElementById('f-tel').value=c.telefone||'';document.getElementById('f-email').value=c.email||'';
   document.getElementById('f-operador').value=c.operador||'';
-  document.getElementById('f-status').value=c.status||'Lead';
+  document.getElementById('f-status').value=c.status||'Triagem';
   document.getElementById('f-prod').value=c.produto||'';toggleHabFields();
   document.getElementById('f-indicado').value=c.indicado_por||'';
   document.getElementById('f-corretor-ext').value=c.corretor_externo||'';
@@ -2205,7 +2197,7 @@ function clearForm(){
    'f-renda1','f-renda2','f-renda-total','f-vimovel','f-vfinanc','f-vsubsidio','f-vprestacao','f-contrato',
    'f-comval','f-comobs','f-agencia'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
   document.getElementById('f-operador').value='';
-  document.getElementById('f-status').value='Lead';
+  document.getElementById('f-status').value='Triagem';
   document.getElementById('f-prod').value='';
   document.getElementById('f-corretor-ext').value='';
   document.getElementById('f-construtor').value='';
@@ -2286,9 +2278,8 @@ async function saveCliente(){
   // produto: string vazia vira null para não violar o enum
   const produtoVal=document.getElementById('f-prod').value||null;
 
-  // construtor_vendedor: remover o sufixo " (tipo)" que vem do select
-  const construtorRaw=document.getElementById('f-construtor').value||'';
-  const construtorVal=construtorRaw?construtorRaw.replace(/\s*\(.*?\)\s*$/,'').trim()||null:null;
+  // construtor_vendedor: agora é texto livre digitado pelo usuário
+  const construtorVal=document.getElementById('f-construtor').value.trim()||null;
 
   const produtosContratados=PC_IDS.map(pid=>document.getElementById(pid)).filter(el=>el&&el.checked).map(el=>el.value);
   const operadorVal=document.getElementById('f-operador').value;
@@ -2304,7 +2295,7 @@ async function saveCliente(){
     status:document.getElementById('f-status').value,
     operador:operadorFinal,
     indicado_por:document.getElementById('f-indicado').value.trim()||null,
-    corretor_externo:document.getElementById('f-corretor-ext').value||null,
+    corretor_externo:document.getElementById('f-corretor-ext').value.trim()||null,
     construtor_vendedor:construtorVal,
     origem_arquivo:document.getElementById('f-origem').value.trim()||null,
     observacoes:document.getElementById('f-obs').value.trim()||null,

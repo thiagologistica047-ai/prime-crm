@@ -3034,11 +3034,10 @@ async function carregarAgenda(){
 async function carregarAgendaMes(){
   const ini=new Date(_calAno,_calMes,1).toISOString();
   const fim=new Date(_calAno,_calMes+1,0,23,59,59).toISOString();
-  let q=sb.from('agendamentos')
+  // Agenda compartilhada: todos os usuários (gestor ou operador) veem os agendamentos da equipe inteira.
+  const{data}=await sb.from('agendamentos')
     .select('id,data_hora,tipo,descricao,operador,status,cliente_id,clientes(nome)')
     .eq('status','ativo').gte('data_hora',ini).lte('data_hora',fim).order('data_hora');
-  if(usuarioAtual?.role!=='gestor')q=q.eq('operador',usuarioAtual.nome);
-  const{data}=await q;
   _calAgs=data||[];
   renderCalMes();
   if(_calDiaSel)renderDiaSel(_calDiaSel);

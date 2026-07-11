@@ -372,6 +372,7 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
     <div class="ni" data-page="posvenda" onclick="go('posvenda')"><i class="ti ti-archive"></i> Pós-venda</div>
     <div class="ni" data-page="vistorias" onclick="go('vistorias')"><i class="ti ti-home-search"></i> Vistorias</div>
     <div class="ni" id="nav-agenda" data-page="agenda" onclick="go('agenda')"><i class="ti ti-calendar-event"></i> Agenda</div>
+    <div class="ni" data-page="conversas" onclick="go('conversas')"><i class="ti ti-brand-whatsapp"></i> Conversas</div>
     <div class="ns" id="nav-sec-gestao">Gestão</div>
     <div class="ni" id="nav-dashboard" data-page="dashboard" style="display:none" onclick="go('dashboard')"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
     <div class="ni" id="nav-operacional" data-page="operacional" style="display:none" onclick="go('operacional')"><i class="ti ti-target"></i> Operacional</div>
@@ -612,6 +613,31 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
 </div>
 
 <!-- AGENDA (só gestores) -->
+<div id="page-conversas" class="page" style="display:none;flex-direction:column">
+  <div class="hdr">
+    <div class="hdr-title"><i class="ti ti-brand-whatsapp"></i> Conversas</div>
+    <div class="hdr-acts">
+      <button class="btn" onclick="carregarConversas()"><i class="ti ti-refresh"></i> Atualizar</button>
+    </div>
+  </div>
+  <div class="cnt" style="overflow:hidden;display:grid;grid-template-columns:300px 1fr;gap:12px;align-items:stretch">
+    <div id="conv-lista" style="overflow-y:auto;border:1px solid var(--bd,#E2E8F0);border-radius:8px"></div>
+    <div id="conv-painel" style="overflow:hidden;border:1px solid var(--bd,#E2E8F0);border-radius:8px;display:flex;flex-direction:column">
+      <div id="conv-vazio" style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--t3);font-size:13px;text-align:center">Selecione uma conversa à esquerda para visualizar.</div>
+      <div id="conv-aberta" style="display:none;flex-direction:column;height:100%">
+        <div id="conv-header" style="padding:12px;border-bottom:1px solid var(--bd,#E2E8F0)"></div>
+        <div id="conv-mensagens" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px"></div>
+        <div style="padding:12px;border-top:1px solid var(--bd,#E2E8F0)">
+          <div style="display:flex;gap:8px">
+            <input id="conv-input" type="text" placeholder="Envio disponível quando o WhatsApp for conectado" disabled style="flex:1;padding:8px 12px;border:1px solid var(--bd,#E2E8F0);border-radius:8px;font-size:13px;background:var(--bg,#F1F5F9);color:var(--t3)">
+            <button class="btn" disabled title="Disponível quando o WhatsApp for conectado" style="opacity:.5;cursor:not-allowed"><i class="ti ti-send"></i></button>
+          </div>
+          <div style="font-size:10px;color:var(--t3);margin-top:6px"><i class="ti ti-info-circle"></i> O envio de mensagens será ativado quando a integração com o WhatsApp estiver concluída.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 <div id="page-agenda" class="page" style="display:none;flex-direction:column">
   <div class="hdr">
     <div class="hdr-title">Agenda — Agendamentos</div>
@@ -689,6 +715,12 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
         </div>
       </div>
       <div class="dc">
+        <div class="card">
+          <div class="card-t">
+            <i class="ti ti-brand-whatsapp"></i> Conversa WhatsApp
+          </div>
+          <div id="detail-conversa"><div class="es">Carregando...</div></div>
+        </div>
         <div class="card">
           <div class="card-t">
             Documentos
@@ -1281,6 +1313,59 @@ function go(p){
   if(p==='dashboard')renderDashboard();
   if(p==='posvenda')renderPosvenda();
   if(p==='agenda')carregarAgenda();
+  if(p==='conversas')carregarConversas();
+}
+
+async function carregarConversas(){
+  if(!sb)return;
+  const lista=document.getElementById('conv-lista');
+  lista.innerHTML='<div style="text-align:center;padding:30px;color:var(--t3);font-size:13px">Carregando...</div>';
+  const{data,error}=await sb.from('wa_conversas')
+    .select('id,telefone,nome_perfil,status,ultima_mensagem_em,cliente_id,cliente:clientes!wa_conversas_cliente_id_fkey(nome)')
+    .order('ultima_mensagem_em',{ascending:false,nullsFirst:false})
+    .range(0,19);
+  if(error){lista.innerHTML='<div style="text-align:center;padding:30px;color:var(--red);font-size:13px">Erro ao carregar conversas.</div>';console.error(error);return;}
+  if(!data||!data.length){lista.innerHTML='<div style="text-align:center;padding:40px;color:var(--t3);font-size:13px"><i class="ti ti-message-off" style="font-size:32px;display:block;margin-bottom:8px;opacity:.4"></i>Nenhuma conversa ainda.<br><span style="font-size:11px">As conversas do WhatsApp aparecerão aqui.</span></div>';return;}
+  lista.innerHTML=data.map(function(c){
+    const nome=c.cliente?c.cliente.nome:(c.nome_perfil||c.telefone);
+    const naFila=c.status==='fila';
+    const badge=naFila?'<span style="font-size:10px;background:var(--amber-bg,#FEF3C7);color:#92400E;padding:2px 8px;border-radius:10px">Não atribuída</span>':'';
+    return '<div style="padding:12px;border-bottom:1px solid var(--bd,#E2E8F0);cursor:pointer" onclick="abrirConversa(\''+c.id+'\')">'
+      +'<div style="display:flex;justify-content:space-between;align-items:baseline">'
+      +'<span style="font-size:14px;font-weight:600">'+nome+'</span>'
+      +badge+'</div>'
+      +'<div style="font-size:12px;color:var(--t3)">'+c.telefone+'</div></div>';
+  }).join('');
+}
+async function abrirConversa(id){
+  if(!sb)return;
+  document.getElementById('conv-vazio').style.display='none';
+  document.getElementById('conv-aberta').style.display='flex';
+  document.getElementById('conv-mensagens').innerHTML='<div style="text-align:center;color:var(--t3);font-size:12px">Carregando...</div>';
+  const{data:conv}=await sb.from('wa_conversas')
+    .select('id,telefone,nome_perfil,status,cliente_id,cliente:clientes!wa_conversas_cliente_id_fkey(nome)')
+    .eq('id',id).maybeSingle();
+  const nome=conv&&conv.cliente?conv.cliente.nome:(conv&&conv.nome_perfil?conv.nome_perfil:(conv?conv.telefone:'—'));
+  document.getElementById('conv-header').innerHTML='<div style="font-weight:600;font-size:14px">'+nome+'</div><div style="font-size:12px;color:var(--t3)">'+(conv?conv.telefone:'')+'</div>';
+  const{data:msgs,error}=await sb.from('wa_mensagens')
+    .select('id,direcao,tipo,texto,midia_url,autor,criado_em')
+    .eq('conversa_id',id)
+    .order('criado_em',{ascending:true})
+    .range(0,199);
+  const cont=document.getElementById('conv-mensagens');
+  if(error){cont.innerHTML='<div style="text-align:center;color:var(--red);font-size:12px">Erro ao carregar mensagens.</div>';return;}
+  if(!msgs||!msgs.length){cont.innerHTML='<div style="text-align:center;color:var(--t3);font-size:12px">Nenhuma mensagem nesta conversa ainda.</div>';return;}
+  cont.innerHTML=msgs.map(function(m){
+    const recebida=m.direcao==='recebida';
+    const align=recebida?'flex-start':'flex-end';
+    const bg=recebida?'var(--sf,#fff);border:1px solid var(--bd,#E2E8F0)':'background:#DCF8C6';
+    let corpo='';
+    if(m.tipo==='texto'){corpo=m.texto||'';}
+    else if(m.midia_url){corpo='<i class="ti ti-paperclip"></i> <a href="'+m.midia_url+'" target="_blank" rel="noopener">'+m.tipo+'</a>';}
+    else{corpo='['+m.tipo+']';}
+    return '<div style="align-self:'+align+';max-width:70%;padding:8px 12px;border-radius:12px;font-size:13px;'+(recebida?'background:var(--sf,#fff);border:1px solid var(--bd,#E2E8F0)':'background:#DCF8C6')+'">'+corpo+'</div>';
+  }).join('');
+  cont.scrollTop=cont.scrollHeight;
 }
 
 // ── KANBAN ───────────────────────────────────────────────────
@@ -2060,7 +2145,7 @@ async function openDetail(id,from){
     ].map(([l,v])=>`<div class="ir"><span class="il">${l}</span><span class="iv">${v}</span></div>`).join('');
   }else{comCard.style.display='none';}
   document.getElementById('btn-task-detail').onclick=()=>openTaskModal(id);
-  await Promise.all([loadHist(id),loadDetailTasks(id),loadDocs(id),loadDetailAgendamentos(id)]);
+  await Promise.all([loadHist(id),loadDetailTasks(id),loadDocs(id),loadDetailAgendamentos(id),loadConversaCliente(id)]);
   go('detail');
 }
 
@@ -2109,6 +2194,35 @@ async function loadDetailTasks(cid){
       </div>
     </div>`;
   }).join('');
+}
+
+async function loadConversaCliente(cid){
+  const el=document.getElementById('detail-conversa');
+  if(!el)return;
+  const{data:conv,error}=await sb.from('wa_conversas')
+    .select('id,telefone,status')
+    .eq('cliente_id',cid)
+    .order('ultima_mensagem_em',{ascending:false,nullsFirst:false})
+    .limit(1)
+    .maybeSingle();
+  if(error||!conv){el.innerHTML='<div class="es">Nenhuma conversa de WhatsApp vinculada.</div>';return;}
+  const{data:msgs}=await sb.from('wa_mensagens')
+    .select('direcao,tipo,texto,midia_url,criado_em')
+    .eq('conversa_id',conv.id)
+    .order('criado_em',{ascending:false})
+    .range(0,4);
+  let html='<div style="font-size:11px;color:var(--t3);margin-bottom:8px">'+conv.telefone+' · '+conv.status+'</div>';
+  if(!msgs||!msgs.length){html+='<div class="es">Sem mensagens.</div>';}
+  else{
+    const ordenadas=msgs.slice().reverse();
+    html+='<div style="display:flex;flex-direction:column;gap:6px">'+ordenadas.map(function(m){
+      const recebida=m.direcao==='recebida';
+      let corpo=m.tipo==='texto'?(m.texto||''):('<i class="ti ti-paperclip"></i> '+m.tipo);
+      return '<div style="align-self:'+(recebida?'flex-start':'flex-end')+';max-width:80%;padding:6px 10px;border-radius:10px;font-size:12px;'+(recebida?'background:var(--sf,#fff);border:1px solid var(--bd,#E2E8F0)':'background:#DCF8C6')+'">'+corpo+'</div>';
+    }).join('')+'</div>';
+  }
+  html+='<div style="margin-top:8px"><button class="btn" style="font-size:11px;padding:3px 9px" onclick="go(\'conversas\')"><i class="ti ti-external-link"></i> Abrir na aba Conversas</button></div>';
+  el.innerHTML=html;
 }
 
 async function loadDocs(cid){

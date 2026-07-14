@@ -1138,6 +1138,21 @@ async function hashSenha(txt){
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 
+// ── Escape de HTML — proteção contra XSS ─────────────────────
+// Usar sempre que um valor vindo de fora (digitado por cliente, operador,
+// ou recebido via WhatsApp) for inserido em innerHTML. Retorna string vazia
+// para null/undefined, para não quebrar os padrões existentes tipo
+// "esc(campo)||'—'".
+function esc(s){
+  if(s===null||s===undefined)return '';
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
 // ── Init ─────────────────────────────────────────────────────
 window.addEventListener('load',()=>{
   sb=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false,autoRefreshToken:true,detectSessionInUrl:false}});
@@ -1327,7 +1342,7 @@ async function carregarConversas(){
   if(error){lista.innerHTML='<div style="text-align:center;padding:30px;color:var(--red);font-size:13px">Erro ao carregar conversas.</div>';console.error(error);return;}
   if(!data||!data.length){lista.innerHTML='<div style="text-align:center;padding:40px;color:var(--t3);font-size:13px"><i class="ti ti-message-off" style="font-size:32px;display:block;margin-bottom:8px;opacity:.4"></i>Nenhuma conversa ainda.<br><span style="font-size:11px">As conversas do WhatsApp aparecerão aqui.</span></div>';return;}
   lista.innerHTML=data.map(function(c){
-    const nome=c.cliente?c.cliente.nome:(c.nome_perfil||c.telefone);
+    const nome=esc(c.cliente?c.cliente.nome:(c.nome_perfil||c.telefone));
     const naFila=c.status==='fila';
     const badge=naFila?'<span style="font-size:10px;background:var(--amber-bg,#FEF3C7);color:#92400E;padding:2px 8px;border-radius:10px">Não atribuída</span>':'';
     return '<div style="padding:12px;border-bottom:1px solid var(--bd,#E2E8F0);cursor:pointer" onclick="abrirConversa(\''+c.id+'\')">'
@@ -1345,7 +1360,7 @@ async function abrirConversa(id){
   const{data:conv}=await sb.from('wa_conversas')
     .select('id,telefone,nome_perfil,status,cliente_id,cliente:clientes!wa_conversas_cliente_id_fkey(nome)')
     .eq('id',id).maybeSingle();
-  const nome=conv&&conv.cliente?conv.cliente.nome:(conv&&conv.nome_perfil?conv.nome_perfil:(conv?conv.telefone:'—'));
+  const nome=esc(conv&&conv.cliente?conv.cliente.nome:(conv&&conv.nome_perfil?conv.nome_perfil:(conv?conv.telefone:'—')));
   document.getElementById('conv-header').innerHTML='<div style="font-weight:600;font-size:14px">'+nome+'</div><div style="font-size:12px;color:var(--t3)">'+(conv?conv.telefone:'')+'</div>';
   const{data:msgs,error}=await sb.from('wa_mensagens')
     .select('id,direcao,tipo,texto,midia_url,autor,criado_em')
@@ -1360,9 +1375,9 @@ async function abrirConversa(id){
     const align=recebida?'flex-start':'flex-end';
     const bg=recebida?'var(--sf,#fff);border:1px solid var(--bd,#E2E8F0)':'background:#DCF8C6';
     let corpo='';
-    if(m.tipo==='texto'){corpo=m.texto||'';}
-    else if(m.midia_url){corpo='<i class="ti ti-paperclip"></i> <a href="'+m.midia_url+'" target="_blank" rel="noopener">'+m.tipo+'</a>';}
-    else{corpo='['+m.tipo+']';}
+    if(m.tipo==='texto'){corpo=esc(m.texto||'');}
+    else if(m.midia_url){corpo='<i class="ti ti-paperclip"></i> <a href="'+esc(m.midia_url)+'" target="_blank" rel="noopener">'+esc(m.tipo)+'</a>';}
+    else{corpo='['+esc(m.tipo)+']';}
     return '<div style="align-self:'+align+';max-width:70%;padding:8px 12px;border-radius:12px;font-size:13px;'+(recebida?'background:var(--sf,#fff);border:1px solid var(--bd,#E2E8F0)':'background:#DCF8C6')+'">'+corpo+'</div>';
   }).join('');
   cont.scrollTop=cont.scrollHeight;
@@ -1520,10 +1535,10 @@ function renderCard(c){
     ondragstart="dragStart(event,'${c.id}')"
     ondragend="dragEnd(event)"
     onclick="openDetail('${c.id}','kanban')">
-    <div class="kcn">${c.nome}${c.legado?'<span class="tag-legado">L</span>':''}</div>
+    <div class="kcn">${esc(c.nome)}${c.legado?'<span class="tag-legado">L</span>':''}</div>
     <div class="kcm">
       <span class="badge ${PBADGE[c.produto]||'b-gray'}" style="font-size:10px">${c.produto||'—'}</span>
-      ${c.agencia?`<span class="badge b-navy" style="font-size:10px">${c.agencia}</span>`:''}
+      ${c.agencia?`<span class="badge b-navy" style="font-size:10px">${esc(c.agencia)}</span>`:''}
       ${c.operador?`<span style="font-size:10px">${c.operador}</span>`:''}
     </div>
     ${(c.origem_lead||c.situacao_lead)?`<div class="kcm" style="margin-top:2px">
@@ -1552,7 +1567,7 @@ function renderPosvenda(){
   tbody.innerHTML=pv.map(c=>{
     const prox=c.proxima_interacao?new Date(c.proxima_interacao).toLocaleDateString('pt-BR'):'—';
     return`<tr>
-      <td class="nm">${c.nome}${c.legado?'<span class="tag-legado">L</span>':''}</td>
+      <td class="nm">${esc(c.nome)}${c.legado?'<span class="tag-legado">L</span>':''}</td>
       <td style="font-size:11px">${c.operador||'—'}</td>
       <td><span class="badge ${PBADGE[c.produto]||'b-gray'}">${c.produto||'—'}</span></td>
       <td style="font-size:11px">${prox}</td>
@@ -1912,7 +1927,7 @@ function renderTimelineConclusoes(){
     return`<div class="tl-row" style="cursor:pointer" onclick="openDetail('${c.id}','dashboard')">
       <div class="tl-mark">✓</div>
       <div class="tl-body">
-        <div class="tl-nome">${c.nome}</div>
+        <div class="tl-nome">${esc(c.nome)}</div>
         <div class="tl-info">${dataTxt} · ${c.operador||'sem operador'}${valor?' · '+valor:''}</div>
       </div>
     </div>`;
@@ -1926,7 +1941,7 @@ function abrirDrill(titulo,lista){
   body.innerHTML=lista.length?lista.map(c=>{
     const info=c.em_alerta_r1?`<span style="color:var(--red);font-weight:600">Sem contato</span>`:c.dt_entrada_etapa?`${Math.floor((Date.now()-new Date(c.dt_entrada_etapa))/86400000)}d na etapa`:'—';
     return`<tr>
-      <td class="nm">${c.nome}${c.legado?'<span class="tag-legado">L</span>':''}</td>
+      <td class="nm">${esc(c.nome)}${c.legado?'<span class="tag-legado">L</span>':''}</td>
       <td><span class="badge ${SBADGE[c.status]||'b-gray'}">${c.status||'—'}</span></td>
       <td style="font-size:11px">${c.operador||c.corretor||'—'}</td>
       <td style="font-size:11px">${c.origem_lead||'—'}</td>
@@ -1944,7 +1959,7 @@ function drillTodos(){
   const base=baseDash();
   document.getElementById('drill-title').textContent=`Total de clientes (${base.length})`;
   document.getElementById('drill-body').innerHTML=base.map(c=>`<tr>
-    <td class="nm">${c.nome}</td><td>${badgeStatus(c.status)}</td>
+    <td class="nm">${esc(c.nome)}</td><td>${badgeStatus(c.status)}</td>
     <td style="font-size:11px">${c.operador||'—'}</td>
     <td style="font-size:11px">${c.origem_lead||'—'}</td>
     <td style="font-size:11px">${c.dt_entrada||'—'}</td>
@@ -2043,7 +2058,7 @@ function renderOpFila(){
     else if(tipo==='r2')urgHtml=`<span class="urg-pill" style="background:var(--amber-l);color:#92400E">${c._urg}d parado</span>`;
     else urgHtml=`<span class="urg-pill" style="background:var(--red-l);color:#991B1B">🔥 ${c._urg===999?'sem contato':c._urg+'d s/ contato'}</span>`;
     return`<tr>
-      <td class="nm">${c.nome}${c.legado?'<span class="tag-legado">L</span>':''}</td>
+      <td class="nm">${esc(c.nome)}${c.legado?'<span class="tag-legado">L</span>':''}</td>
       <td><span class="badge ${SBADGE[c.status]||'b-gray'}">${c.status}</span></td>
       <td style="font-size:11px">${c.operador||c.corretor||'—'}</td>
       <td>${urgHtml}</td>
@@ -2077,12 +2092,12 @@ function renderTable(){
   document.getElementById('pn').disabled=start+PER>=filtered.length;
   document.getElementById('tbody').innerHTML=slice.length?slice.map(c=>`
     <tr>
-      <td class="nm">${c.nome}${c.legado?'<span class="tag-legado">L</span>':''}</td>
+      <td class="nm">${esc(c.nome)}${c.legado?'<span class="tag-legado">L</span>':''}</td>
       <td style="font-size:11px;color:var(--t2)">${c.cpf||'—'}</td>
       <td><span class="badge ${PBADGE[c.produto]||'b-gray'}">${c.produto||'—'}</span></td>
       <td><span class="badge ${SBADGE[c.status]||'b-gray'}">${c.status||'—'}</span></td>
       <td style="font-size:11px">${c.operador||c.corretor||'—'}</td>
-      <td style="font-size:11px">${c.indicado_por||'—'}</td>
+      <td style="font-size:11px">${esc(c.indicado_por)||'—'}</td>
       <td class="ob">${(c.observacoes||'').substring(0,60)}</td>
       <td style="white-space:nowrap">
         <button class="ab" onclick="openDetail('${c.id}','clientes')">Ver</button>
@@ -2107,14 +2122,14 @@ async function openDetail(id,from){
   const pcArr=Array.isArray(pcRaw)?pcRaw:(pcRaw?pcRaw.split(',').map(v=>v.trim()):[]);
   const pc=pcArr.length?pcArr.map(p=>`<span class="badge b-gray" style="font-size:10px;margin:1px 2px">${p}</span>`).join(' '):'—';
   let rows=[
-    ['CPF',c.cpf||'—'],['Telefone',c.telefone||'—'],['E-mail',c.email||'—'],
-    ['Produto',c.produto?`<span class="badge ${PBADGE[c.produto]||'b-gray'}">${c.produto}</span>`:'—'],
-    ['Status',c.status?`<span class="badge ${SBADGE[c.status]||'b-gray'}">${c.status}</span>`:'—'],
-    ['Operador',c.operador||c.corretor||'—'],['Indicado por',c.indicado_por||'—'],
-    ['Corretor externo',c.corretor_externo||'—'],['Construtor/Vendedor',c.construtor_vendedor||'—'],
-    ['Agência',c.agencia||'—'],
-    ['Origem do Cliente',c.origem_lead||'—'],
-    ['Situação do lead',c.situacao_lead?(SIT_ICON[c.situacao_lead]||'')+' '+c.situacao_lead:'—'],
+    ['CPF',esc(c.cpf)||'—'],['Telefone',esc(c.telefone)||'—'],['E-mail',esc(c.email)||'—'],
+    ['Produto',c.produto?`<span class="badge ${PBADGE[c.produto]||'b-gray'}">${esc(c.produto)}</span>`:'—'],
+    ['Status',c.status?`<span class="badge ${SBADGE[c.status]||'b-gray'}">${esc(c.status)}</span>`:'—'],
+    ['Operador',esc(c.operador||c.corretor)||'—'],['Indicado por',esc(c.indicado_por)||'—'],
+    ['Corretor externo',esc(c.corretor_externo)||'—'],['Construtor/Vendedor',esc(c.construtor_vendedor)||'—'],
+    ['Agência',esc(c.agencia)||'—'],
+    ['Origem do Cliente',esc(c.origem_lead)||'—'],
+    ['Situação do lead',c.situacao_lead?(SIT_ICON[c.situacao_lead]||'')+' '+esc(c.situacao_lead):'—'],
     ['Renda total',c.renda_total?'R$ '+Number(c.renda_total).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'],
   ];
   if(['Habitacional MCMV','Habitacional SBPE'].includes(c.produto)){
@@ -2122,16 +2137,16 @@ async function openDetail(id,from){
       ['Valor do imóvel',c.valor_imovel?'R$ '+Number(c.valor_imovel).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'],
       ['Financiamento',c.valor_financiamento?'R$ '+Number(c.valor_financiamento).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'],
       ['Prestação',c.valor_prestacao?'R$ '+Number(c.valor_prestacao).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'],
-      ['Contrato',c.numero_contrato||'—'],
+      ['Contrato',esc(c.numero_contrato)||'—'],
     ]);
   }
   rows=rows.concat([
     ['Produtos contratados',pc],
     ['Próx. contato',c.proxima_interacao?new Date(c.proxima_interacao).toLocaleString('pt-BR'):'—'],
-    ['Última alteração por',c.ultima_alteracao_por||'—'],
-    ['Origem',c.origem_arquivo||'—'],
+    ['Última alteração por',esc(c.ultima_alteracao_por)||'—'],
+    ['Origem',esc(c.origem_arquivo)||'—'],
     ['Data entrada',c.dt_entrada||'—'],
-    ['Observações',c.observacoes||'—'],
+    ['Observações',esc(c.observacoes)||'—'],
   ]);
   document.getElementById('detail-info').innerHTML=rows.map(([l,v])=>`<div class="ir"><span class="il">${l}</span><span class="iv">${v}</span></div>`).join('');
   // Comissão (só gestor)
@@ -2172,7 +2187,7 @@ async function loadHist(cid){
         ${h.registrado_por?`<span style="font-size:10px">${h.registrado_por}</span>`:''}
         <span style="font-size:10px;color:var(--t3)">${new Date(h.created_at).toLocaleDateString('pt-BR')}</span>
       </div>
-      <div>${h.descricao}</div>
+      <div>${esc(h.descricao)}</div>
       ${h.proxima_interacao?`<div style="font-size:10px;color:var(--blue);margin-top:2px">📅 Próx: ${new Date(h.proxima_interacao).toLocaleString('pt-BR')}</div>`:''}
     </div>`).join('');
 }
@@ -2188,8 +2203,8 @@ async function loadDetailTasks(cid){
     return`<div class="ti2">
       <input type="checkbox" class="tc2" onchange="doneTask('${t.id}')">
       <div class="tb">
-        <div>${t.titulo}</div>
-        ${t.descricao?`<div style="font-size:11px;color:var(--t2)">${t.descricao}</div>`:''}
+        <div>${esc(t.titulo)}</div>
+        ${t.descricao?`<div style="font-size:11px;color:var(--t2)">${esc(t.descricao)}</div>`:''}
         ${t.dt_vencimento?`<div class="td2${ov?' ov':''}"><i class="ti ti-calendar" style="font-size:11px"></i> ${new Date(t.dt_vencimento+'T12:00:00').toLocaleDateString('pt-BR')}${t.responsavel?' · '+t.responsavel:''}</div>`:''}
       </div>
     </div>`;
@@ -2217,7 +2232,7 @@ async function loadConversaCliente(cid){
     const ordenadas=msgs.slice().reverse();
     html+='<div style="display:flex;flex-direction:column;gap:6px">'+ordenadas.map(function(m){
       const recebida=m.direcao==='recebida';
-      let corpo=m.tipo==='texto'?(m.texto||''):('<i class="ti ti-paperclip"></i> '+m.tipo);
+      let corpo=m.tipo==='texto'?esc(m.texto||''):('<i class="ti ti-paperclip"></i> '+esc(m.tipo));
       return '<div style="align-self:'+(recebida?'flex-start':'flex-end')+';max-width:80%;padding:6px 10px;border-radius:10px;font-size:12px;'+(recebida?'background:var(--sf,#fff);border:1px solid var(--bd,#E2E8F0)':'background:#DCF8C6')+'">'+corpo+'</div>';
     }).join('')+'</div>';
   }
@@ -2248,7 +2263,7 @@ async function loadTasks(){
     const ov=v&&v<today;
     return`<tr>
       <td style="font-weight:500">${t.clientes?.nome||'—'}</td>
-      <td>${t.titulo}${t.descricao?`<br><span style="font-size:11px;color:var(--t2)">${t.descricao}</span>`:''}</td>
+      <td>${esc(t.titulo)}${t.descricao?`<br><span style="font-size:11px;color:var(--t2)">${esc(t.descricao)}</span>`:''}</td>
       <td style="font-size:11px">${t.responsavel||'—'}</td>
       <td style="font-size:11px;${ov?'color:var(--red);font-weight:500':''}">${v?v.toLocaleDateString('pt-BR'):'—'}</td>
       <td><button class="ab" onclick="doneTask('${t.id}')"><i class="ti ti-check"></i> Concluir</button></td>
@@ -2804,17 +2819,17 @@ async function carregarVistorias(){
       return`<div class="kc${alerta?' alerta-r1':''}" onclick="editarVistoria('${v.id}')">
         <div class="kcn">${v.endereco}</div>
         <div class="kcm">
-          ${v.matricula?`<span style="font-size:10px">Mat: ${v.matricula}</span>`:''}
+          ${v.matricula?`<span style="font-size:10px">Mat: ${esc(v.matricula)}</span>`:''}
           ${v.operador?`<span style="font-size:10px">${v.operador}</span>`:''}
         </div>
-        ${v.construtor?`<div style="font-size:10px;color:var(--t2);margin-top:2px"><i class="ti ti-building" style="font-size:10px"></i> ${v.construtor}</div>`:''}
-        ${v.engenheiro_nome?`<div style="font-size:10px;color:var(--t2);margin-top:2px"><i class="ti ti-tool" style="font-size:10px"></i> ${v.engenheiro_nome}</div>`:''}
+        ${v.construtor?`<div style="font-size:10px;color:var(--t2);margin-top:2px"><i class="ti ti-building" style="font-size:10px"></i> ${esc(v.construtor)}</div>`:''}
+        ${v.engenheiro_nome?`<div style="font-size:10px;color:var(--t2);margin-top:2px"><i class="ti ti-tool" style="font-size:10px"></i> ${esc(v.engenheiro_nome)}</div>`:''}
         <div class="kc-dias ${diasCls}" style="margin-top:4px">
           <i class="ti ti-calendar" style="font-size:11px"></i>
           <span>${prox} ${diasRetorno!==null?'('+diasTxt+')':''}</span>
           ${alerta?'<i class="ti ti-alert-circle" style="font-size:11px"></i>':''}
         </div>
-        ${v.observacoes?`<div style="font-size:10px;color:var(--t3);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.observacoes}</div>`:''}
+        ${v.observacoes?`<div style="font-size:10px;color:var(--t3);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.observacoes)}</div>`:''}
         <div style="display:flex;gap:4px;margin-top:6px">
           <button class="ab" style="font-size:10px;padding:2px 7px" onclick="event.stopPropagation();abrirInteracaoVistoria('${v.id}','${v.endereco.replace(/'/g,"\'")}')"><i class="ti ti-message"></i> Interagir</button>
         </div>
@@ -3276,7 +3291,7 @@ function buscarClienteAgendamento(termo){
       res.style.display='block';return;
     }
     res.innerHTML=matches.map(c=>`<div onclick="selecionarClienteAgendamento('${c.id}','${(c.nome||'').replace(/'/g,"\\'")}')" style="padding:8px 10px;font-size:12px;cursor:pointer;border-bottom:.5px solid var(--bd)" onmouseover="this.style.background='var(--sf2)'" onmouseout="this.style.background='var(--sf)'">
-      <div style="font-weight:600">${c.nome}</div>
+      <div style="font-weight:600">${esc(c.nome)}</div>
       <div style="font-size:10px;color:var(--t3)">${c.cpf||'sem CPF'} · ${c.operador||'—'} · ${c.status}</div>
     </div>`).join('');
     res.style.display='block';
@@ -3344,7 +3359,7 @@ async function loadDetailAgendamentos(cid){
       <div style="flex:1">
         <span class="badge ${tipoAgCls(a.tipo)}" style="font-size:10px">${a.tipo}</span>
         <span style="font-size:10px;color:var(--t3);margin-left:4px">${a.operador||''}</span>
-        ${a.descricao?`<div style="font-size:11px;color:var(--t2);margin-top:2px">${a.descricao}</div>`:''}
+        ${a.descricao?`<div style="font-size:11px;color:var(--t2);margin-top:2px">${esc(a.descricao)}</div>`:''}
         ${passou?'<div style="font-size:9px;color:var(--t3);margin-top:1px">(realizado/passado)</div>':''}
       </div>
       <div style="display:flex;flex-direction:column;gap:3px">

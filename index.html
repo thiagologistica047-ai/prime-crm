@@ -494,6 +494,9 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
     <!-- Funil de etapas com rings -->
     <div class="sec-title">Funil — clientes, percentual e tempo parado por etapa</div>
     <div class="etapas-grid" id="etapas-grid"></div>
+    <div class="panel" id="funil-piramide-wrap" style="margin-bottom:22px">
+      <div id="funil-piramide"></div>
+    </div>
     <!-- Produtividade + Origem -->
     <div class="dash-grid2">
       <div class="panel">
@@ -1589,6 +1592,7 @@ function renderDashboard(){
   renderKPIs();
   renderComissao();
   renderFunilEtapas();
+  renderFunilPiramide();
   renderProdutividade();
   renderOrigemLeads();
   renderTempoEtapas();
@@ -1732,6 +1736,35 @@ function renderFunilEtapas(){
   }).join('');
   // Animar rings
   setTimeout(()=>{document.querySelectorAll('#etapas-grid .ring-fill').forEach(el=>{el.style.strokeDashoffset=el.dataset.offset;});},100);
+}
+
+function renderFunilPiramide(){
+  const base=baseDash();
+  const total=base.length||1;
+  const el=document.getElementById('funil-piramide');
+  if(!el)return;
+  const dados=STATUS_ORDER.map(s=>({
+    nome:s,
+    qtd:base.filter(c=>c.status===s).length
+  }));
+  const maxQtd=Math.max(...dados.map(d=>d.qtd),1);
+  const larguraMax=94; // % da largura útil
+  const larguraMin=16; // % mínimo pra etapas com poucos/zero clientes
+  el.innerHTML=dados.map(d=>{
+    const pctLargura=d.qtd>0
+      ? Math.max(larguraMin, Math.round((d.qtd/maxQtd)*larguraMax))
+      : larguraMin*0.6;
+    const cor=ETAPA_COR[d.nome]||'#64748B';
+    return `<div style="display:flex;align-items:center;gap:10px;margin:6px 0;cursor:pointer" onclick="drillStatus('${d.nome}')">
+      <div style="width:110px;font-size:11px;color:var(--t2);text-align:right;flex-shrink:0">${d.nome}</div>
+      <div style="flex:1;display:flex;justify-content:center">
+        <div style="width:${pctLargura}%;background:${cor};border-radius:6px;padding:7px 12px;display:flex;justify-content:space-between;align-items:center;transition:width .3s">
+          <span style="font-size:11px;color:#fff;font-weight:600">${d.nome}</span>
+          <span style="font-size:13px;color:#fff;font-weight:800">${d.qtd}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function renderProdutividade(){

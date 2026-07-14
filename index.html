@@ -1262,7 +1262,7 @@ async function loadAll(){
   await sb.rpc('fn_recalcular_alertas');
   // Carregar dados em paralelo
   const[{data:cls},{data:etapas},{data:ops}]=await Promise.all([
-    sb.from('clientes').select(usuarioAtual?.role==='gestor'
+    sb.from(usuarioAtual?.role==='gestor' ? 'clientes' : 'clientes_operador').select(usuarioAtual?.role==='gestor'
       ?'id,nome,cpf,telefone,email,produto,status,operador,corretor,indicado_por,corretor_externo,construtor_vendedor,observacoes,origem_arquivo,dt_entrada,dt_atualizacao,legado,tem_card,em_alerta_r1,em_alerta_r2,proxima_interacao,ultima_interacao,dt_entrada_etapa,renda_principal,renda_secundaria,renda_total,valor_imovel,valor_financiamento,valor_subsidio,valor_prestacao,numero_contrato,comissao_valor,comissao_status,comissao_obs,produtos_contratados,agencia,origem_lead,situacao_lead'
       :'id,nome,cpf,telefone,email,produto,status,operador,corretor,indicado_por,corretor_externo,construtor_vendedor,observacoes,origem_arquivo,dt_entrada,dt_atualizacao,legado,tem_card,em_alerta_r1,em_alerta_r2,proxima_interacao,ultima_interacao,dt_entrada_etapa,renda_principal,renda_secundaria,renda_total,valor_imovel,valor_financiamento,valor_subsidio,valor_prestacao,numero_contrato,produtos_contratados,agencia,origem_lead,situacao_lead'
     ).order('nome'),

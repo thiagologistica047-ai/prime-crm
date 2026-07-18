@@ -235,6 +235,8 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
 .tb{flex:1;font-size:12px}
 .td2{font-size:11px;color:var(--t3);margin-top:2px}
 .td2.ov{color:var(--red)}
+.item-concluido{opacity:.55}
+.item-concluido .tb>div:first-child,.item-concluido a{text-decoration:line-through}
 .es{padding:24px;text-align:center;color:var(--t3);font-size:12px}
 .spin{display:inline-block;width:16px;height:16px;border:2px solid var(--bd);border-top-color:var(--blue);border-radius:50%;animation:sp .7s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
@@ -971,7 +973,7 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
       <div class="fl" style="margin-top:9px"><label>Tarefa *</label><input id="t-titulo" type="text" placeholder="Ex: Ligar para confirmar documentos"></div>
       <div class="fl" style="margin-top:9px"><label>Descrição</label><textarea id="t-desc" placeholder="Detalhes..." style="height:65px"></textarea></div>
       <div class="fg" style="margin-top:9px">
-        <div class="fl"><label>Responsável</label><input id="t-resp" type="text" placeholder="Nome do responsável"></div>
+        <div class="fl"><label>Responsável</label><select id="t-resp"><option value="">Selecione</option></select></div>
         <div class="fl"><label>Vencimento</label><input id="t-venc" type="date"></div>
       </div>
     </div>
@@ -2226,21 +2228,21 @@ async function loadHist(cid){
 }
 
 async function loadDetailTasks(cid){
-  const{data}=await sb.from('tarefas').select('*').eq('cliente_id',cid).eq('concluida',false).order('dt_vencimento');
+  const{data}=await sb.from('tarefas').select('*').eq('cliente_id',cid).order('concluida').order('dt_vencimento');
   const el=document.getElementById('detail-tasks');
   if(!data||!data.length){el.innerHTML='<div class="es">Nenhuma tarefa pendente.</div>';return;}
   const today=new Date();today.setHours(0,0,0,0);
   el.innerHTML=data.map(t=>{
     const v=t.dt_vencimento?new Date(t.dt_vencimento+'T12:00:00'):null;
     const ov=v&&v<today;
-    return`<div class="ti2">
-      <input type="checkbox" class="tc2" onchange="doneTask('${t.id}')">
+    return`<div class="ti2${t.concluida?' item-concluido':''}">
+      <input type="checkbox" class="tc2" ${t.concluida?'checked':''} onchange="${t.concluida?`reabrirTarefa('${t.id}')`:`doneTask('${t.id}')`}">
       <div class="tb">
         <div>${esc(t.titulo)}</div>
         ${t.descricao?`<div style="font-size:11px;color:var(--t2)">${esc(t.descricao)}</div>`:''}
-        ${t.dt_vencimento?`<div class="td2${ov?' ov':''}"><i class="ti ti-calendar" style="font-size:11px"></i> ${new Date(t.dt_vencimento+'T12:00:00').toLocaleDateString('pt-BR')}${t.responsavel?' · '+t.responsavel:''}</div>`:''}
+        ${t.dt_vencimento?`<div class="td2${ov&&!t.concluida?' ov':''}"><i class="ti ti-calendar" style="font-size:11px"></i> ${new Date(t.dt_vencimento+'T12:00:00').toLocaleDateString('pt-BR')}${t.responsavel?' · '+t.responsavel:''}</div>`:''}
       </div>
-      <button class="ab" style="font-size:10px;padding:2px 7px" onclick="editarTarefa('${t.id}')" title="Editar/reagendar"><i class="ti ti-pencil"></i></button>
+      ${t.concluida?'':`<button class="ab" style="font-size:10px;padding:2px 7px" onclick="editarTarefa('${t.id}')" title="Editar/reagendar"><i class="ti ti-pencil"></i></button>`}
     </div>`;
   }).join('');
 }
@@ -2304,7 +2306,7 @@ async function renomearDoc(id){
 
 // ── TAREFAS ──────────────────────────────────────────────────
 async function loadTasks(){
-  const{data}=await sb.from('tarefas').select('*, clientes(nome)').eq('concluida',false).order('dt_vencimento');
+  const{data}=await sb.from('tarefas').select('*, clientes(nome)').order('concluida').order('dt_vencimento');
   const tbody=document.getElementById('tbody-tasks');
   if(!data||!data.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:28px;color:var(--t3)">Nenhuma tarefa pendente</td></tr>';return;}
   const today=new Date();today.setHours(0,0,0,0);
@@ -2312,12 +2314,16 @@ async function loadTasks(){
     const v=t.dt_vencimento?new Date(t.dt_vencimento+'T12:00:00'):null;
     const ov=v&&v<today;
     const linkCliente=t.cliente_id?`style="cursor:pointer" onclick="openDetail('${t.cliente_id}','tarefas')" title="Abrir cadastro do cliente"`:'';
-    return`<tr ${linkCliente}>
+    const cls=t.concluida?' class="item-concluido"':'';
+    const acao=t.concluida
+      ?`<button class="ab" onclick="event.stopPropagation();reabrirTarefa('${t.id}')" title="Reabrir"><i class="ti ti-rotate"></i> Reabrir</button>`
+      :`<button class="ab" style="margin-right:4px" onclick="event.stopPropagation();editarTarefa('${t.id}')"><i class="ti ti-pencil"></i> Editar</button><button class="ab" onclick="event.stopPropagation();doneTask('${t.id}')"><i class="ti ti-check"></i> Concluir</button>`;
+    return`<tr ${linkCliente}${cls}>
       <td style="font-weight:500">${t.clientes?.nome||'—'}</td>
-      <td>${esc(t.titulo)}${t.descricao?`<br><span style="font-size:11px;color:var(--t2)">${esc(t.descricao)}</span>`:''}</td>
+      <td class="tb"><div>${esc(t.titulo)}</div>${t.descricao?`<span style="font-size:11px;color:var(--t2)">${esc(t.descricao)}</span>`:''}</td>
       <td style="font-size:11px">${t.responsavel||'—'}</td>
-      <td style="font-size:11px;${ov?'color:var(--red);font-weight:500':''}">${v?v.toLocaleDateString('pt-BR'):'—'}</td>
-      <td><button class="ab" style="margin-right:4px" onclick="event.stopPropagation();editarTarefa('${t.id}')"><i class="ti ti-pencil"></i> Editar</button><button class="ab" onclick="event.stopPropagation();doneTask('${t.id}')"><i class="ti ti-check"></i> Concluir</button></td>
+      <td style="font-size:11px;${ov&&!t.concluida?'color:var(--red);font-weight:500':''}">${v?v.toLocaleDateString('pt-BR'):'—'}</td>
+      <td>${acao}</td>
     </tr>`;
   }).join('');
 }
@@ -2785,7 +2791,10 @@ function openTaskModal(cid){
   editTaskId=null;
   const sel=document.getElementById('t-cliente');
   sel.innerHTML='<option value="">Selecione o cliente</option>'+all.map(c=>`<option value="${c.id}"${c.id===cid?' selected':''}>${esc(c.nome)}</option>`).join('');
-  ['t-titulo','t-desc','t-resp','t-venc'].forEach(i=>document.getElementById(i).value='');
+  const selResp=document.getElementById('t-resp');
+  selResp.innerHTML='<option value="">Selecione</option>'+operadoresList.map(o=>`<option value="${o.nome}">${o.nome}</option>`).join('');
+  if(usuarioAtual?.nome)selResp.value=usuarioAtual.nome;
+  ['t-titulo','t-desc','t-venc'].forEach(i=>document.getElementById(i).value='');
   const h=document.querySelector('#modal-task .mh h3');if(h)h.textContent='Nova tarefa';
   document.getElementById('modal-task').classList.add('open');
 }
@@ -2797,7 +2806,13 @@ async function editarTarefa(id){
   sel.innerHTML='<option value="">Selecione o cliente</option>'+all.map(c=>`<option value="${c.id}"${c.id===data.cliente_id?' selected':''}>${esc(c.nome)}</option>`).join('');
   document.getElementById('t-titulo').value=data.titulo||'';
   document.getElementById('t-desc').value=data.descricao||'';
-  document.getElementById('t-resp').value=data.responsavel||'';
+  const selResp=document.getElementById('t-resp');
+  selResp.innerHTML='<option value="">Selecione</option>'+operadoresList.map(o=>`<option value="${o.nome}">${o.nome}</option>`).join('');
+  // se o responsável salvo não estiver na lista (texto legado), adiciona como opção
+  if(data.responsavel&&!operadoresList.some(o=>o.nome===data.responsavel)){
+    selResp.innerHTML+=`<option value="${data.responsavel}">${data.responsavel} (legado)</option>`;
+  }
+  selResp.value=data.responsavel||'';
   document.getElementById('t-venc').value=data.dt_vencimento||'';
   const h=document.querySelector('#modal-task .mh h3');if(h)h.textContent='Editar tarefa';
   document.getElementById('modal-task').classList.add('open');
@@ -2847,6 +2862,12 @@ async function doneTask(id){
   await sb.from('tarefas').update({concluida:true}).eq('id',id);
   if(t)await registrarHistorico(t.cliente_id,'Tarefa','Tarefa concluída: "'+t.titulo+'"');
   toast('Tarefa concluída!');loadTasks();if(detailId)loadDetailTasks(detailId);
+}
+async function reabrirTarefa(id){
+  const{data:t}=await sb.from('tarefas').select('cliente_id,titulo').eq('id',id).single();
+  await sb.from('tarefas').update({concluida:false}).eq('id',id);
+  if(t)await registrarHistorico(t.cliente_id,'Tarefa','Tarefa reaberta: "'+t.titulo+'"');
+  toast('Tarefa reaberta');loadTasks();if(detailId)loadDetailTasks(detailId);
 }
 
 // ── VISTORIAS ────────────────────────────────────────────────
@@ -3485,28 +3506,31 @@ async function loadDetailAgendamentos(cid){
   if(!el)return;
   const{data}=await sb.from('agendamentos')
     .select('id,data_hora,tipo,descricao,operador,status')
-    .eq('cliente_id',cid).eq('status','ativo')
-    .order('data_hora');
+    .eq('cliente_id',cid).in('status',['ativo','concluido'])
+    .order('status').order('data_hora');
   if(!data||!data.length){el.innerHTML='<div class="es">Nenhum agendamento</div>';return;}
   const agora=new Date();
   el.innerHTML=data.map(a=>{
     const dt=new Date(a.data_hora);
     const passou=dt<agora;
-    return`<div style="display:flex;gap:8px;padding:8px 0;border-bottom:.5px solid var(--bd);align-items:flex-start">
+    const feito=a.status==='concluido';
+    return`<div class="${feito?'item-concluido ':''}" style="display:flex;gap:8px;padding:8px 0;border-bottom:.5px solid var(--bd);align-items:flex-start">
       <div style="text-align:center;min-width:42px">
         <div style="font-size:13px;font-weight:700;color:var(--navy)">${dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
         <div style="font-size:10px;color:var(--t3)">${dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</div>
       </div>
-      <div style="flex:1">
-        <span class="badge ${tipoAgCls(a.tipo)}" style="font-size:10px">${a.tipo}</span>
-        <span style="font-size:10px;color:var(--t3);margin-left:4px">${a.operador||''}</span>
+      <div class="tb" style="flex:1">
+        <div><span class="badge ${tipoAgCls(a.tipo)}" style="font-size:10px">${a.tipo}</span>
+        <span style="font-size:10px;color:var(--t3);margin-left:4px">${a.operador||''}</span></div>
         ${a.descricao?`<div style="font-size:11px;color:var(--t2);margin-top:2px">${esc(a.descricao)}</div>`:''}
-        ${passou?'<div style="font-size:9px;color:var(--t3);margin-top:1px">(realizado/passado)</div>':''}
+        ${feito?'<div style="font-size:9px;color:var(--green);margin-top:1px">✓ concluído</div>':(passou?'<div style="font-size:9px;color:var(--t3);margin-top:1px">(passado)</div>':'')}
       </div>
       <div style="display:flex;flex-direction:column;gap:3px">
+        ${feito
+          ?`<button class="ab" style="font-size:10px;padding:2px 6px" onclick="reabrirAgendamento('${a.id}','${cid}')" title="Desfazer conclusão"><i class="ti ti-rotate"></i></button>`
+          :`<button class="ab" style="font-size:10px;padding:2px 6px;color:var(--green)" onclick="concluirAgendamento('${a.id}','${cid}')" title="Concluir"><i class="ti ti-check"></i></button>
         <button class="ab" style="font-size:10px;padding:2px 6px" onclick="editarAgendamento('${a.id}')" title="Editar/reagendar"><i class="ti ti-pencil"></i></button>
-        <button class="ab" style="font-size:10px;padding:2px 6px" onclick="exportarICS(${JSON.stringify({data_hora:a.data_hora,tipo:a.tipo,descricao:a.descricao||''}).replace(/"/g,'&quot;')},'${(all.find(x=>x.id===cid)?.nome||'').replace(/'/g,"\\'")}')" title="Exportar .ics">📅</button>
-        <button class="ab" style="font-size:10px;padding:2px 6px;color:var(--red)" onclick="cancelarAgendamento('${a.id}','${cid}')" title="Cancelar">✕</button>
+        <button class="ab" style="font-size:10px;padding:2px 6px;color:var(--red)" onclick="cancelarAgendamento('${a.id}','${cid}')" title="Cancelar">✕</button>`}
       </div>
     </div>`;
   }).join('');
@@ -3518,6 +3542,22 @@ async function cancelarAgendamento(id,cid){
   await sb.from('agendamentos').update({status:'cancelado',updated_at:new Date().toISOString()}).eq('id',id);
   if(ag)await registrarHistorico(ag.cliente_id||cid,'Agendamento',(ag.tipo||'Agendamento')+' de '+new Date(ag.data_hora).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+' cancelado');
   toast('Agendamento cancelado');
+  if(cid)await loadDetailAgendamentos(cid);
+  if(document.getElementById('page-agenda').style.display!=='none')await carregarAgendaMes();
+}
+async function concluirAgendamento(id,cid){
+  const{data:ag}=await sb.from('agendamentos').select('tipo,data_hora,cliente_id').eq('id',id).single();
+  await sb.from('agendamentos').update({status:'concluido',updated_at:new Date().toISOString()}).eq('id',id);
+  if(ag)await registrarHistorico(ag.cliente_id||cid,'Agendamento',(ag.tipo||'Agendamento')+' de '+new Date(ag.data_hora).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+' concluído');
+  toast('Agendamento concluído');
+  if(cid)await loadDetailAgendamentos(cid);
+  if(document.getElementById('page-agenda').style.display!=='none')await carregarAgendaMes();
+}
+async function reabrirAgendamento(id,cid){
+  const{data:ag}=await sb.from('agendamentos').select('tipo,data_hora,cliente_id').eq('id',id).single();
+  await sb.from('agendamentos').update({status:'ativo',updated_at:new Date().toISOString()}).eq('id',id);
+  if(ag)await registrarHistorico(ag.cliente_id||cid,'Agendamento',(ag.tipo||'Agendamento')+' reaberto');
+  toast('Agendamento reaberto');
   if(cid)await loadDetailAgendamentos(cid);
   if(document.getElementById('page-agenda').style.display!=='none')await carregarAgendaMes();
 }

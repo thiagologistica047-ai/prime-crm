@@ -2281,13 +2281,16 @@ async function loadDocs(cid){
     <div class="doc-item">
       <i class="ti ti-file doc-icon"></i>
       <a href="${d.url}" target="_blank" rel="noopener">${esc(d.nome_arquivo)}</a>
-      <button class="doc-del" onclick="renomearDoc('${d.id}',${JSON.stringify(d.nome_arquivo)})" title="Renomear"><i class="ti ti-pencil"></i></button>
+      <button class="doc-del" onclick="renomearDoc('${d.id}')" title="Renomear"><i class="ti ti-pencil"></i></button>
       <button class="doc-del" onclick="delDoc('${d.id}')" title="Remover"><i class="ti ti-x"></i></button>
     </div>`).join('')+'</div>';
 }
 
-async function renomearDoc(id,nomeAtual){
-  const novo=prompt('Novo nome do arquivo:',nomeAtual||'');
+async function renomearDoc(id){
+  const{data,error:e1}=await sb.from('documentos_cliente').select('nome_arquivo').eq('id',id).single();
+  if(e1){toast('Erro ao carregar arquivo: '+e1.message,4000);return;}
+  const nomeAtual=data?.nome_arquivo||'';
+  const novo=prompt('Novo nome do arquivo:',nomeAtual);
   if(novo===null)return;
   const nome=novo.trim();
   if(!nome){toast('Nome não pode ficar vazio');return;}

@@ -348,14 +348,14 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
   <div class="lbox">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
       <div class="logo-mark" style="width:36px;height:36px;font-size:18px;border-radius:8px">P</div>
-      <div><div style="font-size:16px;font-weight:700">Prime CRM</div><div style="font-size:11px;color:var(--t2)">Correspondente Caixa</div></div>
+      <div><div style="font-size:16px;font-weight:700">Prime CRM</div><div style="font-size:11px;color:var(--t2)">Correspondente Bancário</div></div>
     </div>
     <div class="lf"><label>E-mail ou login</label><input id="l-login" type="text" placeholder="E-mail ou login (ex: prime)" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('l-senha').focus()"></div>
     <div class="lf"><label>Senha</label><input id="l-senha" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="lerr" id="l-err"></div>
     <button class="lbtn" id="l-btn" onclick="doLogin()">Entrar</button>
   </div>
-  <div style="font-size:11px;color:var(--t3)">Prime Correspondente Bancário · Caixa Econômica Federal</div>
+  <div style="font-size:11px;color:var(--t3)">Prime Correspondente Bancário</div>
 </div>
 
 <!-- ── APP ── -->
@@ -2280,9 +2280,22 @@ async function loadDocs(cid){
   el.innerHTML='<div class="doc-list">'+data.map(d=>`
     <div class="doc-item">
       <i class="ti ti-file doc-icon"></i>
-      <a href="${d.url}" target="_blank" rel="noopener">${d.nome_arquivo}</a>
+      <a href="${d.url}" target="_blank" rel="noopener">${esc(d.nome_arquivo)}</a>
+      <button class="doc-del" onclick="renomearDoc('${d.id}',${JSON.stringify(d.nome_arquivo)})" title="Renomear"><i class="ti ti-pencil"></i></button>
       <button class="doc-del" onclick="delDoc('${d.id}')" title="Remover"><i class="ti ti-x"></i></button>
     </div>`).join('')+'</div>';
+}
+
+async function renomearDoc(id,nomeAtual){
+  const novo=prompt('Novo nome do arquivo:',nomeAtual||'');
+  if(novo===null)return;
+  const nome=novo.trim();
+  if(!nome){toast('Nome não pode ficar vazio');return;}
+  if(nome===nomeAtual)return;
+  const{error}=await sb.from('documentos_cliente').update({nome_arquivo:nome}).eq('id',id);
+  if(error){toast('Erro ao renomear: '+error.message,4000);return;}
+  toast('Arquivo renomeado');
+  if(detailId)await loadDocs(detailId);
 }
 
 // ── TAREFAS ──────────────────────────────────────────────────
@@ -2294,12 +2307,13 @@ async function loadTasks(){
   tbody.innerHTML=data.map(t=>{
     const v=t.dt_vencimento?new Date(t.dt_vencimento+'T12:00:00'):null;
     const ov=v&&v<today;
-    return`<tr>
+    const linkCliente=t.cliente_id?`style="cursor:pointer" onclick="openDetail('${t.cliente_id}','tarefas')" title="Abrir cadastro do cliente"`:'';
+    return`<tr ${linkCliente}>
       <td style="font-weight:500">${t.clientes?.nome||'—'}</td>
       <td>${esc(t.titulo)}${t.descricao?`<br><span style="font-size:11px;color:var(--t2)">${esc(t.descricao)}</span>`:''}</td>
       <td style="font-size:11px">${t.responsavel||'—'}</td>
       <td style="font-size:11px;${ov?'color:var(--red);font-weight:500':''}">${v?v.toLocaleDateString('pt-BR'):'—'}</td>
-      <td><button class="ab" onclick="doneTask('${t.id}')"><i class="ti ti-check"></i> Concluir</button></td>
+      <td><button class="ab" onclick="event.stopPropagation();doneTask('${t.id}')"><i class="ti ti-check"></i> Concluir</button></td>
     </tr>`;
   }).join('');
 }

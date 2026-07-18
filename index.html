@@ -2240,6 +2240,7 @@ async function loadDetailTasks(cid){
         ${t.descricao?`<div style="font-size:11px;color:var(--t2)">${esc(t.descricao)}</div>`:''}
         ${t.dt_vencimento?`<div class="td2${ov?' ov':''}"><i class="ti ti-calendar" style="font-size:11px"></i> ${new Date(t.dt_vencimento+'T12:00:00').toLocaleDateString('pt-BR')}${t.responsavel?' · '+t.responsavel:''}</div>`:''}
       </div>
+      <button class="ab" style="font-size:10px;padding:2px 7px" onclick="editarTarefa('${t.id}')" title="Editar/reagendar"><i class="ti ti-pencil"></i></button>
     </div>`;
   }).join('');
 }
@@ -2316,7 +2317,7 @@ async function loadTasks(){
       <td>${esc(t.titulo)}${t.descricao?`<br><span style="font-size:11px;color:var(--t2)">${esc(t.descricao)}</span>`:''}</td>
       <td style="font-size:11px">${t.responsavel||'—'}</td>
       <td style="font-size:11px;${ov?'color:var(--red);font-weight:500':''}">${v?v.toLocaleDateString('pt-BR'):'—'}</td>
-      <td><button class="ab" onclick="event.stopPropagation();doneTask('${t.id}')"><i class="ti ti-check"></i> Concluir</button></td>
+      <td><button class="ab" style="margin-right:4px" onclick="event.stopPropagation();editarTarefa('${t.id}')"><i class="ti ti-pencil"></i> Editar</button><button class="ab" onclick="event.stopPropagation();doneTask('${t.id}')"><i class="ti ti-check"></i> Concluir</button></td>
     </tr>`;
   }).join('');
 }
@@ -2779,22 +2780,72 @@ function exportarICS(ag,clienteNome){
 }
 
 // ── TAREFAS ──────────────────────────────────────────────────
+let editTaskId=null;
 function openTaskModal(cid){
+  editTaskId=null;
   const sel=document.getElementById('t-cliente');
-  sel.innerHTML='<option value="">Selecione o cliente</option>'+all.map(c=>`<option value="${c.id}"${c.id===cid?' selected':''}>${c.nome}</option>`).join('');
+  sel.innerHTML='<option value="">Selecione o cliente</option>'+all.map(c=>`<option value="${c.id}"${c.id===cid?' selected':''}>${esc(c.nome)}</option>`).join('');
   ['t-titulo','t-desc','t-resp','t-venc'].forEach(i=>document.getElementById(i).value='');
+  const h=document.querySelector('#modal-task .mh h3');if(h)h.textContent='Nova tarefa';
   document.getElementById('modal-task').classList.add('open');
 }
-function closeTaskModal(){document.getElementById('modal-task').classList.remove('open');}
+async function editarTarefa(id){
+  const{data,error}=await sb.from('tarefas').select('*').eq('id',id).single();
+  if(error||!data){toast('Erro ao carregar tarefa');return;}
+  editTaskId=id;
+  const sel=document.getElementById('t-cliente');
+  sel.innerHTML='<option value="">Selecione o cliente</option>'+all.map(c=>`<option value="${c.id}"${c.id===data.cliente_id?' selected':''}>${esc(c.nome)}</option>`).join('');
+  document.getElementById('t-titulo').value=data.titulo||'';
+  document.getElementById('t-desc').value=data.descricao||'';
+  document.getElementById('t-resp').value=data.responsavel||'';
+  document.getElementById('t-venc').value=data.dt_vencimento||'';
+  const h=document.querySelector('#modal-task .mh h3');if(h)h.textContent='Editar tarefa';
+  document.getElementById('modal-task').classList.add('open');
+}
+function closeTaskModal(){editTaskId=null;document.getElementById('modal-task').classList.remove('open');}
+// Registra uma linha no histórico do cliente (usado por tarefas e agendamentos)
+async function registrarHistorico(clienteId,tipo,descricao){
+  if(!clienteId)return;
+  const quem=usuarioAtual?.nome||'sistema';
+  await sb.from('historico').insert({
+    cliente_id:clienteId,
+    tipo,
+    descricao:descricao+' — por '+quem,
+    registrado_por:quem
+  });
+}
+
 async function saveTask(){
   const titulo=document.getElementById('t-titulo').value.trim();
   if(!titulo){toast('Informe a tarefa');return;}
-  const{error}=await sb.from('tarefas').insert({cliente_id:document.getElementById('t-cliente').value||null,titulo,descricao:document.getElementById('t-desc').value||null,responsavel:document.getElementById('t-resp').value||null,dt_vencimento:document.getElementById('t-venc').value||null});
-  if(error){toast('Erro: '+error.message);return;}
-  toast('Tarefa criada!');closeTaskModal();loadTasks();if(detailId)loadDetailTasks(detailId);
+  const clienteId=document.getElementById('t-cliente').value||null;
+  const desc=document.getElementById('t-desc').value||null;
+  const resp=document.getElementById('t-resp').value||null;
+  const venc=document.getElementById('t-venc').value||null;
+  const fmt=d=>d?new Date(d+'T12:00:00').toLocaleDateString('pt-BR'):'sem data';
+  if(editTaskId){
+    const{data:antes}=await sb.from('tarefas').select('titulo,dt_vencimento').eq('id',editTaskId).single();
+    const{error}=await sb.from('tarefas').update({cliente_id:clienteId,titulo,descricao:desc,responsavel:resp,dt_vencimento:venc}).eq('id',editTaskId);
+    if(error){toast('Erro: '+error.message);return;}
+    // Distingue reagendamento (mudou a data) de edição comum
+    if(antes&&antes.dt_vencimento!==venc){
+      await registrarHistorico(clienteId,'Tarefa','Tarefa "'+titulo+'" reagendada de '+fmt(antes.dt_vencimento)+' para '+fmt(venc));
+    }else{
+      await registrarHistorico(clienteId,'Tarefa','Tarefa "'+titulo+'" editada');
+    }
+    toast('Tarefa atualizada!');
+  }else{
+    const{error}=await sb.from('tarefas').insert({cliente_id:clienteId,titulo,descricao:desc,responsavel:resp,dt_vencimento:venc});
+    if(error){toast('Erro: '+error.message);return;}
+    await registrarHistorico(clienteId,'Tarefa','Tarefa criada: "'+titulo+'" (venc. '+fmt(venc)+')');
+    toast('Tarefa criada!');
+  }
+  closeTaskModal();loadTasks();if(detailId)loadDetailTasks(detailId);
 }
 async function doneTask(id){
+  const{data:t}=await sb.from('tarefas').select('cliente_id,titulo').eq('id',id).single();
   await sb.from('tarefas').update({concluida:true}).eq('id',id);
+  if(t)await registrarHistorico(t.cliente_id,'Tarefa','Tarefa concluída: "'+t.titulo+'"');
   toast('Tarefa concluída!');loadTasks();if(detailId)loadDetailTasks(detailId);
 }
 
@@ -3323,6 +3374,27 @@ async function abrirModalAgendamento(clienteIdPresel,clienteNomePresel){
   document.getElementById('modal-agendamento').classList.add('open');
 }
 
+async function editarAgendamento(id){
+  const{data,error}=await sb.from('agendamentos').select('*').eq('id',id).single();
+  if(error||!data){toast('Erro ao carregar agendamento');return;}
+  const dt=new Date(data.data_hora);
+  const pad=n=>String(n).padStart(2,'0');
+  document.getElementById('ag-id').value=id;
+  document.getElementById('ag-data').value=dt.getFullYear()+'-'+pad(dt.getMonth()+1)+'-'+pad(dt.getDate());
+  document.getElementById('ag-hora').value=pad(dt.getHours())+':'+pad(dt.getMinutes());
+  document.getElementById('ag-tipo').value=data.tipo;
+  document.getElementById('ag-desc').value=data.descricao||'';
+  const selOp=document.getElementById('ag-operador');
+  selOp.innerHTML='<option value="">Selecione</option>'+operadoresList.map(o=>`<option value="${o.nome}">${o.nome}</option>`).join('');
+  selOp.value=data.operador||'';
+  const busca=document.getElementById('ag-cliente-busca');
+  document.getElementById('ag-cliente-id').value=data.cliente_id;
+  busca.value=(all.find(x=>x.id===data.cliente_id)?.nome)||'';
+  busca.setAttribute('readonly','readonly');busca.style.background='var(--gray-l)';
+  document.getElementById('ag-modal-title').textContent='Editar Agendamento';
+  document.getElementById('modal-agendamento').classList.add('open');
+}
+
 // Busca textual de cliente no modal de agendamento (autocomplete)
 let _agBuscaTimer=null;
 function buscarClienteAgendamento(termo){
@@ -3361,6 +3433,7 @@ function fecharModalAgendamento(){
 }
 
 async function salvarAgendamento(){
+  const agId=document.getElementById('ag-id').value;
   const clienteId=document.getElementById('ag-cliente-id').value;
   const data=document.getElementById('ag-data').value;
   const hora=document.getElementById('ag-hora').value;
@@ -3369,13 +3442,31 @@ async function salvarAgendamento(){
   if(!clienteId){toast('Selecione um cliente da lista de busca');return;}
   if(!data||!hora||!operador){toast('Preencha data, horário e operador');return;}
   const dataHora=new Date(data+'T'+hora+':00').toISOString();
-  const{error}=await sb.from('agendamentos').insert({
-    cliente_id:clienteId,data_hora:dataHora,tipo,operador,
-    descricao:document.getElementById('ag-desc').value.trim()||null,
-    criado_por:usuarioAtual?.nome||null
-  });
-  if(error){toast('Erro: '+error.message);return;}
-  fecharModalAgendamento();toast('Agendamento salvo!');
+  const desc=document.getElementById('ag-desc').value.trim()||null;
+  const fmtDT=iso=>new Date(iso).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+  if(agId){
+    const{data:antes}=await sb.from('agendamentos').select('data_hora').eq('id',agId).single();
+    const{error}=await sb.from('agendamentos').update({
+      cliente_id:clienteId,data_hora:dataHora,tipo,operador,descricao:desc,
+      updated_at:new Date().toISOString()
+    }).eq('id',agId);
+    if(error){toast('Erro: '+error.message);return;}
+    if(antes&&antes.data_hora!==dataHora){
+      await registrarHistorico(clienteId,'Agendamento',tipo+' reagendado de '+fmtDT(antes.data_hora)+' para '+fmtDT(dataHora));
+    }else{
+      await registrarHistorico(clienteId,'Agendamento',tipo+' ('+fmtDT(dataHora)+') editado');
+    }
+    toast('Agendamento atualizado!');
+  }else{
+    const{error}=await sb.from('agendamentos').insert({
+      cliente_id:clienteId,data_hora:dataHora,tipo,operador,descricao:desc,
+      criado_por:usuarioAtual?.nome||null
+    });
+    if(error){toast('Erro: '+error.message);return;}
+    await registrarHistorico(clienteId,'Agendamento',tipo+' agendado para '+fmtDT(dataHora)+' com '+operador);
+    toast('Agendamento salvo!');
+  }
+  fecharModalAgendamento();
   if(document.getElementById('page-agenda').style.display!=='none')await carregarAgendaMes();
   if(detailId&&clienteId===detailId)await loadDetailAgendamentos(detailId);
 }
@@ -3413,6 +3504,7 @@ async function loadDetailAgendamentos(cid){
         ${passou?'<div style="font-size:9px;color:var(--t3);margin-top:1px">(realizado/passado)</div>':''}
       </div>
       <div style="display:flex;flex-direction:column;gap:3px">
+        <button class="ab" style="font-size:10px;padding:2px 6px" onclick="editarAgendamento('${a.id}')" title="Editar/reagendar"><i class="ti ti-pencil"></i></button>
         <button class="ab" style="font-size:10px;padding:2px 6px" onclick="exportarICS(${JSON.stringify({data_hora:a.data_hora,tipo:a.tipo,descricao:a.descricao||''}).replace(/"/g,'&quot;')},'${(all.find(x=>x.id===cid)?.nome||'').replace(/'/g,"\\'")}')" title="Exportar .ics">📅</button>
         <button class="ab" style="font-size:10px;padding:2px 6px;color:var(--red)" onclick="cancelarAgendamento('${a.id}','${cid}')" title="Cancelar">✕</button>
       </div>
@@ -3422,7 +3514,9 @@ async function loadDetailAgendamentos(cid){
 
 async function cancelarAgendamento(id,cid){
   if(!confirm('Cancelar este agendamento?'))return;
-  await sb.from('agendamentos').update({status:'cancelado'}).eq('id',id);
+  const{data:ag}=await sb.from('agendamentos').select('tipo,data_hora,cliente_id').eq('id',id).single();
+  await sb.from('agendamentos').update({status:'cancelado',updated_at:new Date().toISOString()}).eq('id',id);
+  if(ag)await registrarHistorico(ag.cliente_id||cid,'Agendamento',(ag.tipo||'Agendamento')+' de '+new Date(ag.data_hora).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+' cancelado');
   toast('Agendamento cancelado');
   if(cid)await loadDetailAgendamentos(cid);
   if(document.getElementById('page-agenda').style.display!=='none')await carregarAgendaMes();

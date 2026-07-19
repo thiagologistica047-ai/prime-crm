@@ -659,6 +659,20 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
       <div class="panel-title">Conclusões recentes <span style="font-size:11px;color:var(--t3);font-weight:500">(linha do tempo)</span></div>
       <div id="timeline-conclusoes"></div>
     </div>
+    <div class="panel" style="grid-column:1/-1">
+      <div class="panel-title">Qualificação dos cadastros <span style="font-size:11px;color:var(--t3);font-weight:500">(nome, CPF, telefone, e-mail, produto, operador, origem)</span></div>
+      <div id="qc-geral" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--t2);margin-bottom:8px">Completude por operador</div>
+          <div style="height:260px;position:relative"><canvas id="cQualOp"></canvas></div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--t2);margin-bottom:8px">Campos que mais faltam</div>
+          <div id="qc-campos"></div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1856,7 +1870,85 @@ function renderDashboard(){
   renderTempoEtapas();
   renderGraficosExtras();
   renderTimelineConclusoes();
+  renderQualificacao();
   fecharDrill();
+}
+
+// ── QUALIFICAÇÃO DE CADASTRO (item 10) ───────────────────────
+const QC_CAMPOS=[
+  {k:'nome',lbl:'Nome'},
+  {k:'cpf',lbl:'CPF'},
+  {k:'telefone',lbl:'Telefone'},
+  {k:'email',lbl:'E-mail'},
+  {k:'produto',lbl:'Produto'},
+  {k:'operador',lbl:'Operador'},
+  {k:'origem_lead',lbl:'Origem'}
+];
+function qcPreenchido(v){return v!==null&&v!==undefined&&String(v).trim()!=='';}
+function qcCompletude(c){
+  const n=QC_CAMPOS.reduce((acc,f)=>acc+(qcPreenchido(c[f.k])?1:0),0);
+  return Math.round((n/QC_CAMPOS.length)*100);
+}
+function renderQualificacao(){
+  const base=baseDash();
+  const total=base.length;
+  const elGeral=document.getElementById('qc-geral');
+  const elCampos=document.getElementById('qc-campos');
+  if(!total){
+    elGeral.innerHTML='<div style="color:var(--t3);font-size:12px">Sem clientes no filtro atual.</div>';
+    elCampos.innerHTML='';
+    if(charts.qualOp){charts.qualOp.destroy();charts.qualOp=null;}
+    return;
+  }
+  // média geral + distribuição
+  const comps=base.map(qcCompletude);
+  const media=Math.round(comps.reduce((a,b)=>a+b,0)/total);
+  const full=comps.filter(x=>x===100).length;
+  const mid=comps.filter(x=>x>=50&&x<100).length;
+  const low=comps.filter(x=>x<50).length;
+  const card=(lbl,val,cor,sub)=>`<div style="background:var(--sf2);border:.5px solid var(--bd);border-radius:var(--rs);padding:12px 16px;min-width:130px">
+    <div style="font-size:22px;font-weight:700;color:${cor}">${val}</div>
+    <div style="font-size:11px;color:var(--t2)">${lbl}</div>${sub?`<div style="font-size:10px;color:var(--t3);margin-top:2px">${sub}</div>`:''}</div>`;
+  elGeral.innerHTML=
+    card('Completude média',media+'%','var(--blue)','todos os cadastros')+
+    card('Completos (100%)',full,'var(--green,#0E9F6E)',`${Math.round(full/total*100)}% do total`)+
+    card('Parciais (50–99%)',mid,'var(--amber,#D97706)',`${Math.round(mid/total*100)}% do total`)+
+    card('Incompletos (<50%)',low,'var(--red,#DC2626)',`${Math.round(low/total*100)}% do total`);
+  // por operador (média de completude dos cadastros de cada operador)
+  const porOp={};
+  base.forEach(c=>{
+    const o=qcPreenchido(c.operador)?c.operador:'(sem operador)';
+    (porOp[o]=porOp[o]||[]).push(qcCompletude(c));
+  });
+  const opsArr=Object.entries(porOp)
+    .map(([o,arr])=>[o,Math.round(arr.reduce((a,b)=>a+b,0)/arr.length),arr.length])
+    .sort((a,b)=>b[1]-a[1]);
+  const cO=document.getElementById('cQualOp');
+  if(charts.qualOp){charts.qualOp.destroy();}
+  if(cO&&opsArr.length){
+    charts.qualOp=new Chart(cO,{
+      type:'bar',
+      data:{labels:opsArr.map(x=>x[0]),datasets:[{label:'Completude média %',data:opsArr.map(x=>x[1]),
+        backgroundColor:opsArr.map(x=>x[1]>=80?'#0E9F6E':x[1]>=50?'#D97706':'#DC2626'),borderRadius:5}]},
+      options:{indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{afterLabel:ctx=>opsArr[ctx.dataIndex][2]+' cadastro(s)'}}},
+        scales:{x:{beginAtZero:true,max:100,ticks:{font:{family:'Inter'}},grid:{color:'#F1F5F9'}},y:{ticks:{font:{family:'Inter'}},grid:{display:false}}},
+        maintainAspectRatio:false}
+    });
+  }
+  // campos que mais faltam
+  const faltas=QC_CAMPOS.map(f=>({lbl:f.lbl,n:base.filter(c=>!qcPreenchido(c[f.k])).length}))
+    .filter(x=>x.n>0).sort((a,b)=>b.n-a.n);
+  elCampos.innerHTML=faltas.length
+    ? faltas.map(f=>{
+        const pct=Math.round(f.n/total*100);
+        return`<div style="margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px">
+            <span>${f.lbl}</span><span style="color:var(--t3)">${f.n} faltando (${pct}%)</span></div>
+          <div style="background:var(--sf2);border-radius:4px;height:7px;overflow:hidden">
+            <div style="width:${pct}%;height:100%;background:var(--red,#DC2626)"></div></div>
+        </div>`;
+      }).join('')
+    : '<div style="color:var(--green,#0E9F6E);font-size:12px"><i class="ti ti-check"></i> Todos os cadastros têm os 7 campos preenchidos.</div>';
 }
 
 // Filtro ativo do dashboard

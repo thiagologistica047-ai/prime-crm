@@ -372,6 +372,7 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
     <div class="ns">Operação</div>
     <div class="ni active" data-page="kanban" onclick="go('kanban')"><i class="ti ti-columns"></i> Quadro</div>
     <div class="ni" data-page="posvenda" onclick="go('posvenda')"><i class="ti ti-archive"></i> Pós-venda</div>
+    <div class="ni" data-page="repescagem" onclick="go('repescagem')"><i class="ti ti-refresh-alert"></i> Repescagem</div>
     <div class="ni" data-page="vistorias" onclick="go('vistorias')"><i class="ti ti-home-search"></i> Vistorias</div>
     <div class="ni" id="nav-agenda" data-page="agenda" onclick="go('agenda')"><i class="ti ti-calendar-event"></i> Agenda</div>
     <div class="ni" data-page="conversas" onclick="go('conversas')"><i class="ti ti-brand-whatsapp"></i> Conversas</div>
@@ -450,6 +451,26 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
         <table>
           <thead><tr><th>Nome</th><th>Operador</th><th>Produto</th><th>Próx. contato</th><th>Alerta</th><th>Ações</th></tr></thead>
           <tbody id="tbody-pv"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REPESCAGEM -->
+<div id="page-repescagem" class="page" style="display:none;flex-direction:column">
+  <div class="hdr">
+    <div class="hdr-title">Repescagem</div>
+    <div class="hdr-acts"><span style="font-size:12px;color:var(--t2)">Clientes para retomar contato</span></div>
+  </div>
+  <div class="cnt">
+    <div id="rep-resumo" style="margin-bottom:12px"></div>
+    <div class="tc">
+      <div class="th2"><div class="tt" id="rep-count">Carregando...</div></div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Nome</th><th>Operador</th><th>Produto</th><th>Últ. interação</th><th>Dias parado</th><th>Alerta</th><th>Ações</th></tr></thead>
+          <tbody id="tbody-rep"></tbody>
         </table>
       </div>
     </div>
@@ -588,7 +609,7 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
           <select id="fStatus" onchange="filterTable()">
             <option value="">Todos os status</option>
             <option>Triagem</option><option>Andamento</option><option>Condicionado</option>
-            <option>Reprovado</option><option>Aprovado</option><option>Conformidade</option>
+            <option>Reprovado</option><option>Repescagem</option><option>Aprovado</option><option>Conformidade</option>
             <option>Assinatura</option><option>Cartório/Prefeitura</option><option>Concluído</option><option>Pós-venda</option>
           </select>
           <select id="fProd" onchange="filterTable()">
@@ -800,7 +821,7 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
         <div class="fl"><label>Status *</label>
           <select id="f-status">
             <option>Triagem</option><option>Andamento</option><option>Condicionado</option>
-            <option>Reprovado</option><option>Aprovado</option><option>Conformidade</option>
+            <option>Reprovado</option><option>Repescagem</option><option>Aprovado</option><option>Conformidade</option>
             <option>Assinatura</option><option>Cartório/Prefeitura</option><option>Concluído</option><option>Pós-venda</option>
           </select>
         </div>
@@ -931,7 +952,7 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
           <select id="int-status">
             <option value="">Manter status atual</option>
             <option>Triagem</option><option>Andamento</option><option>Condicionado</option>
-            <option>Reprovado</option><option>Aprovado</option><option>Conformidade</option>
+            <option>Reprovado</option><option>Repescagem</option><option>Aprovado</option><option>Conformidade</option>
             <option>Assinatura</option><option>Cartório/Prefeitura</option><option>Concluído</option><option>Pós-venda</option>
           </select>
         </div>
@@ -1126,8 +1147,8 @@ let usuarioAtual=null, editUsuarioId=null, voltarPara='kanban', interacaoCliente
 let etapasConfig=[], operadoresList=[];
 let filtroOrigemLead='', filtroSituacaoLead='';
 
-const STATUS_ORDER=['Triagem','Andamento','Condicionado','Reprovado','Aprovado','Conformidade','Assinatura','Cartório/Prefeitura','Concluído'];
-const SBADGE={'Triagem':'b-teal','Andamento':'b-blue','Condicionado':'b-amber','Reprovado':'b-red','Aprovado':'b-green','Conformidade':'b-purple','Assinatura':'b-purple','Cartório/Prefeitura':'b-coral','Concluído':'b-green','Pós-venda':'b-gray'};
+const STATUS_ORDER=['Triagem','Andamento','Condicionado','Reprovado','Repescagem','Aprovado','Conformidade','Assinatura','Cartório/Prefeitura','Concluído'];
+const SBADGE={'Triagem':'b-teal','Andamento':'b-blue','Condicionado':'b-amber','Reprovado':'b-red','Repescagem':'b-amber','Aprovado':'b-green','Conformidade':'b-purple','Assinatura':'b-purple','Cartório/Prefeitura':'b-coral','Concluído':'b-green','Pós-venda':'b-gray'};
 const PBADGE={'Habitacional MCMV':'b-teal','Habitacional SBPE':'b-teal','Reforma Brasil':'b-green','Conta Corrente':'b-blue','Poupança':'b-blue','Cartão de Crédito':'b-purple','Consórcio':'b-amber','Consignado':'b-amber','Seguro de Vida':'b-green','Rapidex/Amparo':'b-gray','Múltiplo':'b-purple'};
 const COLS=['#185FA5','#3B6D11','#854F0B','#A32D2D','#0F6E56','#534AB7','#993C1D','#888780','#D4537E','#378ADD'];
 const ORIGEM_BADGE={'WhatsApp':'b-green','Indicação':'b-purple','Corretor':'b-gray','Facebook/Instagram':'b-blue','Outros':'b-amber'};
@@ -1332,6 +1353,7 @@ function go(p){
   if(p==='operacional')renderOperacional();
   if(p==='dashboard')renderDashboard();
   if(p==='posvenda')renderPosvenda();
+  if(p==='repescagem')renderRepescagem();
   if(p==='agenda')carregarAgenda();
   if(p==='conversas')carregarConversas();
 }
@@ -1589,6 +1611,52 @@ async function reativarPosvenda(id){
   toast('Cliente reativado no quadro');await loadAll();
 }
 
+function diasParado(c){
+  // base: última interação real; fallback: entrada na etapa. Nunca zera ao mover p/ Repescagem.
+  const base=c.ultima_interacao||c.dt_entrada_etapa;
+  if(!base)return null;
+  return Math.floor((Date.now()-new Date(base).getTime())/86400000);
+}
+function renderRepescagem(){
+  const rep=all.filter(c=>c.status==='Repescagem');
+  document.getElementById('rep-count').textContent=`${rep.length} cliente(s) em repescagem`;
+  const tbody=document.getElementById('tbody-rep');
+  const resumo=document.getElementById('rep-resumo');
+  if(!rep.length){
+    resumo.innerHTML='';
+    tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--t3)">Nenhum cliente em repescagem</td></tr>';
+    return;
+  }
+  // um cliente "precisa de contato" se: 30+ dias parado OU tem próxima_interacao já vencida
+  const agora=Date.now();
+  const precisa=rep.filter(c=>{
+    const d=diasParado(c);
+    const venc=c.proxima_interacao&&new Date(c.proxima_interacao).getTime()<=agora;
+    return (d!==null&&d>=30)||venc;
+  });
+  resumo.innerHTML=precisa.length
+    ?`<div style="background:var(--red-l,#fef2f2);border:.5px solid var(--red);border-radius:var(--rs);padding:10px 14px;font-size:13px;color:var(--red);font-weight:600"><i class="ti ti-alert-triangle"></i> ${precisa.length} cliente(s) precisam de contato</div>`
+    :`<div style="background:var(--green-l,#f0fdf4);border:.5px solid var(--green);border-radius:var(--rs);padding:10px 14px;font-size:13px;color:var(--green);font-weight:600"><i class="ti ti-check"></i> Nenhum contato vencido no momento</div>`;
+  // ordena: mais dias parado primeiro
+  rep.sort((a,b)=>(diasParado(b)??-1)-(diasParado(a)??-1));
+  tbody.innerHTML=rep.map(c=>{
+    const d=diasParado(c);
+    const venc=c.proxima_interacao&&new Date(c.proxima_interacao).getTime()<=agora;
+    const alerta=(d!==null&&d>=30)||venc;
+    const ultStr=c.ultima_interacao?new Date(c.ultima_interacao).toLocaleDateString('pt-BR'):'—';
+    return`<tr${alerta?' style="background:var(--red-l,#fef2f2)"':''}>
+      <td class="nm">${esc(c.nome)}${c.legado?'<span class="tag-legado">L</span>':''}</td>
+      <td style="font-size:11px">${c.operador||'—'}</td>
+      <td><span class="badge ${PBADGE[c.produto]||'b-gray'}">${c.produto||'—'}</span></td>
+      <td style="font-size:11px">${ultStr}</td>
+      <td style="font-size:11px;${alerta?'color:var(--red);font-weight:600':''}">${d!==null?d+' dias':'—'}</td>
+      <td>${alerta?'<span class="badge b-red">⚠ Retomar</span>':'<span class="badge b-green">OK</span>'}</td>
+      <td><button class="ab" onclick="openDetail('${c.id}','repescagem')">Ver</button>
+          <button class="ab" style="margin-left:3px" onclick="reativarPosvenda('${c.id}')">Reativar</button></td>
+    </tr>`;
+  }).join('');
+}
+
 // ── DASHBOARD ────────────────────────────────────────────────
 function renderDashboard(){
   renderKPIs();
@@ -1694,7 +1762,7 @@ function abrirDrillComissao(titulo,lista){
   drill.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 // Cores por etapa (consistentes com a paleta)
-const ETAPA_COR={'Triagem':'#1B3A6B','Andamento':'#3B82F6','Condicionado':'#D97706','Reprovado':'#DC2626','Aprovado':'#0E9F6E','Conformidade':'#7C3AED','Assinatura':'#7C3AED','Cartório/Prefeitura':'#EA580C','Concluído':'#0E9F6E'};
+const ETAPA_COR={'Triagem':'#1B3A6B','Andamento':'#3B82F6','Condicionado':'#D97706','Reprovado':'#DC2626','Repescagem':'#F59E0B','Aprovado':'#0E9F6E','Conformidade':'#7C3AED','Assinatura':'#7C3AED','Cartório/Prefeitura':'#EA580C','Concluído':'#0E9F6E'};
 
 function tempoMedioEtapa(status,base){
   // Tempo médio dos clientes que estão AGORA nesta etapa (dt_entrada_etapa)

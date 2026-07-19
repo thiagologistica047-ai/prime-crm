@@ -379,6 +379,7 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
     <div class="ns" id="nav-sec-gestao">Gestão</div>
     <div class="ni" id="nav-dashboard" data-page="dashboard" style="display:none" onclick="go('dashboard')"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
     <div class="ni" id="nav-operacional" data-page="operacional" style="display:none" onclick="go('operacional')"><i class="ti ti-target"></i> Operacional</div>
+    <div class="ni" id="nav-auditoria" data-page="auditoria" style="display:none" onclick="go('auditoria')"><i class="ti ti-history"></i> Auditoria</div>
     <div class="ni" data-page="clientes" onclick="go('clientes')"><i class="ti ti-users"></i> Clientes</div>
     <div class="ni" data-page="tarefas" onclick="go('tarefas')"><i class="ti ti-checkbox"></i> Tarefas</div>
     <div class="ni" data-page="modelos" onclick="go('modelos')"><i class="ti ti-files"></i> Modelos</div>
@@ -534,6 +535,47 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
     <div class="mf">
       <button class="btn" onclick="fecharModalModelo()">Cancelar</button>
       <button class="btn p" id="btn-salvar-modelo" onclick="salvarModelo()"><i class="ti ti-upload"></i> Enviar</button>
+    </div>
+  </div>
+</div>
+
+<!-- AUDITORIA -->
+<div id="page-auditoria" class="page" style="display:none;flex-direction:column">
+  <div class="hdr">
+    <div class="hdr-title">Auditoria de atividades</div>
+    <div class="hdr-acts"><span style="font-size:12px;color:var(--t2)">Acompanhamento do trabalho da equipe</span></div>
+  </div>
+  <div class="cnt" style="overflow-y:auto">
+    <!-- Filtros -->
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
+      <select id="aud-operador" onchange="renderAuditoria()" style="padding:5px 9px;border:.5px solid var(--bd);border-radius:var(--rs);background:var(--sf2);color:var(--t);font-size:12px">
+        <option value="">Todos os operadores</option>
+      </select>
+      <select id="aud-tipo" onchange="renderAuditoria()" style="padding:5px 9px;border:.5px solid var(--bd);border-radius:var(--rs);background:var(--sf2);color:var(--t);font-size:12px">
+        <option value="">Todos os tipos</option>
+        <option value="interacoes">Só interações (WhatsApp/Ligação/Email/Visita/Nota)</option>
+        <option value="Status alterado">Mudanças de status</option>
+        <option value="Tarefa">Tarefas</option>
+        <option value="Agendamento">Agendamentos</option>
+        <option value="Cadastro">Cadastro</option>
+      </select>
+      <span style="font-size:11px;color:var(--t2)">Período:</span>
+      <input type="date" id="aud-dt-ini" onchange="renderAuditoria()" style="padding:5px 7px;border:.5px solid var(--bd);border-radius:var(--rs);background:var(--sf2);color:var(--t);font-size:12px">
+      <span style="font-size:11px;color:var(--t3)">até</span>
+      <input type="date" id="aud-dt-fim" onchange="renderAuditoria()" style="padding:5px 7px;border:.5px solid var(--bd);border-radius:var(--rs);background:var(--sf2);color:var(--t);font-size:12px">
+      <button class="btn" onclick="limparFiltrosAuditoria()"><i class="ti ti-x"></i> Limpar</button>
+    </div>
+    <!-- Resumo -->
+    <div id="aud-resumo" style="margin-bottom:16px"></div>
+    <!-- Feed -->
+    <div class="tc">
+      <div class="th2"><div class="tt" id="aud-feed-count">Feed de atividades</div></div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Data/Hora</th><th>Operador</th><th>Tipo</th><th>Ação</th><th>Cliente</th></tr></thead>
+          <tbody id="tbody-aud"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
@@ -1338,6 +1380,7 @@ async function entrarNoApp(){
   document.getElementById('nav-equipe').style.display=ehGestor?'flex':'none';
   document.getElementById('nav-dashboard').style.display=ehGestor?'flex':'none';
   document.getElementById('nav-operacional').style.display=ehGestor?'flex':'none';
+  document.getElementById('nav-auditoria').style.display=ehGestor?'flex':'none';
   document.getElementById('nav-agenda').style.display='flex';// agenda visível a todos
   await loadAll();
   go('kanban');
@@ -1399,7 +1442,7 @@ function popularSelectCorretores(){
 // ── Navegação ────────────────────────────────────────────────
 function go(p){
   // Bloqueio de acesso: operadores não acessam dashboard, operacional, agenda
-  if((p==='dashboard'||p==='operacional')&&usuarioAtual?.role!=='gestor'){return;}
+  if((p==='dashboard'||p==='operacional'||p==='auditoria')&&usuarioAtual?.role!=='gestor'){return;}
   document.querySelectorAll('.page').forEach(x=>{x.style.display='none';});
   // Highlight sidebar: usa data-page para não depender de índice posicional
   document.querySelectorAll('.ni').forEach(n=>{
@@ -1412,6 +1455,7 @@ function go(p){
   if(p==='equipe')carregarEquipe();
   if(p==='vistorias')carregarVistorias();
   if(p==='operacional')renderOperacional();
+  if(p==='auditoria')carregarAuditoria();
   if(p==='dashboard')renderDashboard();
   if(p==='posvenda')renderPosvenda();
   if(p==='repescagem')renderRepescagem();
@@ -1516,6 +1560,88 @@ function limparFiltroData(){
   document.getElementById('kanban-dt-fim').value='';
   document.getElementById('btn-limpar-data').style.display='none';
   renderKanban();
+}
+
+// ── AUDITORIA (gestor) ───────────────────────────────────────
+let _auditoriaDados=[];
+const AUD_INTERACOES=['WhatsApp','Ligação','Email','Visita','Nota'];
+async function carregarAuditoria(){
+  const tbody=document.getElementById('tbody-aud');
+  tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--t3)">Carregando...</td></tr>';
+  // Traz as últimas ~1000 linhas do histórico com nome do cliente
+  const{data,error}=await sb.from('historico')
+    .select('id,tipo,descricao,registrado_por,created_at,cliente_id,clientes(nome)')
+    .order('created_at',{ascending:false})
+    .limit(1000);
+  if(error){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--red)">Erro ao carregar</td></tr>';return;}
+  _auditoriaDados=data||[];
+  // popular filtro de operadores a partir dos dados
+  const sel=document.getElementById('aud-operador');
+  const ops=[...new Set(_auditoriaDados.map(h=>h.registrado_por).filter(Boolean))].sort();
+  sel.innerHTML='<option value="">Todos os operadores</option>'+ops.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('');
+  renderAuditoria();
+}
+function _audFiltrado(){
+  const op=document.getElementById('aud-operador').value;
+  const tp=document.getElementById('aud-tipo').value;
+  const ini=document.getElementById('aud-dt-ini').value;
+  const fim=document.getElementById('aud-dt-fim').value;
+  return _auditoriaDados.filter(h=>{
+    if(op&&h.registrado_por!==op)return false;
+    if(tp==='interacoes'){if(!AUD_INTERACOES.includes(h.tipo))return false;}
+    else if(tp&&h.tipo!==tp)return false;
+    if(ini&&new Date(h.created_at)<new Date(ini+'T00:00:00'))return false;
+    if(fim&&new Date(h.created_at)>new Date(fim+'T23:59:59'))return false;
+    return true;
+  });
+}
+function renderAuditoria(){
+  const rows=_audFiltrado();
+  // Resumo: total + por operador + por tipo
+  const porOp={},porTipo={};
+  rows.forEach(h=>{
+    const o=h.registrado_por||'(sem operador)';
+    porOp[o]=(porOp[o]||0)+1;
+    const t=AUD_INTERACOES.includes(h.tipo)?'Interações':h.tipo;
+    porTipo[t]=(porTipo[t]||0)+1;
+  });
+  const card=(lbl,val,cor)=>`<div style="background:var(--sf2);border:.5px solid var(--bd);border-radius:var(--rs);padding:10px 14px;min-width:120px">
+    <div style="font-size:20px;font-weight:700;color:${cor||'var(--navy)'}">${val}</div>
+    <div style="font-size:11px;color:var(--t2)">${esc(lbl)}</div></div>`;
+  let resumo='<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">';
+  resumo+=card('Total de ações',rows.length,'var(--blue)');
+  Object.entries(porTipo).sort((a,b)=>b[1]-a[1]).forEach(([t,q])=>{resumo+=card(t,q);});
+  resumo+='</div>';
+  // por operador
+  const ops=Object.entries(porOp).sort((a,b)=>b[1]-a[1]);
+  if(ops.length){
+    resumo+='<div style="display:flex;gap:8px;flex-wrap:wrap">';
+    ops.forEach(([o,q])=>{resumo+=`<div style="background:var(--sf);border:.5px solid var(--bd);border-radius:20px;padding:4px 12px;font-size:12px"><b>${esc(o)}</b>: ${q}</div>`;});
+    resumo+='</div>';
+  }
+  document.getElementById('aud-resumo').innerHTML=resumo;
+  document.getElementById('aud-feed-count').textContent=`Feed de atividades (${rows.length})`;
+  // Feed (limita a 300 linhas exibidas para não pesar o DOM)
+  const tbody=document.getElementById('tbody-aud');
+  if(!rows.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--t3)">Nenhuma atividade no filtro selecionado</td></tr>';return;}
+  const badgeCor=t=>AUD_INTERACOES.includes(t)?'b-teal':(SBADGE[t.replace('Status alterado','')]||'b-gray');
+  tbody.innerHTML=rows.slice(0,300).map(h=>{
+    const dt=new Date(h.created_at);
+    return`<tr>
+      <td style="font-size:11px;white-space:nowrap">${dt.toLocaleDateString('pt-BR')} ${dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</td>
+      <td style="font-size:11px;font-weight:500">${esc(h.registrado_por||'—')}</td>
+      <td><span class="badge ${AUD_INTERACOES.includes(h.tipo)?'b-teal':'b-gray'}" style="font-size:10px">${esc(h.tipo)}</span></td>
+      <td style="font-size:11px">${esc(h.descricao||'')}</td>
+      <td style="font-size:11px">${h.cliente_id?`<a href="#" onclick="openDetail('${h.cliente_id}','auditoria');return false" style="color:var(--blue);text-decoration:none">${esc(h.clientes?.nome||'ver')}</a>`:'—'}</td>
+    </tr>`;
+  }).join('')+(rows.length>300?`<tr><td colspan="5" style="text-align:center;padding:10px;color:var(--t3);font-size:11px">Mostrando as 300 mais recentes de ${rows.length}. Use os filtros para refinar.</td></tr>`:'');
+}
+function limparFiltrosAuditoria(){
+  document.getElementById('aud-operador').value='';
+  document.getElementById('aud-tipo').value='';
+  document.getElementById('aud-dt-ini').value='';
+  document.getElementById('aud-dt-fim').value='';
+  renderAuditoria();
 }
 
 function renderKanban(){
@@ -2644,11 +2770,17 @@ async function saveCliente(){
   try{
     const res=editId
       ?await sb.from('clientes').update(pay).eq('id',editId)
-      :await sb.from('clientes').insert(pay);
+      :await sb.from('clientes').insert(pay).select('id').single();
     if(res.error){
       console.error('Erro saveCliente:',res.error);
       toast('Erro ao salvar: '+res.error.message,5000);
       return;
+    }
+    if(editId){
+      await registrarHistorico(editId,'Cadastro','Dados cadastrais editados');
+    }else{
+      const novoId=res.data?.id;
+      if(novoId)await registrarHistorico(novoId,'Cadastro','Cliente cadastrado no sistema');
     }
     toast(editId?'Cliente atualizado!':'Cliente cadastrado!');
     closeModal();

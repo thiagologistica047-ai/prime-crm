@@ -501,8 +501,8 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
 </div>
 
 <!-- MODAL MODELO -->
-<div id="modal-modelo" class="modal">
-  <div class="mw" style="max-width:440px">
+<div id="modal-modelo" class="overlay">
+  <div class="modal sm" style="max-width:440px">
     <div class="mh"><h3>Enviar modelo</h3><button class="mc" onclick="fecharModalModelo()">×</button></div>
     <div class="mb">
       <div id="mod-drop"
@@ -1663,7 +1663,7 @@ function renderKanban(){
   if(Array.isArray(filtroSituacaoLead)&&filtroSituacaoLead.length){ativos=ativos.filter(c=>filtroSituacaoLead.includes(c.situacao_lead));}
   else if(filtroSituacaoLead&&typeof filtroSituacaoLead==='string'){ativos=ativos.filter(c=>c.situacao_lead===filtroSituacaoLead);}
   const temFiltro=q||op||filtroOrigemLead||filtroSituacaoLead;
-  document.getElementById('kanban').innerHTML=STATUS_ORDER.map(s=>{
+  document.getElementById('kanban').innerHTML=STATUS_ORDER.filter(s=>s!=='Repescagem').map(s=>{
     const cards=ativos.filter(c=>c.status===s);
     const alertas=cards.filter(c=>c.em_alerta_r1).length;
     return`<div class="kol"

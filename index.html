@@ -381,6 +381,7 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
     <div class="ni" id="nav-operacional" data-page="operacional" style="display:none" onclick="go('operacional')"><i class="ti ti-target"></i> Operacional</div>
     <div class="ni" data-page="clientes" onclick="go('clientes')"><i class="ti ti-users"></i> Clientes</div>
     <div class="ni" data-page="tarefas" onclick="go('tarefas')"><i class="ti ti-checkbox"></i> Tarefas</div>
+    <div class="ni" data-page="modelos" onclick="go('modelos')"><i class="ti ti-files"></i> Modelos</div>
     <div class="ns">Sistema</div>
     <div class="ni" id="nav-equipe" data-page="equipe" style="display:none" onclick="go('equipe')"><i class="ti ti-users-group"></i> Equipe</div>
     <div class="ni" data-page="senha" onclick="go('senha')"><i class="ti ti-key"></i> Alterar senha</div>
@@ -473,6 +474,66 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
           <tbody id="tbody-rep"></tbody>
         </table>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODELOS -->
+<div id="page-modelos" class="page" style="display:none;flex-direction:column">
+  <div class="hdr">
+    <div class="hdr-title">Modelos e documentos padrão</div>
+    <div class="hdr-acts">
+      <button class="btn p" onclick="abrirModalModelo()"><i class="ti ti-upload"></i> Enviar modelo</button>
+    </div>
+  </div>
+  <div class="cnt">
+    <div class="tc">
+      <div class="th2"><div class="tt" id="mod-count">Carregando...</div></div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Nome</th><th>Categoria</th><th>Tamanho</th><th>Enviado por</th><th>Data</th><th>Ações</th></tr></thead>
+          <tbody id="tbody-mod"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MODELO -->
+<div id="modal-modelo" class="modal">
+  <div class="mw" style="max-width:440px">
+    <div class="mh"><h3>Enviar modelo</h3><button class="mc" onclick="fecharModalModelo()">×</button></div>
+    <div class="mb">
+      <div id="mod-drop"
+        style="border:2px dashed var(--bd);border-radius:var(--rs);padding:24px 16px;text-align:center;cursor:pointer;margin-bottom:12px"
+        ondragover="event.preventDefault();this.style.borderColor='var(--blue)'"
+        ondragleave="this.style.borderColor='var(--bd)'"
+        ondrop="handleDropModelo(event)"
+        onclick="document.getElementById('mod-file-input').click()">
+        <i class="ti ti-upload" style="font-size:26px;color:var(--t3)"></i>
+        <div style="font-size:13px;font-weight:500;margin-top:8px">Arraste o arquivo aqui</div>
+        <div style="font-size:11px;color:var(--t3);margin-top:4px">ou clique para selecionar · máx. 10 MB</div>
+        <input type="file" id="mod-file-input" style="display:none"
+          accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx"
+          onchange="selecionarArquivoModelo(this.files[0])">
+      </div>
+      <div id="mod-preview" style="display:none;background:var(--sf2);border-radius:var(--rs);padding:10px 12px;margin-bottom:12px;font-size:12px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <i class="ti ti-file" style="font-size:18px;color:var(--blue)"></i>
+          <div style="flex:1;min-width:0">
+            <div id="mod-preview-nome" style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+            <div id="mod-preview-size" style="font-size:10px;color:var(--t3)"></div>
+          </div>
+        </div>
+      </div>
+      <div class="fl"><label>Nome do modelo</label><input id="mod-nome" type="text" placeholder="Ex: Contrato padrão MCMV"></div>
+      <div class="fl"><label>Categoria</label><input id="mod-categoria" type="text" placeholder="Ex: Contratos, Formulários, Checklists" list="mod-cat-list">
+        <datalist id="mod-cat-list"></datalist>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="fecharModalModelo()">Cancelar</button>
+      <button class="btn p" id="btn-salvar-modelo" onclick="salvarModelo()"><i class="ti ti-upload"></i> Enviar</button>
     </div>
   </div>
 </div>
@@ -1356,6 +1417,7 @@ function go(p){
   if(p==='repescagem')renderRepescagem();
   if(p==='agenda')carregarAgenda();
   if(p==='conversas')carregarConversas();
+  if(p==='modelos')carregarModelos();
 }
 
 async function carregarConversas(){
@@ -2722,6 +2784,84 @@ function limparArquivo(){
   document.getElementById('doc-preview').style.display='none';
   document.getElementById('drop-zone').style.display='';
   document.getElementById('doc-file-input').value='';
+}
+
+// ── MODELOS (biblioteca de arquivos padrão) ──────────────────
+let arquivoModeloSel=null;
+async function carregarModelos(){
+  const{data,error}=await sb.from('arquivos_modelo').select('*').order('categoria').order('nome');
+  const tbody=document.getElementById('tbody-mod');
+  const cnt=document.getElementById('mod-count');
+  if(error){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--red)">Erro ao carregar</td></tr>';return;}
+  cnt.textContent=`${(data||[]).length} modelo(s) disponível(is)`;
+  // preencher datalist de categorias já usadas
+  const cats=[...new Set((data||[]).map(m=>m.categoria).filter(Boolean))];
+  const dl=document.getElementById('mod-cat-list');
+  if(dl)dl.innerHTML=cats.map(c=>`<option value="${esc(c)}">`).join('');
+  if(!data||!data.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--t3)">Nenhum modelo enviado ainda</td></tr>';return;}
+  tbody.innerHTML=data.map(m=>`<tr>
+    <td class="nm"><a href="${m.url}" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none"><i class="ti ti-file"></i> ${esc(m.nome)}</a></td>
+    <td style="font-size:11px">${m.categoria?`<span class="badge b-gray">${esc(m.categoria)}</span>`:'—'}</td>
+    <td style="font-size:11px">${m.tamanho_kb?(m.tamanho_kb>1024?(m.tamanho_kb/1024).toFixed(1)+' MB':m.tamanho_kb+' KB'):'—'}</td>
+    <td style="font-size:11px">${m.criado_por||'—'}</td>
+    <td style="font-size:11px">${m.created_at?new Date(m.created_at).toLocaleDateString('pt-BR'):'—'}</td>
+    <td>
+      <a class="ab" href="${m.url}" download target="_blank" rel="noopener" style="text-decoration:none"><i class="ti ti-download"></i></a>
+      <button class="ab" style="margin-left:3px;color:var(--red)" onclick="excluirModelo('${m.id}')" title="Excluir"><i class="ti ti-trash"></i></button>
+    </td>
+  </tr>`).join('');
+}
+function abrirModalModelo(){
+  arquivoModeloSel=null;
+  document.getElementById('mod-file-input').value='';
+  document.getElementById('mod-nome').value='';
+  document.getElementById('mod-categoria').value='';
+  document.getElementById('mod-preview').style.display='none';
+  document.getElementById('modal-modelo').classList.add('open');
+}
+function fecharModalModelo(){document.getElementById('modal-modelo').classList.remove('open');}
+function selecionarArquivoModelo(f){
+  if(!f)return;
+  if(f.size>10*1024*1024){toast('Arquivo excede 10 MB');return;}
+  arquivoModeloSel=f;
+  document.getElementById('mod-preview-nome').textContent=f.name;
+  document.getElementById('mod-preview-size').textContent=(f.size/1024).toFixed(0)+' KB';
+  document.getElementById('mod-preview').style.display='block';
+  if(!document.getElementById('mod-nome').value)document.getElementById('mod-nome').value=f.name.replace(/\.[^.]+$/,'');
+}
+function handleDropModelo(e){
+  e.preventDefault();e.currentTarget.style.borderColor='var(--bd)';
+  const f=e.dataTransfer.files[0];if(f)selecionarArquivoModelo(f);
+}
+async function salvarModelo(){
+  if(!arquivoModeloSel){toast('Selecione um arquivo');return;}
+  const nome=document.getElementById('mod-nome').value.trim()||arquivoModeloSel.name;
+  const categoria=document.getElementById('mod-categoria').value.trim()||null;
+  const btn=document.getElementById('btn-salvar-modelo');
+  btn.disabled=true;btn.textContent='Enviando...';
+  try{
+    const formData=new FormData();
+    formData.append('arquivo',arquivoModeloSel);
+    // SEM cliente_id → Worker salva sob prefixo modelos/
+    const WORKER_URL='https://prime-upload-worker.sistemaintegradocrmprime.workers.dev';
+    const resp=await fetch(WORKER_URL,{method:'POST',headers:{'Authorization':'Bearer '+window._authToken},body:formData});
+    const r=await resp.json();
+    if(!resp.ok||!r.sucesso){toast('Erro no upload: '+(r.erro||'tente novamente'),4000);btn.disabled=false;btn.innerHTML='<i class="ti ti-upload"></i> Enviar';return;}
+    const{error}=await sb.from('arquivos_modelo').insert({
+      nome,categoria,url:r.url,
+      tamanho_kb:Math.round(arquivoModeloSel.size/1024),
+      criado_por:usuarioAtual?.nome||null
+    });
+    if(error){toast('Erro ao registrar: '+error.message,4000);btn.disabled=false;btn.innerHTML='<i class="ti ti-upload"></i> Enviar';return;}
+    toast('Modelo enviado!');fecharModalModelo();await carregarModelos();
+  }catch(e){toast('Erro inesperado: '+e.message,4000);}
+  btn.disabled=false;btn.innerHTML='<i class="ti ti-upload"></i> Enviar';
+}
+async function excluirModelo(id){
+  if(!confirm('Excluir este modelo? (o registro sai da lista; o arquivo permanece no armazenamento)'))return;
+  const{error}=await sb.from('arquivos_modelo').delete().eq('id',id);
+  if(error){toast('Erro ao excluir: '+error.message,4000);return;}
+  toast('Modelo removido');await carregarModelos();
 }
 
 async function salvarDoc(){

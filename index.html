@@ -817,7 +817,10 @@ td.ob{color:var(--t2);max-width:220px;overflow:hidden;text-overflow:ellipsis;whi
 <div id="page-tarefas" class="page" style="display:none;flex-direction:column">
   <div class="hdr">
     <div class="hdr-title">Tarefas e follow-ups</div>
-    <div class="hdr-acts"><button class="btn p" onclick="openTaskModal(null)"><i class="ti ti-plus"></i> Nova tarefa</button></div>
+    <div class="hdr-acts">
+      <input type="text" id="tasks-q" placeholder="Buscar cliente (nome, CPF, telefone)..." oninput="loadTasks()" style="padding:5px 9px;border:.5px solid var(--bd);border-radius:var(--rs);background:var(--sf2);color:var(--t);font-size:12px;width:220px">
+      <button class="btn p" onclick="openTaskModal(null)"><i class="ti ti-plus"></i> Nova tarefa</button>
+    </div>
   </div>
   <div class="cnt">
     <div class="tc">
@@ -1658,6 +1661,47 @@ function limparFiltrosAuditoria(){
   renderAuditoria();
 }
 
+// ── BUSCA INTELIGENTE DE CLIENTE ─────────────────────────────
+// Normaliza texto: minúsculas, sem acento
+function normTexto(s){return (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');}
+// Só dígitos
+function normDig(s){return (s||'').toString().replace(/\D/g,'');}
+// Compara telefones tolerando o 9º dígito (celular BR): remove o 9 após o DDD dos dois lados
+function telVariantes(dig){
+  const vars=new Set([dig]);
+  // 11 dígitos (DDD + 9 + 8) -> gera versão sem o 9 (10 dígitos)
+  if(dig.length===11&&dig[2]==='9')vars.add(dig.slice(0,2)+dig.slice(3));
+  // 10 dígitos (DDD + 8) -> gera versão com 9 inserido
+  if(dig.length===10)vars.add(dig.slice(0,2)+'9'+dig.slice(2));
+  return [...vars];
+}
+// Retorna true se o cliente casa com o termo digitado
+function matchCliente(c,termo){
+  const t=(termo||'').trim();
+  if(!t)return true;
+  const tTexto=normTexto(t);
+  const tDig=normDig(t);
+  // nome (texto, sem acento)
+  if(tTexto&&normTexto(c.nome).includes(tTexto))return true;
+  // se o termo tem dígitos, tenta CPF e telefone por dígitos
+  if(tDig){
+    const cpfDig=normDig(c.cpf);
+    if(cpfDig&&cpfDig.includes(tDig))return true;
+    const telDig=normDig(c.telefone);
+    if(telDig){
+      // casa se qualquer variante do termo estiver contida no telefone, ou vice-versa
+      const termoVars=telVariantes(tDig);
+      const telVars=telVariantes(telDig);
+      for(const tv of termoVars){
+        for(const cv of telVars){
+          if(cv.includes(tv))return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
 function renderKanban(){
   const q=(document.getElementById('kanban-q')?.value||'').toLowerCase().trim();
   const op=document.getElementById('kanban-op')?.value||'';
@@ -1666,10 +1710,7 @@ function renderKanban(){
   if(kanbanDtIni){const ini=new Date(kanbanDtIni+'T00:00:00');ativos=ativos.filter(c=>c.dt_entrada&&new Date(c.dt_entrada+'T00:00:00')>=ini);}
   if(kanbanDtFim){const fim=new Date(kanbanDtFim+'T23:59:59');ativos=ativos.filter(c=>c.dt_entrada&&new Date(c.dt_entrada+'T00:00:00')<=fim);}
   if(q){ativos=ativos.filter(c=>
-    (c.nome||'').toLowerCase().includes(q)||
-    (c.cpf||'').includes(q)||
-    (c.telefone||'').includes(q)||
-    (c.operador||'').toLowerCase().includes(q)
+    matchCliente(c,q)||(c.operador||'').toLowerCase().includes(q)
   );}
   if(op){ativos=ativos.filter(c=>c.operador===op);}
   if(Array.isArray(filtroOrigemLead)&&filtroOrigemLead.length){ativos=ativos.filter(c=>filtroOrigemLead.includes(c.origem_lead));}
@@ -2461,7 +2502,7 @@ function filterTable(){
   const fp=document.getElementById('fProd').value;
   const fc=document.getElementById('fCorretor')?.value||'';
   filtered=all.filter(c=>
-    (!q||(c.nome||'').toLowerCase().includes(q)||(c.cpf||'').includes(q)||(c.telefone||'').includes(q)||(c.observacoes||'').toLowerCase().includes(q))&&
+    (!q||matchCliente(c,q)||normTexto(c.observacoes).includes(normTexto(q)))&&
     (fL===''||(fL==='0'?!c.legado:c.legado))&&
     (!fs||c.status===fs)&&(!fp||c.produto===fp)&&(!fc||(c.operador===fc||c.corretor===fc)));
   pg=0;renderTable();
@@ -2656,9 +2697,17 @@ async function renomearDoc(id){
 async function loadTasks(){
   const{data}=await sb.from('tarefas').select('*, clientes(nome)').order('concluida').order('dt_vencimento');
   const tbody=document.getElementById('tbody-tasks');
-  if(!data||!data.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:28px;color:var(--t3)">Nenhuma tarefa pendente</td></tr>';return;}
+  const qTask=(document.getElementById('tasks-q')?.value||'').trim();
+  let lista=data||[];
+  if(qTask){
+    lista=lista.filter(t=>{
+      const c=all.find(x=>x.id===t.cliente_id);
+      return c?matchCliente(c,qTask):false;
+    });
+  }
+  if(!lista.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:28px;color:var(--t3)">Nenhuma tarefa pendente</td></tr>';return;}
   const today=new Date();today.setHours(0,0,0,0);
-  tbody.innerHTML=data.map(t=>{
+  tbody.innerHTML=lista.map(t=>{
     const v=t.dt_vencimento?new Date(t.dt_vencimento+'T12:00:00'):null;
     const ov=v&&v<today;
     const linkCliente=t.cliente_id?`style="cursor:pointer" onclick="openDetail('${t.cliente_id}','tarefas')" title="Abrir cadastro do cliente"`:'';
@@ -3858,8 +3907,7 @@ function buscarClienteAgendamento(termo){
   if(t.length<2){res.style.display='none';res.innerHTML='';return;}
   _agBuscaTimer=setTimeout(()=>{
     const matches=all.filter(c=>
-      (c.nome||'').toLowerCase().includes(t)||
-      (c.cpf||'').replace(/\D/g,'').includes(t.replace(/\D/g,''))
+      matchCliente(c,t)
     ).slice(0,15);
     if(!matches.length){
       res.innerHTML='<div style="padding:8px 10px;font-size:12px;color:var(--t3)">Nenhum cliente encontrado</div>';
